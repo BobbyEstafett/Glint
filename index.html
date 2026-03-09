@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GLINT - Alpha (Artefact Normal Map)</title>
+    <title>GLINT - Alpha (Test Rapide)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: #00ffcc; font-family: monospace; overflow: hidden; }
 
@@ -105,7 +105,11 @@
 
         let targetLat = null, targetLon = null;
         let startLat = null, startLon = null;
-        const spawnDistance = 20; const glitchStartDistance = 20; const extractionDistance = 8; 
+        
+        // --- DISTANCES RÉDUITES POUR TEST RAPIDE ---
+        const spawnDistance = 2; // Apparaît à 2 mètres
+        const glitchStartDistance = 10; // Commence à glitcher à 10 mètres
+        const extractionDistance = 5; // Bouton dispo dès 5 mètres
         
         const maxGlitchOffset = 25;
         let currentDistance = 999;
@@ -217,7 +221,8 @@
                         return 0.0;
                     }
                     void main() {
-                        vec2 fragCoord = vUv * resolution; vec2 glitchUv = vUv;
+                        vec2 fragCoord = vUv * resolution;
+                        vec2 glitchUv = vUv;
                         float jitterSpeed = 15.0; float jitterBands = 30.0; float jitterStrength = 0.04 * intensity; 
                         float jitterLine = floor(glitchUv.y * jitterBands);
                         float jitterJump = step(0.98 - 0.1*intensity, random(vec2(time * jitterSpeed, jitterLine))) * (random(vec2(jitterLine, 1.0)) - 0.5);
@@ -283,10 +288,8 @@
                 }, 50); 
             });
 
-            // --- NOUVEAU DESIGN DE L'ARTEFACT (NORMAL MAP) ---
             const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
             const coreGeo = new THREE.IcosahedronGeometry(0.06, 0); 
-            // L'astuce magique est ici : le MeshNormalMaterial
             const coreMat = new THREE.MeshNormalMaterial({ flatShading: true });
             const coreMesh = new THREE.Mesh(coreGeo, coreMat);
             
