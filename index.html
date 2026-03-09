@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLINT - Radar Sensoriel</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #050505; color: #00ffcc;
+            font-family: monospace; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; height: 100vh;
+            overflow: hidden; transition: filter 0.2s ease-out;
+            /* Fond statique très léger */
+            background-image: radial-gradient(circle, #1a1a1a 0%, #000000 100%);
+        }
+
+        /* Effet de scanlines (lignes d'écran cathodique) */
+        .crt-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 5; pointer-events: none;
+        }
+
+        .glitch-text {
+            font-size: 2rem; text-align: center; position: relative;
+            text-shadow: var(--glitch-offset, 0px) 0 0 red, calc(var(--glitch-offset, 0px) * -1) 0 0 blue;
+            transition: text-shadow 0.2s ease-out;
+            margin-bottom: 20px;
+        }
+
+        #ui-container {
+            z-index: 10; background: rgba(0, 20, 15, 0.8); padding: 30px;
+            border: 1px solid #00ffcc; border-radius: 5px; text-align: center;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .data-stream { font-size: 0.8rem; color: #555; margin-top: 15px; height: 1.2em; }
+
+        button {
+            margin-top: 20px; padding: 12px 24px; background: transparent;
+            color: #00ffcc; border: 1px solid #00ffcc; font-family: monospace;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            transition: all 0.2s;
+        }
+        button:hover { background: #00ffcc; color: #000; box-shadow: 0 0 10px #00ffcc; }
+    </style>
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <div id="ui-container">
+        <div class="glitch-text" id="main-title">ANALYSE EN COURS</div>
+        <p id="distance-display">Recherche d'une anomalie locale...</p>
+        <p id="status-display">En attente du signal GPS...</p>
+        <div class="data-stream" id="data-stream">0x00000000</div>
+        <button id="start-btn">Initier la traque</button>
+    </div>
+
+    <script>
+        let targetLat = null; let targetLon = null;
+        const spawnDistance = 100; 
+        const maxDistance = 150; 
+        const maxGlitchOffset = 25; // Augmenté pour un effet plus fort
+        
+        let currentDistance = 999; // Distance stockée pour piloter le son
+        let radarTimeout;
+        let audioCtx;
+
+        const startBtn = document.getElementById('start-btn');
+        const distanceDisplay = document.getElementById('distance-display');
+        const statusDisplay = document.getElementById('status-display');
+        const dataStream = document.getElementById('data-stream');
+        const mainTitle = document.getElementById('main-title');
+
+        startBtn.addEventListener('click', () => {
+            if ("geolocation" in navigator) {
+                // Initialisation du moteur Audio (Obligatoire après un clic utilisateur)
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                audioCtx.resume();
+
+                statusDisplay.innerText = "Synchronisation des capteurs...";
+                startBtn.style.display = 'none';
+                
+                navigator.geolocation.getCurrentPosition((position) => {
+                    generateAnomalyLocation(position.coords.latitude, position.coords.longitude, spawnDistance);
+                    mainTitle.innerText = "ANOMALIE DÉTECTÉE";
+                    
+                    navigator.geolocation.watchPosition(updatePosition, handleError, { enableHighAccuracy: true, maximumAge: 0 });
+                    
+                    // Lancer la boucle du radar (Son + Vibrations)
+                    radarLoop();
+                    // Lancer le flux de fausses données visuelles
+                    setInterval(updateDataStream, 100);
+
+                }, handleError, { enableHighAccuracy: true });
+            } else {
+                statusDisplay.innerText = "Le GPS n'est pas supporté.";
+            }
+        });
+
+        // --- MOTEUR AUDIO PROCÉDURAL (Compteur Geiger numérique) ---
+        function playGlitchPop(intensity) {
+            if (!audioCtx) return;
+            
+            // Création d'un très court bruit blanc (entre 10ms et 50ms selon la proximité)
+            const duration = 0.01 + (1 - intensity) * 0.04; 
+            const bufferSize = audioCtx.sampleRate * duration; 
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1; 
+            }
+            
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = buffer;
+            
+            // On filtre le son pour qu'il soit plus aigu quand on s'approche
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 500 + (intensity * 3000); 
+            
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = 0.1 + (intensity * 0.4); // Plus fort si proche
+
+            noiseSource.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            noiseSource.start();
+        }
+
+        // --- BOUCLE DU RADAR (Gère le rythme des bips) ---
+        function radarLoop() {
+            clearTimeout(radarTimeout);
+            
+            let intensity = 0;
+            if (currentDistance <= maxDistance) {
+                intensity = 1 - (currentDistance / maxDistance);
+                if (intensity < 0) intensity = 0;
+                
+                playGlitchPop(intensity);
+                
+                // Vibration du téléphone (si supporté)
+                if (navigator.vibrate) navigator.vibrate(30);
+            }
+
+            // Calcul du temps avant le prochain "Bip" (de 2 secondes à 100 millisecondes)
+            let delay = 2000;
+            if (currentDistance <= maxDistance) {
+                delay = 100 + ((1 - intensity) * 1900);
+            }
+
+            radarTimeout = setTimeout(radarLoop, delay);
+        }
+
+        // --- GESTION GPS & VISUELS ---
+        function generateAnomalyLocation(lat, lon, dist) {
+            const R = 6371000; const angle = Math.random() * 2 * Math.PI;
+            targetLat = lat + ((dist * Math.cos(angle)) / R) * 180 / Math.PI;
+            targetLon = lon + ((dist * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+        }
+
+        function updatePosition(position) {
+            if (!targetLat) return;
+            currentDistance = calculateDistance(position.coords.latitude, position.coords.longitude, targetLat, targetLon);
+            distanceDisplay.innerText = `Distance estimée : ${Math.round(currentDistance)} mètres`;
+            applyGlitchEffect(currentDistance);
+        }
+
+        function applyGlitchEffect(distance) {
+            let glitchIntensity = 0;
+            if (distance <= maxDistance) {
+                const proximityRatio = 1 - (distance / maxDistance);
+                glitchIntensity = proximityRatio * maxGlitchOffset;
+                
+                if (distance < 15) {
+                    statusDisplay.innerText = "BRÈCHE IMMINENTE - PRÉPAREZ-VOUS";
+                    statusDisplay.style.color = "#ff003c";
+                    document.body.style.backgroundColor = `rgba(${proximityRatio * 50}, 0, 0, 1)`;
+                } else {
+                    statusDisplay.innerText = "Interférences en cours...";
+                    statusDisplay.style.color = "#00ffcc";
+                    document.body.style.backgroundColor = "#050505";
+                }
+            } else {
+                statusDisplay.innerText = "Signal faible. Déplacez-vous.";
+            }
+
+            document.documentElement.style.setProperty('--glitch-offset', `${glitchIntensity}px`);
+        }
+
+        // Animation de faux code binaire/hexa pour l'esthétique
+        function updateDataStream() {
+            let stream = "";
+            const chars = "0123456789ABCDEF!@#$";
+            for(let i=0; i<16; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+            dataStream.innerText = `[MEM_LEAK] 0x${stream}`;
+        }
+
+        function handleError(error) { statusDisplay.innerText = `Erreur capteur: ${error.message}`; }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180;
+            const dp = (lat2-lat1) * Math.PI/180; const dl = (lon2-lon1) * Math.PI/180;
+            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        }
+    </script>
+</body>
+</html>
