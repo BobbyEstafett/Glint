@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GLINT - Alpha (Test Rapide)</title>
+    <title>GLINT - Alpha (Interaction & UI Artefact)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: #00ffcc; font-family: monospace; overflow: hidden; }
 
+        /* --- UI DU RADAR --- */
         #radar-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; flex-direction: column; align-items: center; 
@@ -17,8 +18,7 @@
         .crt-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
-            background-size: 100% 4px, 3px 100%; 
-            pointer-events: none; z-index: 5;
+            background-size: 100% 4px, 3px 100%; pointer-events: none; z-index: 5;
             animation: scrollScanlines 10s linear infinite;
         }
 
@@ -33,15 +33,12 @@
 
         #ar-veil {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: rgba(0, 255, 204, 0.25); 
-            mix-blend-mode: overlay; pointer-events: none; z-index: 4; 
-            display: none; 
+            background-color: rgba(0, 255, 204, 0.25); mix-blend-mode: overlay; pointer-events: none; z-index: 4; display: none; 
         }
 
         #flash-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #ffffff; z-index: 2000;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
+            background-color: #ffffff; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
         }
         
         .info-box { 
@@ -61,16 +58,36 @@
 
         #ARButton {
             background-color: #ff003c !important; border: 1px solid #fff !important; color: #fff !important;
-            font-family: monospace !important; position: absolute !important; 
-            bottom: 25px !important; left: 50% !important; transform: translateX(-50%) !important;
+            font-family: monospace !important; position: absolute !important; bottom: 25px !important; left: 50% !important; transform: translateX(-50%) !important;
             width: 85% !important; max-width: 400px !important; z-index: 999 !important;
         }
 
         #xr-ui {
-            position: absolute; top: 40px; width: 100%; text-align: center; z-index: 100;
-            pointer-events: none; text-shadow: 1px 1px 3px black; display: none; font-size: 1.2rem;
-            background: rgba(0,0,0,0.5); padding: 10px 0;
+            position: absolute; top: 40px; width: 100%; text-align: center; z-index: 100; pointer-events: none; text-shadow: 1px 1px 3px black; display: none; font-size: 1.2rem; background: rgba(0,0,0,0.5); padding: 10px 0;
         }
+
+        /* --- NOUVELLE INTERFACE : LA FICHE DE L'ARTEFACT --- */
+        #artifact-ui {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 5, 2, 0.9); z-index: 3000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px);
+        }
+        .artifact-card {
+            background: rgba(0, 20, 10, 0.8); border: 2px solid #00ffcc; border-radius: 10px;
+            padding: 25px; width: 100%; max-width: 400px; text-align: center;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.2), inset 0 0 20px rgba(0, 255, 204, 0.1);
+        }
+        .artifact-card h2 { color: #fff; margin-top: 0; text-shadow: 0 0 10px #00ffcc; letter-spacing: 3px; }
+        .artifact-lore { font-size: 0.9rem; color: #aaa; font-style: italic; margin-bottom: 25px; line-height: 1.4; }
+        .artifact-stats { text-align: left; font-size: 0.85rem; border-top: 1px dashed #00ffcc; padding-top: 15px; }
+        .artifact-stats p { margin: 8px 0; color: #888; }
+        .artifact-stats span { color: #00ffcc; float: right; font-weight: bold; }
+        .mystery-word { color: #ff003c !important; text-shadow: 0 0 5px red; font-size: 1.1rem; text-transform: uppercase; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; }
+        #btn-inventory { background: #00ffcc; color: #000; font-weight: bold; }
+        #btn-continue { background: transparent; color: #888; border-color: #888; }
         
         #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
     </style>
@@ -99,6 +116,24 @@
 
     <div id="xr-ui">INITIALISATION DU SCANNER...</div>
 
+    <div id="artifact-ui">
+        <div class="artifact-card">
+            <h2>ÉCLAT MNÉMONIQUE</h2>
+            <p class="artifact-lore">"Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme."</p>
+            
+            <div class="artifact-stats">
+                <p>FRAGMENT <span id="ui-progress">1 / 7</span></p>
+                <p>COORDONNÉES <span id="ui-gps">0.000, 0.000</span></p>
+                <p>DONNÉE DÉCRYPTÉE <span class="mystery-word">"NOUS"</span></p>
+            </div>
+
+            <div class="btn-group">
+                <button id="btn-inventory">Ouvrir le Sanctuaire</button>
+                <button id="btn-continue">Continuer la Traque</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import * as THREE from 'three';
         import { ARButton } from 'three/addons/webxr/ARButton.js';
@@ -106,15 +141,14 @@
         let targetLat = null, targetLon = null;
         let startLat = null, startLon = null;
         
-        // --- DISTANCES RÉDUITES POUR TEST RAPIDE ---
-        const spawnDistance = 2; // Apparaît à 2 mètres
-        const glitchStartDistance = 10; // Commence à glitcher à 10 mètres
-        const extractionDistance = 5; // Bouton dispo dès 5 mètres
+        // TEST RAPIDE
+        const spawnDistance = 2; const glitchStartDistance = 10; const extractionDistance = 5; 
         
         const maxGlitchOffset = 25;
         let currentDistance = 999;
         let radarTimeout, audioCtx, cameraStream = null, dataStreamInterval;
 
+        // UI DOM Elements
         const startBtn = document.getElementById('start-btn');
         const recalcBtn = document.getElementById('recalc-btn');
         const distanceDisplay = document.getElementById('distance-display');
@@ -126,6 +160,11 @@
         const dataStream = document.getElementById('data-stream');
         const flashOverlay = document.getElementById('flash-overlay');
         const arVeil = document.getElementById('ar-veil');
+        
+        const artifactUI = document.getElementById('artifact-ui');
+        const uiGps = document.getElementById('ui-gps');
+        const btnContinue = document.getElementById('btn-continue');
+        const btnInventory = document.getElementById('btn-inventory');
 
         function generateTarget(lat, lon, distance) {
             const R = 6371000; const angle = Math.random() * 2 * Math.PI;
@@ -143,8 +182,7 @@
 
         startBtn.addEventListener('click', async () => {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
-            startBtn.style.display = 'none';
-            recalcBtn.style.display = 'inline-block'; 
+            startBtn.style.display = 'none'; recalcBtn.style.display = 'inline-block'; 
             mainTitle.innerText = "ANALYSE EN COURS";
             dataStreamInterval = setInterval(updateDataStream, 80);
 
@@ -156,26 +194,18 @@
                     radarLoop();
                 });
             }
-
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                initRadarShader(cameraStream);
-            } catch (err) { console.error(err); }
+            try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); initRadarShader(cameraStream); } catch (err) { console.error(err); }
         });
 
-        recalcBtn.addEventListener('click', () => {
-            if (startLat && startLon) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "Recalibrage des capteurs..."; }
-        });
+        recalcBtn.addEventListener('click', () => { if (startLat && startLon) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "Recalibrage des capteurs..."; } });
 
         function updatePosition(pos) {
             startLat = pos.coords.latitude; startLon = pos.coords.longitude;
             currentDistance = calculateDistance(pos.coords.latitude, pos.coords.longitude, targetLat, targetLon);
             distanceDisplay.innerText = `Distance : ${Math.round(currentDistance)} mètres`;
             
-            let intensity = 0;
-            if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
+            let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
             document.documentElement.style.setProperty('--glitch-offset', `${intensity * maxGlitchOffset}px`);
-            
             if(shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
 
             const arBtn = document.getElementById('ARButton');
@@ -185,10 +215,7 @@
                 if (arBtn) {
                     arBtn.innerText = "INITIER L'EXTRACTION";
                     if (!isFlashTriggered) {
-                        arBtn.addEventListener('click', () => {
-                            flashOverlay.style.opacity = '1';
-                            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                        }, { once: true });
+                        arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }, { once: true });
                         isFlashTriggered = true;
                     }
                 }
@@ -198,14 +225,13 @@
             }
         }
 
+        // --- MOTEUR SHADER ---
         function initRadarShader(stream) {
             const container = document.getElementById('threejs-radar-container');
             videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
             radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-            radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight);
-            container.appendChild(radarRenderer.domElement);
+            radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
             videoTexture = new THREE.VideoTexture(videoElement);
-
             shaderMaterial = new THREE.ShaderMaterial({
                 uniforms: { tDiffuse: { value: videoTexture }, resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, intensity: { value: 0 }, time: { value: 0 } },
                 vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
@@ -221,8 +247,7 @@
                         return 0.0;
                     }
                     void main() {
-                        vec2 fragCoord = vUv * resolution;
-                        vec2 glitchUv = vUv;
+                        vec2 fragCoord = vUv * resolution; vec2 glitchUv = vUv;
                         float jitterSpeed = 15.0; float jitterBands = 30.0; float jitterStrength = 0.04 * intensity; 
                         float jitterLine = floor(glitchUv.y * jitterBands);
                         float jitterJump = step(0.98 - 0.1*intensity, random(vec2(time * jitterSpeed, jitterLine))) * (random(vec2(jitterLine, 1.0)) - 0.5);
@@ -230,8 +255,7 @@
                         float pixelSize = 1.0 + floor(intensity * 4.0); vec2 dxy = pixelSize / resolution; vec2 uv = dxy * floor(glitchUv / dxy); 
                         float aberrationStrength = 0.02 * intensity; 
                         float r = texture2D(tDiffuse, uv + vec2(aberrationStrength, 0.0)).r; float g = texture2D(tDiffuse, uv).g; float b = texture2D(tDiffuse, uv - vec2(aberrationStrength, 0.0)).b;
-                        vec4 color = vec4(r, g, b, 1.0);
-                        float luma = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+                        vec4 color = vec4(r, g, b, 1.0); float luma = dot(color.rgb, vec3(0.299, 0.587, 0.114));
                         vec3 dreamColor = mix(vec3(luma), color.rgb, 1.0 + (intensity * 3.0)); 
                         dreamColor.r += intensity * 0.6 * luma; dreamColor.b += intensity * 0.3 * luma; dreamColor.g -= intensity * 0.2 * luma;
                         float dither = ditherPattern(fragCoord / pixelSize); dreamColor += (dither - 0.5) * (intensity * 0.8);
@@ -241,17 +265,17 @@
             });
             const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad); renderRadar();
         }
-
         let clock = new THREE.Clock();
-        function renderRadar() {
-            if (radarRenderer && shaderMaterial) {
-                requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera);
-            }
-        }
+        function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
 
         // --- MOTEUR WEBXR ---
         let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
         let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false; 
+        
+        // NOUVEAU: Système d'états et de Raycaster
+        let xrState = 'search'; // 'search' -> 'revealed' -> 'recovered'
+        let spawnedArtifactMesh = null;
+        const raycaster = new THREE.Raycaster();
 
         function initXR() {
             scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20); 
@@ -260,55 +284,61 @@
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            const arButton = ARButton.createButton(renderer, { 
-                requiredFeatures: ['hit-test'],
-                optionalFeatures: ['dom-overlay'],
-                domOverlay: { root: document.body }
-            });
+            const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
             arContainer.appendChild(arButton);
 
             renderer.xr.addEventListener('sessionstart', () => {
-                flashOverlay.style.transition = 'none';
-                flashOverlay.style.opacity = '1';
+                flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
                 if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-
-                radarUI.style.display = 'none';
-                arVeil.style.display = 'block'; 
-
-                if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
-                if(videoElement) videoElement.pause();
+                radarUI.style.display = 'none'; arVeil.style.display = 'block'; 
+                if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                 clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
                 if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
-                
                 xrUI.style.display = 'block'; xrUI.innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE";
-
-                setTimeout(() => {
-                    flashOverlay.style.transition = 'opacity 1.5s ease-in-out';
-                    flashOverlay.style.opacity = '0';
-                }, 50); 
+                setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
             });
 
             const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
-            const coreGeo = new THREE.IcosahedronGeometry(0.06, 0); 
-            const coreMat = new THREE.MeshNormalMaterial({ flatShading: true });
-            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            
-            const wireGeo = new THREE.IcosahedronGeometry(0.09, 1); 
-            const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.8 });
-            const wireMesh = new THREE.Mesh(wireGeo, wireMat);
-            
+            const coreGeo = new THREE.IcosahedronGeometry(0.06, 0); const coreMat = new THREE.MeshNormalMaterial({ flatShading: true }); const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            const wireGeo = new THREE.IcosahedronGeometry(0.09, 1); const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.8 }); const wireMesh = new THREE.Mesh(wireGeo, wireMat);
             artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
             controller = renderer.xr.getController(0);
             controller.addEventListener('select', () => {
-                if (reticle.visible && canExtract) {
-                    const newArtifact = artifactGroup.clone();
-                    reticle.matrix.decompose(newArtifact.position, newArtifact.quaternion, newArtifact.scale);
-                    newArtifact.rotation.y = Math.random() * Math.PI;
-                    scene.add(newArtifact);
+                // ETAT 1 : Révéler l'artefact
+                if (xrState === 'search' && reticle.visible && canExtract) {
+                    spawnedArtifactMesh = artifactGroup.clone();
+                    reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
+                    spawnedArtifactMesh.rotation.y = Math.random() * Math.PI;
+                    scene.add(spawnedArtifactMesh);
                     
-                    xrUI.innerText = "ARTEFACT RÉCUPÉRÉ !"; xrUI.style.color = "#fff"; reticle.visible = false; canExtract = false; 
+                    xrState = 'revealed';
+                    reticle.visible = false; 
+                    xrUI.innerText = "ARTEFACT LOCALISÉ - TOUCHEZ-LE POUR L'EXTRAIRE"; 
+                    xrUI.style.color = "#fff";
                     if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+                } 
+                // ETAT 2 : Toucher l'artefact pour l'extraire
+                else if (xrState === 'revealed') {
+                    // On crée un rayon depuis le contrôleur/écran
+                    const tempMatrix = new THREE.Matrix4();
+                    tempMatrix.identity().extractRotation(controller.matrixWorld);
+                    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+                    raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+
+                    // On vérifie si le rayon touche l'artefact
+                    const intersects = raycaster.intersectObject(spawnedArtifactMesh, true);
+                    if (intersects.length > 0) {
+                        xrState = 'recovered';
+                        xrUI.style.display = 'none'; // On cache le texte du haut
+                        
+                        // On remplit les données GPS
+                        uiGps.innerText = `${startLat.toFixed(5)}, ${startLon.toFixed(5)}`;
+                        // On affiche la belle interface
+                        artifactUI.style.display = 'flex';
+                        
+                        if (navigator.vibrate) navigator.vibrate([50, 50, 200]); 
+                    }
                 }
             });
             scene.add(controller);
@@ -326,7 +356,7 @@
                     session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
                     hitTestSourceRequested = true;
                 }
-                if (hitTestSource) {
+                if (hitTestSource && xrState === 'search') {
                     const results = frame.getHitTestResults(hitTestSource);
                     if (results.length > 0) {
                         reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
@@ -335,10 +365,10 @@
                             hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
                             isTargetSpawned = true;
                         }
-                        if (isTargetSpawned && xrUI.innerText !== "ARTEFACT RÉCUPÉRÉ !") {
+                        if (isTargetSpawned) {
                             let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
                             let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
-                            if (dist < 0.3) { reticle.material.color.setHex(0x00ffcc); reticle.scale.set(1.5, 1.5, 1.5); xrUI.innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR EXTRAIRE"; xrUI.style.color = "#00ffcc"; canExtract = true; if (navigator.vibrate && Math.random() > 0.8) navigator.vibrate(20); } 
+                            if (dist < 0.3) { reticle.material.color.setHex(0x00ffcc); reticle.scale.set(1.5, 1.5, 1.5); xrUI.innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR RÉVÉLER"; xrUI.style.color = "#00ffcc"; canExtract = true; if (navigator.vibrate && Math.random() > 0.8) navigator.vibrate(20); } 
                             else if (dist < 1.0) { reticle.material.color.setHex(0xffaa00); reticle.scale.set(1, 1, 1); xrUI.innerText = "ANOMALIE PROCHE..."; xrUI.style.color = "#ffaa00"; canExtract = false; } 
                             else { reticle.material.color.setHex(0xff003c); reticle.scale.set(1, 1, 1); xrUI.innerText = "BALAYEZ LA SURFACE POUR TROUVER LA BRÈCHE"; xrUI.style.color = "#ff003c"; canExtract = false; }
                         }
@@ -355,10 +385,21 @@
             renderer.render(scene, camera);
         }
 
+        // --- GESTION DES BOUTONS DE L'INTERFACE FINALE ---
+        btnContinue.addEventListener('click', () => {
+            // Relancer la page est la méthode la plus propre pour tuer la session AR et relancer le Radar
+            location.reload(); 
+        });
+
+        btnInventory.addEventListener('click', () => {
+            alert("Lancement de l'environnement 3D 'Le Sanctuaire'...");
+            // Ici, nous coderons la transition vers la scène abstraite 3D
+        });
+
+        // --- UTILITAIRES RADAR ---
         function playGlitchPop(intensity) {
             if (!audioCtx || intensity <= 0) return;
-            const dur = 0.01 + (1 - intensity) * 0.04; 
-            const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+            const dur = 0.01 + (1 - intensity) * 0.04; const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
             const data = buf.getChannelData(0); for (let i = 0; i < buf.length; i++) data[i] = Math.random() * 2 - 1; 
             const src = audioCtx.createBufferSource(); src.buffer = buf;
             const filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 500 + (intensity * 3000); 
