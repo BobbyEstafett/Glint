@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GLINT - Alpha (Unification DA)</title>
+    <title>GLINT - Alpha (Visuel Monolithe)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: #00ffcc; font-family: monospace; overflow: hidden; }
 
@@ -41,7 +41,6 @@
             background-color: #ffffff; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
         }
         
-        /* La boite d'info du radar */
         .info-box { 
             background: rgba(0, 10, 5, 0.85); padding: 20px; border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 8px; 
             text-align: center; width: 85%; max-width: 400px; pointer-events: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
@@ -53,8 +52,7 @@
 
         button {
             margin-top: 10px; padding: 12px 24px; background: rgba(0, 0, 0, 0.5); color: #00ffcc; border: 1px solid #00ffcc;
-            font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%;
-            border-radius: 4px;
+            font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%; border-radius: 4px;
         }
         #recalc-btn { display: none; font-size: 0.7rem; padding: 8px 16px; border-color: #888; color: #888; margin-top: 15px; width: auto; }
 
@@ -64,25 +62,14 @@
             width: 85% !important; max-width: 400px !important; z-index: 999 !important; border-radius: 4px !important;
         }
 
-        /* --- UI INDICATIONS AR (Totalement repensée) --- */
         #xr-ui {
-            position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
-            width: 85%; max-width: 400px; z-index: 100;
+            position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 400px; z-index: 100;
             pointer-events: none; text-align: center; display: none; box-sizing: border-box;
-            
-            /* Unification de la DA */
-            background: rgba(0, 10, 5, 0.85);
-            border: 1px solid rgba(0, 255, 204, 0.5);
-            border-radius: 8px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
-            
-            font-size: 1rem; letter-spacing: 1px; line-height: 1.4;
-            transition: color 0.3s, border-color 0.3s, box-shadow 0.3s;
+            background: rgba(0, 10, 5, 0.85); border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 8px;
+            padding: 15px 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
+            font-size: 1rem; letter-spacing: 1px; transition: color 0.3s, border-color 0.3s;
         }
 
-        /* --- UI FICHE ARTEFACT --- */
         #artifact-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 5, 2, 0.85); z-index: 3000;
@@ -92,13 +79,13 @@
         .artifact-card {
             background: rgba(0, 20, 10, 0.9); border: 2px solid #00ffcc; border-radius: 12px;
             padding: 30px 25px; width: 80%; max-width: 350px; text-align: center;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 255, 204, 0.15), inset 0 0 15px rgba(0, 255, 204, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(0, 255, 204, 0.1);
         }
         .artifact-card h2 { color: #fff; margin-top: 0; text-shadow: 0 0 10px #00ffcc; letter-spacing: 3px; font-size: 1.4rem; }
         .artifact-lore { font-size: 0.9rem; color: #ccc; font-style: italic; margin-bottom: 25px; line-height: 1.5; }
         .artifact-stats { text-align: left; font-size: 0.85rem; border-top: 1px dashed rgba(0, 255, 204, 0.5); padding-top: 15px; }
         .artifact-stats p { margin: 10px 0; color: #888; display: flex; justify-content: space-between; }
-        .artifact-stats span { color: #00ffcc; font-weight: bold; text-align: right; }
+        .artifact-stats span { color: #00ffcc; font-weight: bold; }
         .mystery-word { color: #ff003c !important; text-shadow: 0 0 5px red; font-size: 1.1rem; text-transform: uppercase; }
         
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
@@ -227,13 +214,7 @@
             if (currentDistance < extractionDistance) {
                 statusDisplay.innerText = "BRÈCHE ATTEINTE !"; statusDisplay.style.color = "#ff003c";
                 arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
-                if (arBtn) {
-                    arBtn.innerText = "INITIER L'EXTRACTION";
-                    if (!isFlashTriggered) {
-                        arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }, { once: true });
-                        isFlashTriggered = true;
-                    }
-                }
+                if (arBtn) { arBtn.innerText = "INITIER L'EXTRACTION"; }
             } else {
                 statusDisplay.innerText = "Suivez les interférences..."; statusDisplay.style.color = "#00ffcc";
                 arContainer.style.display = 'none'; recalcBtn.style.display = 'inline-block';
@@ -282,13 +263,14 @@
         let clock = new THREE.Clock();
         function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
 
-        // --- MOTEUR WEBXR ---
+        // --- MOTEUR WEBXR + SANCTUAIRE ---
         let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
         let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false; 
         
         let xrState = 'search'; 
         let spawnedArtifactMesh = null;
         const raycaster = new THREE.Raycaster();
+        let currentRenderLoop = 'radar'; // 'radar' -> 'xr' -> 'sanctuary'
 
         function initXR() {
             scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20); 
@@ -298,6 +280,7 @@
             document.body.appendChild(renderer.domElement);
 
             const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
+            arButton.addEventListener('click', () => { currentRenderLoop = 'xr'; }); // Bâcule loop
             arContainer.appendChild(arButton);
 
             renderer.xr.addEventListener('sessionstart', () => {
@@ -306,18 +289,14 @@
                 radarUI.style.display = 'none'; arVeil.style.display = 'block'; 
                 if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                 clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
-                if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
-                
-                xrUI.style.display = 'block'; 
-                xrUI.innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE";
-                xrUI.style.borderColor = "#00ffcc"; // Initialisation de la couleur de bordure
-                
+                xrUI.style.display = 'block'; xrUI.innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE"; xrUI.style.borderColor = "#00ffcc";
                 setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
             });
 
+            // L'Artefact AR
             const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
-            const coreGeo = new THREE.IcosahedronGeometry(0.06, 0); const coreMat = new THREE.MeshNormalMaterial({ flatShading: true }); const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            const wireGeo = new THREE.IcosahedronGeometry(0.09, 1); const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.8 }); const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+            const coreMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.06, 0), new THREE.MeshNormalMaterial({ flatShading: true }));
+            const wireMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.09, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.8 }));
             artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
             controller = renderer.xr.getController(0);
@@ -325,16 +304,8 @@
                 if (xrState === 'search' && reticle.visible && canExtract) {
                     spawnedArtifactMesh = artifactGroup.clone();
                     reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
-                    spawnedArtifactMesh.rotation.y = Math.random() * Math.PI;
-                    scene.add(spawnedArtifactMesh);
-                    
-                    xrState = 'revealed';
-                    reticle.visible = false; 
-                    xrUI.innerText = "ARTEFACT LOCALISÉ - TOUCHEZ-LE POUR L'EXTRAIRE"; 
-                    xrUI.style.color = "#fff";
-                    xrUI.style.borderColor = "rgba(255, 255, 255, 0.8)";
-                    xrUI.style.boxShadow = "0 0 15px rgba(255, 255, 255, 0.3)";
-                    
+                    scene.add(spawnedArtifactMesh); xrState = 'revealed'; reticle.visible = false; 
+                    xrUI.innerText = "ARTEFACT RÉVÉLÉ - TOUCHEZ-LE POUR RÉCUPÉRER"; xrUI.style.color = "#fff"; xrUI.style.borderColor = "white";
                     if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
                 } 
                 else if (xrState === 'revealed') {
@@ -342,81 +313,159 @@
                     tempMatrix.identity().extractRotation(controller.matrixWorld);
                     raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
                     raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-
                     const intersects = raycaster.intersectObject(spawnedArtifactMesh, true);
                     if (intersects.length > 0) {
-                        xrState = 'recovered';
-                        xrUI.style.display = 'none'; 
-                        uiGps.innerText = `${startLat.toFixed(5)}, ${startLon.toFixed(5)}`;
-                        artifactUI.style.display = 'flex';
+                        xrState = 'recovered'; xrUI.style.display = 'none'; 
+                        uiGps.innerText = `${startLat.toFixed(5)}, ${startLon.toFixed(5)}`; artifactUI.style.display = 'flex';
                         if (navigator.vibrate) navigator.vibrate([50, 50, 200]); 
                     }
                 }
             });
             scene.add(controller);
+            reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.1, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({ color: 0xff003c })); reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
             
-            reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.1, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({ color: 0xff003c })); 
-            reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
-            renderer.setAnimationLoop(renderXR);
+            // Loop Principal
+            renderer.setAnimationLoop((timestamp, frame) => {
+                if (currentRenderLoop === 'xr') renderXR(timestamp, frame);
+                else if (currentRenderLoop === 'sanctuary') renderSanctuary(timestamp);
+            });
         }
 
         function renderXR(timestamp, frame) {
             if (frame) {
                 const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
-                if (!hitTestSourceRequested) {
-                    session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
-                    session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
-                    hitTestSourceRequested = true;
-                }
+                if (!hitTestSourceRequested) { session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); }); hitTestSourceRequested = true; }
                 if (hitTestSource && xrState === 'search') {
                     const results = frame.getHitTestResults(hitTestSource);
                     if (results.length > 0) {
                         reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
-                        if (!isTargetSpawned) {
-                            let pos = new THREE.Vector3(); pos.setFromMatrixPosition(reticle.matrix);
-                            hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
-                            isTargetSpawned = true;
-                        }
+                        if (!isTargetSpawned) { generateTarget(startLat, startLon, spawnDistance); isTargetSpawned = true; }
                         if (isTargetSpawned) {
-                            let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
-                            let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
-                            
-                            // GESTION DYNAMIQUE DU HUD AR (Couleur, Bordure, Ombre)
-                            if (dist < 0.3) { 
-                                reticle.material.color.setHex(0x00ffcc); reticle.scale.set(1.5, 1.5, 1.5); 
-                                xrUI.innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR RÉVÉLER"; 
-                                xrUI.style.color = "#00ffcc"; xrUI.style.borderColor = "rgba(0, 255, 204, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(0, 255, 204, 0.3)";
-                                canExtract = true; if (navigator.vibrate && Math.random() > 0.8) navigator.vibrate(20); 
-                            } 
-                            else if (dist < 1.0) { 
-                                reticle.material.color.setHex(0xffaa00); reticle.scale.set(1, 1, 1); 
-                                xrUI.innerText = "ANOMALIE PROCHE..."; 
-                                xrUI.style.color = "#ffaa00"; xrUI.style.borderColor = "rgba(255, 170, 0, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(255, 170, 0, 0.3)";
-                                canExtract = false; 
-                            } 
-                            else { 
-                                reticle.material.color.setHex(0xff003c); reticle.scale.set(1, 1, 1); 
-                                xrUI.innerText = "BALAYEZ LA SURFACE POUR TROUVER LA BRÈCHE"; 
-                                xrUI.style.color = "#ff003c"; xrUI.style.borderColor = "rgba(255, 0, 60, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(255, 0, 60, 0.3)";
-                                canExtract = false; 
-                            }
+                            let pos = new THREE.Vector3(); pos.setFromMatrixPosition(reticle.matrix);
+                            hiddenTarget.set(pos.x + 1, pos.y, pos.z - 2); // Placement fixe pour test
+                            let dist = reticle.position.distanceTo(hiddenTarget);
+                            if (dist < 0.3) { reticle.material.color.setHex(0x00ffcc); xrUI.innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR RÉVÉLER"; xrUI.style.color = "#00ffcc"; canExtract = true; } 
+                            else { reticle.material.color.setHex(0xff003c); xrUI.innerText = "BALAYEZ LE SOL..."; xrUI.style.color = "#ff003c"; canExtract = false; }
                         }
                     } else { reticle.visible = false; }
                 }
             }
-            
-            scene.traverse((obj) => { 
-                if (obj.name === 'artifact') { 
-                    obj.rotation.y += 0.01; obj.position.y += Math.sin(timestamp*0.003)*0.0005; 
-                    obj.children[1].rotation.x -= 0.01; obj.children[1].rotation.z += 0.005;
-                } 
-            }); 
-            renderer.render(scene, camera);
+            scene.traverse((obj) => { if (obj.name === 'artifact') obj.rotation.y += 0.01; }); renderer.render(scene, camera);
         }
 
         btnContinue.addEventListener('click', () => { location.reload(); });
-        btnInventory.addEventListener('click', () => { alert("Lancement de l'environnement 3D 'Le Sanctuaire'..."); });
 
+        // --- PASSAGE AU SANCTUAIRE ---
+        btnInventory.addEventListener('click', () => {
+            flashOverlay.style.transition = 'opacity 1s ease-in'; flashOverlay.style.opacity = '1'; // Flash long
+            setTimeout(() => {
+                artifactUI.style.display = 'none';
+                if (renderer.xr.getSession()) renderer.xr.getSession().end(); // Quitte l'AR
+                
+                // Nettoyage complet de la scène AR
+                while(scene.children.length > 0){ scene.remove(scene.children[0]); }
+                document.getElementById('threejs-radar-container').innerHTML = ''; // Tue le radar
+                if(radarRenderer) radarRenderer.dispose();
+                
+                initSanctuaryVisuals(); // Construit le Monolithe
+                currentRenderLoop = 'sanctuary'; // Bascule loop
+                flashOverlay.style.opacity = '0'; // Dissipe flash
+            }, 1000);
+        });
+
+        // --- CONSTRUCTION DU MONOLITHE (DÉBUT) ---
+        let monolith, socketsGroup, sanctumCamera;
+
+        function initSanctuaryVisuals() {
+            console.log("Construction du Sanctuaire...");
+            
+            // Nouvelle Caméra (fixe, pas AR)
+            sanctumCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+            sanctumCamera.position.set(0, 1.2, 3); // Position "humaine" face au Monolithe
+            sanctumCamera.lookAt(0, 1, -2);
+            camera = sanctumCamera; // Remplace caméra AR
+
+            scene.background = new THREE.Color(0x000105); // Vide noir profond
+            scene.fog = new THREE.FogExp2(0x000105, 0.15); // Brouillard de données
+
+            // Lumières mystiques
+            scene.add(new THREE.HemisphereLight(0x000000, 0x00ffcc, 0.5)); // Ambiance Cyan faible
+            const keyLight = new THREE.DirectionalLight(0xffffff, 1); keyLight.position.set(1, 2, 2); scene.add(keyLight);
+            
+            // 1. LE MONOLITHE (L'Archive Obsidienne)
+            const monoHeight = 3.5;
+            // Cylindre à 7 faces (rad_top, rad_bot, height, num_faces, height_seg, open_ended)
+            const monoGeo = new THREE.CylinderGeometry(0.6, 0.7, monoHeight, 7, 1, false);
+            // Matériau rocheux, sombre et brillant (Obsidienne)
+            const monoMat = new THREE.MeshPhongMaterial({ 
+                color: 0x080808, 
+                shininess: 150, 
+                specular: 0x222222, 
+                flatShading: true // DA géométrique
+            });
+            monolith = new THREE.Mesh(monoGeo, monoMat);
+            monolith.position.set(0, monoHeight / 2, -2); // Posé au "sol" virtuel devant nous
+            scene.add(monolith);
+
+            // 2. LES EMPLACEMENTS DE FRAGMENTS (Les Fuites)
+            socketsGroup = new THREE.Group();
+            monolith.add(socketsGroup); // Rattaché au monolithe
+            
+            const numFaces = 7;
+            const socketGeo = new THREE.IcosahedronGeometry(0.12, 1); // Cavité creuse
+            
+            // Matériau de "fuite de données" (Cyan vacillant)
+            const leakMat = new THREE.MeshBasicMaterial({ 
+                color: 0x00ffcc, 
+                transparent: true, 
+                opacity: 0.7, 
+                wireframe: true 
+            });
+
+            for (let i = 0; i < numFaces; i++) {
+                const socket = new THREE.Mesh(socketGeo, leakMat);
+                
+                // Positionnement mathématique sur les 7 faces (Cercle Trigo)
+                const angle = (i / numFaces) * Math.PI * 2;
+                const radius = 0.65; // Juste à la surface du monolithe
+                
+                // Position X/Z sur le cercle, Y échelonné en hauteur
+                const posX = Math.cos(angle) * radius;
+                const posZ = Math.sin(angle) * radius;
+                // Echelonnage de Y (du bas vers le haut)
+                const posY = (-monoHeight/2 + 0.5) + (i * 0.4); 
+
+                socket.position.set(posX, posY, posZ);
+                socket.lookAt(monolith.position); // Oriente la fuite vers l'intérieur
+                socket.rotation.y += Math.PI; // Retourne pour faire "trou vers l'extérieur"
+
+                // Petite PointLight pour simuler l'émanation de données de la fuite
+                const socketLight = new THREE.PointLight(0x00ffcc, 1, 0.5);
+                socket.add(socketLight); 
+
+                socketsGroup.add(socket);
+            }
+        }
+
+        // --- LOOP DE RENDU DU SANCTUAIRE (VR) ---
+        function renderSanctuary(timestamp) {
+            // Tourne lentement le Monolithe pour révéler les faces
+            if (monolith) monolith.rotation.y += 0.002;
+
+            // Fait vaciller l'opacité des fuites de données
+            if (socketsGroup) {
+                socketsGroup.children.forEach((socket, i) => {
+                    // Vacillement sinusoidal unique par fuite
+                    socket.material.opacity = 0.4 + Math.sin(timestamp * 0.002 + i) * 0.3;
+                    // Fait aussi pulser l'intensité de la lumière
+                    socket.children[0].intensity = 0.5 + Math.sin(timestamp * 0.003 + i) * 0.5;
+                });
+            }
+
+            renderer.render(scene, sanctumCamera);
+        }
+
+        // --- UTILITAIRES RADAR ---
         function playGlitchPop(intensity) {
             if (!audioCtx || intensity <= 0) return;
             const dur = 0.01 + (1 - intensity) * 0.04; const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
@@ -442,6 +491,7 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
         }
 
+        initSanctuaryVisuals(); // Pré-construit les assets hors loop
         initXR();
     </script>
 </body>
