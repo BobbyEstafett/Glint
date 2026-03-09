@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GLINT - Alpha (Sanctuaire 2D)</title>
+    <title>GLINT - Alpha (UI Fixée)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: #00ffcc; font-family: monospace; overflow: hidden; }
 
@@ -38,9 +38,10 @@
 
         #flash-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #ffffff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
+            background-color: #ffffff; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
         }
         
+        /* La boite d'info du radar */
         .info-box { 
             background: rgba(0, 10, 5, 0.85); padding: 20px; border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 8px; 
             text-align: center; width: 85%; max-width: 400px; pointer-events: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
@@ -97,23 +98,29 @@
         #btn-inventory { background: #00ffcc; color: #000; font-weight: bold; }
         #btn-continue { background: rgba(0, 0, 0, 0.5); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.5); }
         
-        /* --- NOUVEAU : UI SANCTUAIRE 2D --- */
+        /* --- NOUVEAU : UI SANCTUAIRE 2D (Correction Layout) --- */
         #sanctuary-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: radial-gradient(circle at center, #001a11 0%, #000 100%);
             z-index: 5000; display: none; flex-direction: column; 
-            padding: 40px 20px 20px 20px; box-sizing: border-box; overflow-y: auto;
+            padding: 40px 20px 20px 20px; box-sizing: border-box; 
+            overflow: hidden; /* Empêche le défilement de toute la page */
         }
-        .sanctuary-header { text-align: center; margin-bottom: 30px; }
+        .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
         .sanctuary-header h2 { color: #00ffcc; margin: 0; text-shadow: 0 0 15px rgba(0, 255, 204, 0.5); letter-spacing: 4px; font-size: 1.5rem; }
         .sanctuary-header p { color: #888; font-size: 0.85rem; font-style: italic; margin-top: 10px; }
         
-        .sanctuary-list { flex-grow: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; }
+        .sanctuary-list { 
+            flex-grow: 1; display: flex; flex-direction: column; gap: 15px; 
+            overflow-y: auto; /* Seule la liste défile */
+            padding-bottom: 20px; scrollbar-width: none; 
+        }
+        .sanctuary-list::-webkit-scrollbar { display: none; }
         
         .fragment-slot { 
             background: rgba(0, 20, 10, 0.6); border: 1px dashed #444; border-radius: 8px; 
             padding: 15px; display: flex; flex-direction: column; gap: 8px;
-            transition: all 0.3s;
+            transition: all 0.3s; flex-shrink: 0; /* Empêche l'écrasement des cartes */
         }
         .fragment-slot.found { 
             border: 1px solid #00ffcc; 
@@ -127,8 +134,10 @@
         .fragment-slot .slot-word { color: #222; font-family: monospace; font-size: 1.2rem; text-transform: uppercase; text-align: right; }
         .fragment-slot.found .slot-word { color: #ff003c; text-shadow: 0 0 8px rgba(255, 0, 60, 0.6); font-weight: bold; }
         
-        .sanctuary-footer { margin-top: auto; padding-top: 20px; }
-        #btn-back-radar { background: transparent; color: #888; border: 1px dashed #888; }
+        .sanctuary-footer { 
+            margin-top: 10px; padding-top: 10px; flex-shrink: 0; /* Bloqué en bas */
+        }
+        #btn-back-radar { background: rgba(0, 0, 0, 0.8); color: #888; border: 1px dashed #888; }
 
         #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
     </style>
@@ -210,7 +219,7 @@
         // --- FONCTIONS SANCTUAIRE ---
         function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
-            listContainer.innerHTML = ''; // Reset
+            listContainer.innerHTML = ''; 
             
             ARTIFACTS_DATA.forEach((data, index) => {
                 const isFound = index < foundCount;
@@ -238,7 +247,6 @@
             });
         }
 
-        // Si l'URL demande la vue Sanctuaire, on l'affiche et on zappe le radar
         if (isSanctuaryView) {
             document.getElementById('radar-ui').style.display = 'none';
             document.getElementById('threejs-radar-container').style.display = 'none';
@@ -246,21 +254,17 @@
             document.getElementById('sanctuary-ui').style.display = 'flex';
         }
 
-        // Bouton de retour depuis le sanctuaire
         document.getElementById('btn-back-radar').addEventListener('click', () => {
-            // On recharge l'URL sans le paramètre "&view=sanctuary"
             window.location.href = window.location.pathname + '?fragment=' + foundCount;
         });
 
 
-        // --- CODE RADAR / AR (Actif uniquement si on n'est pas dans le sanctuaire) ---
+        // --- CODE RADAR / AR ---
         if (!isSanctuaryView) {
             let targetLat = null, targetLon = null;
             let startLat = null, startLon = null;
             
-            // TEST RAPIDE
             const spawnDistance = 2; const glitchStartDistance = 10; const extractionDistance = 5; 
-            
             const maxGlitchOffset = 25;
             let currentDistance = 999;
             let radarTimeout, audioCtx, cameraStream = null, dataStreamInterval;
@@ -276,11 +280,7 @@
             const dataStream = document.getElementById('data-stream');
             const flashOverlay = document.getElementById('flash-overlay');
             const arVeil = document.getElementById('ar-veil');
-            
             const artifactUI = document.getElementById('artifact-ui');
-            const uiGps = document.getElementById('ui-gps');
-            const btnContinue = document.getElementById('btn-continue');
-            const btnInventory = document.getElementById('btn-inventory');
 
             function generateTarget(lat, lon, distance) {
                 const R = 6371000; const angle = Math.random() * 2 * Math.PI;
@@ -399,19 +399,23 @@
                 document.body.appendChild(renderer.domElement);
 
                 const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
-                arContainer.appendChild(arButton);
+                document.getElementById('ar-container').appendChild(arButton);
 
                 renderer.xr.addEventListener('sessionstart', () => {
                     flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
                     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                    radarUI.style.display = 'none'; arVeil.style.display = 'block'; 
+                    
+                    document.getElementById('ar-container').style.display = 'none'; 
+                    document.getElementById('radar-ui').style.display = 'none'; 
+                    document.getElementById('ar-veil').style.display = 'block'; 
+                    
                     if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                     clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
-                    xrUI.style.display = 'block'; 
-                    xrUI.innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE";
-                    xrUI.style.borderColor = "#00ffcc";
+                    document.getElementById('xr-ui').style.display = 'block'; 
+                    document.getElementById('xr-ui').innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE";
+                    document.getElementById('xr-ui').style.borderColor = "#00ffcc"; 
                     
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
@@ -431,10 +435,10 @@
                         
                         xrState = 'revealed';
                         reticle.visible = false; 
-                        xrUI.innerText = "ARTEFACT LOCALISÉ - TOUCHEZ-LE POUR L'EXTRAIRE"; 
-                        xrUI.style.color = "#fff";
-                        xrUI.style.borderColor = "rgba(255, 255, 255, 0.8)";
-                        xrUI.style.boxShadow = "0 0 15px rgba(255, 255, 255, 0.3)";
+                        document.getElementById('xr-ui').innerText = "ARTEFACT LOCALISÉ - TOUCHEZ-LE POUR L'EXTRAIRE"; 
+                        document.getElementById('xr-ui').style.color = "#fff";
+                        document.getElementById('xr-ui').style.borderColor = "rgba(255, 255, 255, 0.8)";
+                        document.getElementById('xr-ui').style.boxShadow = "0 0 15px rgba(255, 255, 255, 0.3)";
                         
                         if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
                     } 
@@ -447,9 +451,8 @@
                         const intersects = raycaster.intersectObject(spawnedArtifactMesh, true);
                         if (intersects.length > 0) {
                             xrState = 'recovered';
-                            xrUI.style.display = 'none'; 
+                            document.getElementById('xr-ui').style.display = 'none'; 
                             
-                            // Injecter les données du fragment trouvé
                             const safeIndex = foundCount % 7; 
                             const currentData = ARTIFACTS_DATA[safeIndex];
                             
@@ -459,7 +462,7 @@
                             document.getElementById('ui-progress').innerText = `${safeIndex + 1} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(5)}, ${startLon.toFixed(5)}`;
                             
-                            artifactUI.style.display = 'flex';
+                            document.getElementById('artifact-ui').style.display = 'flex';
                             if (navigator.vibrate) navigator.vibrate([50, 50, 200]); 
                         }
                     }
@@ -494,20 +497,20 @@
                                 
                                 if (dist < 0.3) { 
                                     reticle.material.color.setHex(0x00ffcc); reticle.scale.set(1.5, 1.5, 1.5); 
-                                    xrUI.innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR RÉVÉLER"; 
-                                    xrUI.style.color = "#00ffcc"; xrUI.style.borderColor = "rgba(0, 255, 204, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(0, 255, 204, 0.3)";
+                                    document.getElementById('xr-ui').innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR RÉVÉLER"; 
+                                    document.getElementById('xr-ui').style.color = "#00ffcc"; document.getElementById('xr-ui').style.borderColor = "rgba(0, 255, 204, 0.8)"; document.getElementById('xr-ui').style.boxShadow = "0 0 15px rgba(0, 255, 204, 0.3)";
                                     canExtract = true; if (navigator.vibrate && Math.random() > 0.8) navigator.vibrate(20); 
                                 } 
                                 else if (dist < 1.0) { 
                                     reticle.material.color.setHex(0xffaa00); reticle.scale.set(1, 1, 1); 
-                                    xrUI.innerText = "ANOMALIE PROCHE..."; 
-                                    xrUI.style.color = "#ffaa00"; xrUI.style.borderColor = "rgba(255, 170, 0, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(255, 170, 0, 0.3)";
+                                    document.getElementById('xr-ui').innerText = "ANOMALIE PROCHE..."; 
+                                    document.getElementById('xr-ui').style.color = "#ffaa00"; document.getElementById('xr-ui').style.borderColor = "rgba(255, 170, 0, 0.8)"; document.getElementById('xr-ui').style.boxShadow = "0 0 15px rgba(255, 170, 0, 0.3)";
                                     canExtract = false; 
                                 } 
                                 else { 
                                     reticle.material.color.setHex(0xff003c); reticle.scale.set(1, 1, 1); 
-                                    xrUI.innerText = "BALAYEZ LA SURFACE POUR TROUVER LA BRÈCHE"; 
-                                    xrUI.style.color = "#ff003c"; xrUI.style.borderColor = "rgba(255, 0, 60, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(255, 0, 60, 0.3)";
+                                    document.getElementById('xr-ui').innerText = "BALAYEZ LA SURFACE POUR TROUVER LA BRÈCHE"; 
+                                    document.getElementById('xr-ui').style.color = "#ff003c"; document.getElementById('xr-ui').style.borderColor = "rgba(255, 0, 60, 0.8)"; document.getElementById('xr-ui').style.boxShadow = "0 0 15px rgba(255, 0, 60, 0.3)";
                                     canExtract = false; 
                                 }
                             }
@@ -524,14 +527,12 @@
                 renderer.render(scene, camera);
             }
 
-            // Bouton "Continuer" = on ajoute +1 et on recharge l'URL en mode Radar
-            btnContinue.addEventListener('click', () => { 
+            document.getElementById('btn-continue').addEventListener('click', () => { 
                 let nextCount = foundCount + 1;
                 window.location.href = window.location.pathname + '?fragment=' + nextCount;
             });
 
-            // Bouton "Sanctuaire" = on ajoute +1 et on recharge l'URL en mode Sanctuaire
-            btnInventory.addEventListener('click', () => { 
+            document.getElementById('btn-inventory').addEventListener('click', () => { 
                 let nextCount = foundCount + 1;
                 window.location.href = window.location.pathname + '?fragment=' + nextCount + '&view=sanctuary';
             });
