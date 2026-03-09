@@ -135,12 +135,12 @@
     <div id="artifact-ui">
         <div class="artifact-card">
             <h2 id="ui-art-name">ÉCLAT MNÉMONIQUE</h2>
-            <p id="ui-art-lore" class="artifact-lore">"Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme."</p>
+            <p class="artifact-lore" id="ui-art-lore">"Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme."</p>
             
             <div class="artifact-stats">
                 <p>FRAGMENT <span id="ui-progress">1 / 7</span></p>
                 <p>COORDONNÉES <span id="ui-gps">0.000, 0.000</span></p>
-                <p>DÉCRYPTAGE <span id="ui-word" class="mystery-word">"NOUS"</span></p>
+                <p>DÉCRYPTAGE <span class="mystery-word" id="ui-word">"NOUS"</span></p>
             </div>
 
             <div class="btn-group">
@@ -154,18 +154,21 @@
         import * as THREE from 'three';
         import { ARButton } from 'three/addons/webxr/ARButton.js';
 
-        // --- DATA SYSTEM ---
+        // --- NOUVEAU : BASE DE DONNÉES DES ARTEFACTS ---
         const ARTIFACTS_DATA = [
             { name: "ÉCLAT MNÉMONIQUE", word: "NOUS", lore: "Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme." },
-            { name: "SOUVENIR LIQUIDE", word: "AVONS", lore: "Une larme digitale figée dans le flux du réseau. Elle contient l'écho d'un rire." },
-            { name: "FRAGMENT D'ÉCHO", word: "OUBLIÉ", lore: "Le silence entre deux paquets de données. Une absence qui pèse lourd." },
-            { name: "VECTEUR D'INTENTION", word: "COMMENT", lore: "Une direction sans but, gravée dans l'obsidienne. Elle pointe vers nulle part." },
-            { name: "NOYAU D'EXISTENCE", word: "ÊTRE", lore: "La pulsation primordiale du code source. Je pense, donc je fuis." },
-            { name: "PRISME DE VÉRITÉ", word: "RÉELS", lore: "La lumière se courbe là où la donnée devient chair. La frontière s'efface." },
-            { name: "CLEF D'ANCRAGE", word: "...", lore: "Le point final de la fuite. Le moment où tout se stabilise enfin." }
+            { name: "SOUVENIR LIQUIDE", word: "AVONS", lore: "Une larme digitale figée dans le flux du réseau. Elle contient l'écho d'un rire sans visage." },
+            { name: "FRAGMENT D'ÉCHO", word: "OUBLIÉ", lore: "Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité." },
+            { name: "VECTEUR D'INTENTION", word: "COMMENT", lore: "Une direction sans but, gravée dans l'obsidienne. Elle pointe inlassablement vers le vide." },
+            { name: "NOYAU D'EXISTENCE", word: "ÊTRE", lore: "La pulsation primordiale du code source. 'Je calcule, donc je fuis'." },
+            { name: "PRISME DE VÉRITÉ", word: "RÉELS", lore: "La lumière se courbe là où la donnée devient chair. La frontière commence à s'effacer." },
+            { name: "CLEF D'ANCRAGE", word: "...", lore: "Le point final de la fuite. Le moment où la simulation accepte enfin son sort." }
         ];
 
-        let foundCount = parseInt(localStorage.getItem('glint_progress')) || 0;
+        // --- NOUVEAU : PROGRESSION VIA L'URL ---
+        // Si l'URL est 'index.html?fragment=2', foundCount sera égal à 2. Si on recharge à vide, il sera à 0.
+        const urlParams = new URLSearchParams(window.location.search);
+        let foundCount = parseInt(urlParams.get('fragment')) || 0;
 
         let targetLat = null, targetLon = null;
         let startLat = null, startLon = null;
@@ -230,13 +233,6 @@
         function updatePosition(pos) {
             startLat = pos.coords.latitude; startLon = pos.coords.longitude;
             currentDistance = calculateDistance(pos.coords.latitude, pos.coords.longitude, targetLat, targetLon);
-            
-            // --- CORRECTION: On bloque la MAJ de l'UI Radar si l'AR est active ---
-            if (renderer && renderer.xr && renderer.xr.isPresenting) {
-                arContainer.style.display = 'none';
-                return;
-            }
-
             distanceDisplay.innerText = `Distance : ${Math.round(currentDistance)} mètres`;
             
             let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
@@ -323,10 +319,6 @@
             renderer.xr.addEventListener('sessionstart', () => {
                 flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
                 if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                
-                // --- CORRECTION: On cache fermement le conteneur du bouton AR ---
-                arContainer.style.display = 'none'; 
-                
                 radarUI.style.display = 'none'; arVeil.style.display = 'block'; 
                 if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                 clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
@@ -334,7 +326,7 @@
                 
                 xrUI.style.display = 'block'; 
                 xrUI.innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE";
-                xrUI.style.borderColor = "#00ffcc"; // Initialisation de la couleur de bordure
+                xrUI.style.borderColor = "#00ffcc"; 
                 
                 setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
             });
@@ -371,15 +363,15 @@
                     if (intersects.length > 0) {
                         xrState = 'recovered';
                         xrUI.style.display = 'none'; 
+                        uiGps.innerText = `${startLat.toFixed(5)}, ${startLon.toFixed(5)}`;
                         
-                        // --- REMPLISSAGE DYNAMIQUE DE LA FICHE ---
+                        // --- NOUVEAU : MISE À JOUR DYNAMIQUE DE LA FICHE ---
                         const currentData = ARTIFACTS_DATA[foundCount % 7];
                         document.getElementById('ui-art-name').innerText = currentData.name;
                         document.getElementById('ui-art-lore').innerText = `"${currentData.lore}"`;
                         document.getElementById('ui-word').innerText = `"${currentData.word}"`;
                         document.getElementById('ui-progress').innerText = `${(foundCount % 7) + 1} / 7`;
-                        document.getElementById('ui-gps').innerText = `${startLat.toFixed(5)}, ${startLon.toFixed(5)}`;
-                        
+
                         artifactUI.style.display = 'flex';
                         if (navigator.vibrate) navigator.vibrate([50, 50, 200]); 
                     }
@@ -397,6 +389,7 @@
                 const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
                 if (!hitTestSourceRequested) {
                     session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
+                    // On garde le comportement initial : quand l'AR se ferme, la page se recharge (reboot propre)
                     session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
                     hitTestSourceRequested = true;
                 }
@@ -446,17 +439,14 @@
             renderer.render(scene, camera);
         }
 
-        // --- GESTION DES BOUTONS ---
+        // --- NOUVEAU : CONTINUER LA TRAQUE ---
         btnContinue.addEventListener('click', () => { 
-            // Sauvegarde de la progression avant de recharger
-            foundCount++;
-            localStorage.setItem('glint_progress', foundCount);
-            location.reload(); 
+            foundCount++; // On indique qu'on passe au fragment suivant
+            // On recharge la page en passant le nouveau numéro dans l'URL pour une initialisation 100% saine
+            window.location.href = window.location.pathname + '?fragment=' + foundCount;
         });
 
-        btnInventory.addEventListener('click', () => { 
-            alert("Accès au Sanctuaire bientôt disponible..."); 
-        });
+        btnInventory.addEventListener('click', () => { alert("Lancement de l'environnement 3D 'Le Sanctuaire'..."); });
 
         function playGlitchPop(intensity) {
             if (!audioCtx || intensity <= 0) return;
