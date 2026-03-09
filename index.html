@@ -2,205 +2,374 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GLINT - Radar Sensoriel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GLINT - Alpha (Artefact Normal Map)</title>
     <style>
-        body {
-            margin: 0; padding: 0; background-color: #050505; color: #00ffcc;
-            font-family: monospace; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; height: 100vh;
-            overflow: hidden; transition: filter 0.2s ease-out;
-            /* Fond statique très léger */
-            background-image: radial-gradient(circle, #1a1a1a 0%, #000000 100%);
-        }
+        body { margin: 0; padding: 0; background-color: #000; color: #00ffcc; font-family: monospace; overflow: hidden; }
 
-        /* Effet de scanlines (lignes d'écran cathodique) */
+        #radar-ui {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: flex-end; padding-bottom: 90px; box-sizing: border-box;
+            z-index: 10; transition: opacity 0.5s; pointer-events: none; 
+        }
+        
         .crt-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 3px 100%;
-            z-index: 5; pointer-events: none;
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+            background-size: 100% 4px, 3px 100%; 
+            pointer-events: none; z-index: 5;
+            animation: scrollScanlines 10s linear infinite;
         }
 
-        .glitch-text {
-            font-size: 2rem; text-align: center; position: relative;
-            text-shadow: var(--glitch-offset, 0px) 0 0 red, calc(var(--glitch-offset, 0px) * -1) 0 0 blue;
-            transition: text-shadow 0.2s ease-out;
-            margin-bottom: 20px;
+        .crt-overlay::after {
+            content: ""; display: block; position: absolute; top: 0; left: 0; width: 100vw; height: 15vh;
+            background: linear-gradient(to bottom, rgba(0,255,204,0), rgba(0,255,204,0.1), rgba(0,255,204,0));
+            animation: scanBar 6s linear infinite;
         }
 
-        #ui-container {
-            z-index: 10; background: rgba(0, 20, 15, 0.8); padding: 30px;
-            border: 1px solid #00ffcc; border-radius: 5px; text-align: center;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
-            backdrop-filter: blur(5px);
+        @keyframes scrollScanlines { 0% { background-position: 0 0, 0 0; } 100% { background-position: 0 100vh, 0 0; } }
+        @keyframes scanBar { 0% { transform: translateY(-15vh); } 100% { transform: translateY(115vh); } }
+
+        #ar-veil {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 255, 204, 0.25); 
+            mix-blend-mode: overlay; pointer-events: none; z-index: 4; 
+            display: none; 
         }
 
-        .data-stream { font-size: 0.8rem; color: #555; margin-top: 15px; height: 1.2em; }
+        #flash-overlay {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #ffffff; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
+        }
+        
+        .info-box { 
+            background: rgba(0, 10, 5, 0.85); padding: 20px; border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 8px; 
+            text-align: center; width: 85%; max-width: 400px; pointer-events: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
+        }
+        
+        .glitch-text { font-size: 1.3rem; text-shadow: var(--glitch-offset, 0px) 0 0 red, calc(var(--glitch-offset, 0px) * -1) 0 0 blue; margin-bottom: 5px; }
+        .data-stream { font-size: 0.7rem; color: #555; margin-top: 10px; height: 1.2em; }
+        #distance-display { font-size: 1.1rem; font-weight: bold; margin: 10px 0; }
 
         button {
-            margin-top: 20px; padding: 12px 24px; background: transparent;
-            color: #00ffcc; border: 1px solid #00ffcc; font-family: monospace;
-            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
-            transition: all 0.2s;
+            margin-top: 10px; padding: 12px 24px; background: rgba(0, 0, 0, 0.5); color: #00ffcc; border: 1px solid #00ffcc;
+            font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%;
         }
-        button:hover { background: #00ffcc; color: #000; box-shadow: 0 0 10px #00ffcc; }
+        #recalc-btn { display: none; font-size: 0.7rem; padding: 8px 16px; border-color: #888; color: #888; margin-top: 15px; width: auto; }
+
+        #ARButton {
+            background-color: #ff003c !important; border: 1px solid #fff !important; color: #fff !important;
+            font-family: monospace !important; position: absolute !important; 
+            bottom: 25px !important; left: 50% !important; transform: translateX(-50%) !important;
+            width: 85% !important; max-width: 400px !important; z-index: 999 !important;
+        }
+
+        #xr-ui {
+            position: absolute; top: 40px; width: 100%; text-align: center; z-index: 100;
+            pointer-events: none; text-shadow: 1px 1px 3px black; display: none; font-size: 1.2rem;
+            background: rgba(0,0,0,0.5); padding: 10px 0;
+        }
+        
+        #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
     </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
 </head>
 <body>
 
-    <div class="crt-overlay"></div>
+    <div id="flash-overlay"></div>
+    <div id="ar-container" style="display: none;"></div>
+    <div id="threejs-radar-container"></div>
+    <div class="crt-overlay" id="crt-overlay"></div>
+    <div id="ar-veil"></div>
 
-    <div id="ui-container">
-        <div class="glitch-text" id="main-title">ANALYSE EN COURS</div>
-        <p id="distance-display">Recherche d'une anomalie locale...</p>
-        <p id="status-display">En attente du signal GPS...</p>
-        <div class="data-stream" id="data-stream">0x00000000</div>
-        <button id="start-btn">Initier la traque</button>
+    <div id="radar-ui">
+        <div class="info-box">
+            <div class="glitch-text" id="main-title">CAPTEUR DÉSACTIVÉ</div>
+            <p id="distance-display">En attente...</p>
+            <p id="status-display">Autorisez les capteurs.</p>
+            <div class="data-stream" id="data-stream">_</div>
+            <button id="start-btn">Activer le Radar</button>
+            <button id="recalc-btn">Cible Inaccessible ? Recalibrer</button>
+        </div>
     </div>
 
-    <script>
-        let targetLat = null; let targetLon = null;
-        const spawnDistance = 100; 
-        const maxDistance = 150; 
-        const maxGlitchOffset = 25; // Augmenté pour un effet plus fort
+    <div id="xr-ui">INITIALISATION DU SCANNER...</div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { ARButton } from 'three/addons/webxr/ARButton.js';
+
+        let targetLat = null, targetLon = null;
+        let startLat = null, startLon = null;
+        const spawnDistance = 20; const glitchStartDistance = 20; const extractionDistance = 8; 
         
-        let currentDistance = 999; // Distance stockée pour piloter le son
-        let radarTimeout;
-        let audioCtx;
+        const maxGlitchOffset = 25;
+        let currentDistance = 999;
+        let radarTimeout, audioCtx, cameraStream = null, dataStreamInterval;
 
         const startBtn = document.getElementById('start-btn');
+        const recalcBtn = document.getElementById('recalc-btn');
         const distanceDisplay = document.getElementById('distance-display');
         const statusDisplay = document.getElementById('status-display');
-        const dataStream = document.getElementById('data-stream');
+        const radarUI = document.getElementById('radar-ui');
+        const xrUI = document.getElementById('xr-ui');
+        const arContainer = document.getElementById('ar-container');
         const mainTitle = document.getElementById('main-title');
+        const dataStream = document.getElementById('data-stream');
+        const flashOverlay = document.getElementById('flash-overlay');
+        const arVeil = document.getElementById('ar-veil');
 
-        startBtn.addEventListener('click', () => {
-            if ("geolocation" in navigator) {
-                // Initialisation du moteur Audio (Obligatoire après un clic utilisateur)
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-                audioCtx.resume();
-
-                statusDisplay.innerText = "Synchronisation des capteurs...";
-                startBtn.style.display = 'none';
-                
-                navigator.geolocation.getCurrentPosition((position) => {
-                    generateAnomalyLocation(position.coords.latitude, position.coords.longitude, spawnDistance);
-                    mainTitle.innerText = "ANOMALIE DÉTECTÉE";
-                    
-                    navigator.geolocation.watchPosition(updatePosition, handleError, { enableHighAccuracy: true, maximumAge: 0 });
-                    
-                    // Lancer la boucle du radar (Son + Vibrations)
-                    radarLoop();
-                    // Lancer le flux de fausses données visuelles
-                    setInterval(updateDataStream, 100);
-
-                }, handleError, { enableHighAccuracy: true });
-            } else {
-                statusDisplay.innerText = "Le GPS n'est pas supporté.";
-            }
-        });
-
-        // --- MOTEUR AUDIO PROCÉDURAL (Compteur Geiger numérique) ---
-        function playGlitchPop(intensity) {
-            if (!audioCtx) return;
-            
-            // Création d'un très court bruit blanc (entre 10ms et 50ms selon la proximité)
-            const duration = 0.01 + (1 - intensity) * 0.04; 
-            const bufferSize = audioCtx.sampleRate * duration; 
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1; 
-            }
-            
-            const noiseSource = audioCtx.createBufferSource();
-            noiseSource.buffer = buffer;
-            
-            // On filtre le son pour qu'il soit plus aigu quand on s'approche
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 500 + (intensity * 3000); 
-            
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 0.1 + (intensity * 0.4); // Plus fort si proche
-
-            noiseSource.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            noiseSource.start();
-        }
-
-        // --- BOUCLE DU RADAR (Gère le rythme des bips) ---
-        function radarLoop() {
-            clearTimeout(radarTimeout);
-            
-            let intensity = 0;
-            if (currentDistance <= maxDistance) {
-                intensity = 1 - (currentDistance / maxDistance);
-                if (intensity < 0) intensity = 0;
-                
-                playGlitchPop(intensity);
-                
-                // Vibration du téléphone (si supporté)
-                if (navigator.vibrate) navigator.vibrate(30);
-            }
-
-            // Calcul du temps avant le prochain "Bip" (de 2 secondes à 100 millisecondes)
-            let delay = 2000;
-            if (currentDistance <= maxDistance) {
-                delay = 100 + ((1 - intensity) * 1900);
-            }
-
-            radarTimeout = setTimeout(radarLoop, delay);
-        }
-
-        // --- GESTION GPS & VISUELS ---
-        function generateAnomalyLocation(lat, lon, dist) {
+        function generateTarget(lat, lon, distance) {
             const R = 6371000; const angle = Math.random() * 2 * Math.PI;
-            targetLat = lat + ((dist * Math.cos(angle)) / R) * 180 / Math.PI;
-            targetLon = lon + ((dist * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+            targetLat = lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI;
+            targetLon = lon + ((distance * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
         }
-
-        function updatePosition(position) {
-            if (!targetLat) return;
-            currentDistance = calculateDistance(position.coords.latitude, position.coords.longitude, targetLat, targetLon);
-            distanceDisplay.innerText = `Distance estimée : ${Math.round(currentDistance)} mètres`;
-            applyGlitchEffect(currentDistance);
-        }
-
-        function applyGlitchEffect(distance) {
-            let glitchIntensity = 0;
-            if (distance <= maxDistance) {
-                const proximityRatio = 1 - (distance / maxDistance);
-                glitchIntensity = proximityRatio * maxGlitchOffset;
-                
-                if (distance < 15) {
-                    statusDisplay.innerText = "BRÈCHE IMMINENTE - PRÉPAREZ-VOUS";
-                    statusDisplay.style.color = "#ff003c";
-                    document.body.style.backgroundColor = `rgba(${proximityRatio * 50}, 0, 0, 1)`;
-                } else {
-                    statusDisplay.innerText = "Interférences en cours...";
-                    statusDisplay.style.color = "#00ffcc";
-                    document.body.style.backgroundColor = "#050505";
-                }
-            } else {
-                statusDisplay.innerText = "Signal faible. Déplacez-vous.";
-            }
-
-            document.documentElement.style.setProperty('--glitch-offset', `${glitchIntensity}px`);
-        }
-
-        // Animation de faux code binaire/hexa pour l'esthétique
         function updateDataStream() {
-            let stream = "";
-            const chars = "0123456789ABCDEF!@#$";
+            let stream = ""; const chars = "0123456789ABCDEF!@#$";
             for(let i=0; i<16; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
             dataStream.innerText = `[MEM_LEAK] 0x${stream}`;
         }
 
-        function handleError(error) { statusDisplay.innerText = `Erreur capteur: ${error.message}`; }
+        let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
+        let isFlashTriggered = false;
+
+        startBtn.addEventListener('click', async () => {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
+            startBtn.style.display = 'none';
+            recalcBtn.style.display = 'inline-block'; 
+            mainTitle.innerText = "ANALYSE EN COURS";
+            dataStreamInterval = setInterval(updateDataStream, 80);
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    startLat = pos.coords.latitude; startLon = pos.coords.longitude;
+                    generateTarget(startLat, startLon, spawnDistance);
+                    navigator.geolocation.watchPosition(updatePosition, (err) => console.log(err), { enableHighAccuracy: true });
+                    radarLoop();
+                });
+            }
+
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                initRadarShader(cameraStream);
+            } catch (err) { console.error(err); }
+        });
+
+        recalcBtn.addEventListener('click', () => {
+            if (startLat && startLon) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "Recalibrage des capteurs..."; }
+        });
+
+        function updatePosition(pos) {
+            startLat = pos.coords.latitude; startLon = pos.coords.longitude;
+            currentDistance = calculateDistance(pos.coords.latitude, pos.coords.longitude, targetLat, targetLon);
+            distanceDisplay.innerText = `Distance : ${Math.round(currentDistance)} mètres`;
+            
+            let intensity = 0;
+            if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
+            document.documentElement.style.setProperty('--glitch-offset', `${intensity * maxGlitchOffset}px`);
+            
+            if(shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
+
+            const arBtn = document.getElementById('ARButton');
+            if (currentDistance < extractionDistance) {
+                statusDisplay.innerText = "BRÈCHE ATTEINTE !"; statusDisplay.style.color = "#ff003c";
+                arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
+                if (arBtn) {
+                    arBtn.innerText = "INITIER L'EXTRACTION";
+                    if (!isFlashTriggered) {
+                        arBtn.addEventListener('click', () => {
+                            flashOverlay.style.opacity = '1';
+                            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                        }, { once: true });
+                        isFlashTriggered = true;
+                    }
+                }
+            } else {
+                statusDisplay.innerText = "Suivez les interférences..."; statusDisplay.style.color = "#00ffcc";
+                arContainer.style.display = 'none'; recalcBtn.style.display = 'inline-block';
+            }
+        }
+
+        function initRadarShader(stream) {
+            const container = document.getElementById('threejs-radar-container');
+            videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
+            radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(radarRenderer.domElement);
+            videoTexture = new THREE.VideoTexture(videoElement);
+
+            shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: { tDiffuse: { value: videoTexture }, resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, intensity: { value: 0 }, time: { value: 0 } },
+                vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+                fragmentShader: `
+                    uniform sampler2D tDiffuse; uniform vec2 resolution; uniform float intensity; uniform float time; varying vec2 vUv;
+                    float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
+                    float ditherPattern(vec2 pos) {
+                        int x = int(mod(pos.x, 4.0)); int y = int(mod(pos.y, 4.0));
+                        if (x==0 && y==0) return 0.0/16.0; if (x==1 && y==0) return 8.0/16.0; if (x==2 && y==0) return 2.0/16.0; if (x==3 && y==0) return 10.0/16.0;
+                        if (x==0 && y==1) return 12.0/16.0; if (x==1 && y==1) return 4.0/16.0; if (x==2 && y==1) return 14.0/16.0; if (x==3 && y==1) return 6.0/16.0;
+                        if (x==0 && y==2) return 3.0/16.0; if (x==1 && y==2) return 11.0/16.0; if (x==2 && y==2) return 1.0/16.0; if (x==3 && y==2) return 9.0/16.0;
+                        if (x==0 && y==3) return 15.0/16.0; if (x==1 && y==3) return 7.0/16.0; if (x==2 && y==3) return 13.0/16.0; if (x==3 && y==3) return 5.0/16.0;
+                        return 0.0;
+                    }
+                    void main() {
+                        vec2 fragCoord = vUv * resolution; vec2 glitchUv = vUv;
+                        float jitterSpeed = 15.0; float jitterBands = 30.0; float jitterStrength = 0.04 * intensity; 
+                        float jitterLine = floor(glitchUv.y * jitterBands);
+                        float jitterJump = step(0.98 - 0.1*intensity, random(vec2(time * jitterSpeed, jitterLine))) * (random(vec2(jitterLine, 1.0)) - 0.5);
+                        glitchUv.x += jitterJump * jitterStrength;
+                        float pixelSize = 1.0 + floor(intensity * 4.0); vec2 dxy = pixelSize / resolution; vec2 uv = dxy * floor(glitchUv / dxy); 
+                        float aberrationStrength = 0.02 * intensity; 
+                        float r = texture2D(tDiffuse, uv + vec2(aberrationStrength, 0.0)).r; float g = texture2D(tDiffuse, uv).g; float b = texture2D(tDiffuse, uv - vec2(aberrationStrength, 0.0)).b;
+                        vec4 color = vec4(r, g, b, 1.0);
+                        float luma = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+                        vec3 dreamColor = mix(vec3(luma), color.rgb, 1.0 + (intensity * 3.0)); 
+                        dreamColor.r += intensity * 0.6 * luma; dreamColor.b += intensity * 0.3 * luma; dreamColor.g -= intensity * 0.2 * luma;
+                        float dither = ditherPattern(fragCoord / pixelSize); dreamColor += (dither - 0.5) * (intensity * 0.8);
+                        gl_FragColor = vec4(dreamColor, 1.0);
+                    }
+                `
+            });
+            const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad); renderRadar();
+        }
+
+        let clock = new THREE.Clock();
+        function renderRadar() {
+            if (radarRenderer && shaderMaterial) {
+                requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera);
+            }
+        }
+
+        // --- MOTEUR WEBXR ---
+        let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
+        let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false; 
+
+        function initXR() {
+            scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20); 
+            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 3); scene.add(light);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            const arButton = ARButton.createButton(renderer, { 
+                requiredFeatures: ['hit-test'],
+                optionalFeatures: ['dom-overlay'],
+                domOverlay: { root: document.body }
+            });
+            arContainer.appendChild(arButton);
+
+            renderer.xr.addEventListener('sessionstart', () => {
+                flashOverlay.style.transition = 'none';
+                flashOverlay.style.opacity = '1';
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+                radarUI.style.display = 'none';
+                arVeil.style.display = 'block'; 
+
+                if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+                if(videoElement) videoElement.pause();
+                clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
+                if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
+                
+                xrUI.style.display = 'block'; xrUI.innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE";
+
+                setTimeout(() => {
+                    flashOverlay.style.transition = 'opacity 1.5s ease-in-out';
+                    flashOverlay.style.opacity = '0';
+                }, 50); 
+            });
+
+            // --- NOUVEAU DESIGN DE L'ARTEFACT (NORMAL MAP) ---
+            const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
+            const coreGeo = new THREE.IcosahedronGeometry(0.06, 0); 
+            // L'astuce magique est ici : le MeshNormalMaterial
+            const coreMat = new THREE.MeshNormalMaterial({ flatShading: true });
+            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            
+            const wireGeo = new THREE.IcosahedronGeometry(0.09, 1); 
+            const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.8 });
+            const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+            
+            artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
+
+            controller = renderer.xr.getController(0);
+            controller.addEventListener('select', () => {
+                if (reticle.visible && canExtract) {
+                    const newArtifact = artifactGroup.clone();
+                    reticle.matrix.decompose(newArtifact.position, newArtifact.quaternion, newArtifact.scale);
+                    newArtifact.rotation.y = Math.random() * Math.PI;
+                    scene.add(newArtifact);
+                    
+                    xrUI.innerText = "ARTEFACT RÉCUPÉRÉ !"; xrUI.style.color = "#fff"; reticle.visible = false; canExtract = false; 
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+                }
+            });
+            scene.add(controller);
+            
+            reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.1, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({ color: 0xff003c })); 
+            reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
+            renderer.setAnimationLoop(renderXR);
+        }
+
+        function renderXR(timestamp, frame) {
+            if (frame) {
+                const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
+                if (!hitTestSourceRequested) {
+                    session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
+                    session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
+                    hitTestSourceRequested = true;
+                }
+                if (hitTestSource) {
+                    const results = frame.getHitTestResults(hitTestSource);
+                    if (results.length > 0) {
+                        reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
+                        if (!isTargetSpawned) {
+                            let pos = new THREE.Vector3(); pos.setFromMatrixPosition(reticle.matrix);
+                            hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
+                            isTargetSpawned = true;
+                        }
+                        if (isTargetSpawned && xrUI.innerText !== "ARTEFACT RÉCUPÉRÉ !") {
+                            let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
+                            let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
+                            if (dist < 0.3) { reticle.material.color.setHex(0x00ffcc); reticle.scale.set(1.5, 1.5, 1.5); xrUI.innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR EXTRAIRE"; xrUI.style.color = "#00ffcc"; canExtract = true; if (navigator.vibrate && Math.random() > 0.8) navigator.vibrate(20); } 
+                            else if (dist < 1.0) { reticle.material.color.setHex(0xffaa00); reticle.scale.set(1, 1, 1); xrUI.innerText = "ANOMALIE PROCHE..."; xrUI.style.color = "#ffaa00"; canExtract = false; } 
+                            else { reticle.material.color.setHex(0xff003c); reticle.scale.set(1, 1, 1); xrUI.innerText = "BALAYEZ LA SURFACE POUR TROUVER LA BRÈCHE"; xrUI.style.color = "#ff003c"; canExtract = false; }
+                        }
+                    } else { reticle.visible = false; }
+                }
+            }
+            
+            scene.traverse((obj) => { 
+                if (obj.name === 'artifact') { 
+                    obj.rotation.y += 0.01; obj.position.y += Math.sin(timestamp*0.003)*0.0005; 
+                    obj.children[1].rotation.x -= 0.01; obj.children[1].rotation.z += 0.005;
+                } 
+            }); 
+            renderer.render(scene, camera);
+        }
+
+        function playGlitchPop(intensity) {
+            if (!audioCtx || intensity <= 0) return;
+            const dur = 0.01 + (1 - intensity) * 0.04; 
+            const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+            const data = buf.getChannelData(0); for (let i = 0; i < buf.length; i++) data[i] = Math.random() * 2 - 1; 
+            const src = audioCtx.createBufferSource(); src.buffer = buf;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 500 + (intensity * 3000); 
+            const gainNode = audioCtx.createGain(); gainNode.gain.value = 0.1 + (intensity * 0.4); 
+            src.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination); src.start();
+        }
+
+        function radarLoop() {
+            clearTimeout(radarTimeout);
+            let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
+            if (intensity > 0) playGlitchPop(intensity);
+            let delay = 2000; if (intensity > 0) delay = 100 + ((1 - intensity) * 1900);
+            radarTimeout = setTimeout(radarLoop, delay);
+        }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180;
@@ -208,6 +377,8 @@
             const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
         }
+
+        initXR();
     </script>
 </body>
 </html>
