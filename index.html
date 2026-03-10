@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GLINT - Alpha (Sanctuaire Fixé)</title>
+    <title>GLINT - Alpha (Datamosh Radar)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #000; color: #00ffcc; font-family: monospace; overflow: hidden; }
 
@@ -98,37 +98,30 @@
         #btn-inventory { background: #00ffcc; color: #000; font-weight: bold; }
         #btn-continue { background: rgba(0, 0, 0, 0.5); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.5); }
         
-        /* --- NOUVEAU : UI SANCTUAIRE 2D RÉSISTANT AU MOBILE --- */
+        /* --- UI SANCTUAIRE 2D --- */
         #sanctuary-ui {
-            position: fixed; /* Fixed bloque l'interface aux dimensions exactes du navigateur */
-            top: 0; left: 0; right: 0; bottom: 0; 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
             background: radial-gradient(circle at center, #001a11 0%, #000 100%);
             z-index: 5000; display: none; flex-direction: column; 
             padding: 40px 20px 20px 20px; box-sizing: border-box; 
-            overflow: hidden; /* Empêche le défilement de toute la page */
+            overflow: hidden; 
         }
         .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
         .sanctuary-header h2 { color: #00ffcc; margin: 0; text-shadow: 0 0 15px rgba(0, 255, 204, 0.5); letter-spacing: 4px; font-size: 1.5rem; }
         .sanctuary-header p { color: #888; font-size: 0.85rem; font-style: italic; margin-top: 10px; }
         
         .sanctuary-list { 
-            flex: 1 1 auto; /* Prend l'espace restant */
-            min-height: 0; /* CRUCIAL: Empêche la div de pousser le footer hors de l'écran */
-            display: flex; flex-direction: column; gap: 15px; 
-            overflow-y: auto; /* Autorise le scroll interne */
-            padding-bottom: 10px; scrollbar-width: none; 
+            flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; 
+            overflow-y: auto; padding-bottom: 10px; scrollbar-width: none; 
         }
         .sanctuary-list::-webkit-scrollbar { display: none; }
         
         .fragment-slot { 
             background: rgba(0, 20, 10, 0.6); border: 1px dashed #444; border-radius: 8px; 
-            padding: 15px; display: flex; flex-direction: column; gap: 8px;
-            flex-shrink: 0; /* Empêche l'écrasement de la carte */
+            padding: 15px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; 
         }
         .fragment-slot.found { 
-            border: 1px solid #00ffcc; 
-            box-shadow: inset 0 0 15px rgba(0, 255, 204, 0.1); 
-            background: rgba(0, 30, 15, 0.8);
+            border: 1px solid #00ffcc; box-shadow: inset 0 0 15px rgba(0, 255, 204, 0.1); background: rgba(0, 30, 15, 0.8);
         }
         .fragment-slot .slot-title { color: #555; font-size: 0.75rem; letter-spacing: 1px; }
         .fragment-slot.found .slot-title { color: #aaa; }
@@ -137,11 +130,7 @@
         .fragment-slot .slot-word { color: #222; font-family: monospace; font-size: 1.2rem; text-transform: uppercase; text-align: right; }
         .fragment-slot.found .slot-word { color: #ff003c; text-shadow: 0 0 8px rgba(255, 0, 60, 0.6); font-weight: bold; }
         
-        .sanctuary-footer { 
-            flex-shrink: 0; /* Bloqué en bas, intouchable */
-            margin-top: 15px; 
-            padding-bottom: env(safe-area-inset-bottom, 10px); /* Ajustement pour barre iPhone */
-        }
+        .sanctuary-footer { flex-shrink: 0; margin-top: 15px; padding-bottom: env(safe-area-inset-bottom, 10px); }
         #btn-back-radar { background: rgba(0, 0, 0, 0.8); color: #888; border: 1px dashed #888; margin: 0; }
 
         #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
@@ -175,13 +164,11 @@
         <div class="artifact-card">
             <h2 id="ui-art-name">ÉCLAT MNÉMONIQUE</h2>
             <p id="ui-art-lore" class="artifact-lore"></p>
-            
             <div class="artifact-stats">
                 <p>FRAGMENT <span id="ui-progress">1 / 7</span></p>
                 <p>COORDONNÉES <span id="ui-gps">0.000, 0.000</span></p>
                 <p>DÉCRYPTAGE <span id="ui-word" class="mystery-word">"---"</span></p>
             </div>
-
             <div class="btn-group">
                 <button id="btn-inventory">Ouvrir le Sanctuaire</button>
                 <button id="btn-continue">Continuer la Traque</button>
@@ -194,8 +181,7 @@
             <h2>ARCHIVE MNÉMONIQUE</h2>
             <p>Reconstruction du code source en cours...</p>
         </div>
-        <div class="sanctuary-list" id="sanctuary-list">
-            </div>
+        <div class="sanctuary-list" id="sanctuary-list"></div>
         <div class="sanctuary-footer">
             <button id="btn-back-radar">Retourner au Scanner AR</button>
         </div>
@@ -205,7 +191,6 @@
         import * as THREE from 'three';
         import { ARButton } from 'three/addons/webxr/ARButton.js';
 
-        // --- DATA SYSTEM ---
         const ARTIFACTS_DATA = [
             { name: "ÉCLAT MNÉMONIQUE", word: "NOUS", lore: "Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme." },
             { name: "SOUVENIR LIQUIDE", word: "AVONS", lore: "Une larme digitale figée dans le flux du réseau. Elle contient l'écho d'un rire sans visage." },
@@ -216,38 +201,27 @@
             { name: "CLEF D'ANCRAGE", word: "...", lore: "Le point final de la fuite. Le moment où la simulation accepte enfin son sort." }
         ];
 
-        // --- GESTION DE L'ÉTAT VIA URL ---
         const urlParams = new URLSearchParams(window.location.search);
         let foundCount = parseInt(urlParams.get('fragment')) || 0;
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
-        // --- FONCTIONS SANCTUAIRE ---
         function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
             listContainer.innerHTML = ''; 
-            
             ARTIFACTS_DATA.forEach((data, index) => {
                 const isFound = index < foundCount;
-                
                 const slot = document.createElement('div');
                 slot.className = `fragment-slot ${isFound ? 'found' : ''}`;
-                
                 const titleBlock = document.createElement('div');
                 titleBlock.className = 'slot-title';
                 titleBlock.innerText = `FRAGMENT ${index + 1} / 7`;
-
                 const nameBlock = document.createElement('div');
                 nameBlock.className = 'slot-name';
                 nameBlock.innerText = isFound ? data.name : 'DONNÉES CORROMPUES';
-                
                 const wordBlock = document.createElement('div');
                 wordBlock.className = 'slot-word';
                 wordBlock.innerText = isFound ? `"${data.word}"` : '"???"';
-                
-                slot.appendChild(titleBlock);
-                slot.appendChild(nameBlock);
-                slot.appendChild(wordBlock);
-                
+                slot.appendChild(titleBlock); slot.appendChild(nameBlock); slot.appendChild(wordBlock);
                 listContainer.appendChild(slot);
             });
         }
@@ -263,12 +237,8 @@
             window.location.href = window.location.pathname + '?fragment=' + foundCount;
         });
 
-
-        // --- CODE RADAR / AR ---
         if (!isSanctuaryView) {
-            let targetLat = null, targetLon = null;
-            let startLat = null, startLon = null;
-            
+            let targetLat = null, targetLon = null, startLat = null, startLon = null;
             const spawnDistance = 2; const glitchStartDistance = 10; const extractionDistance = 5; 
             const maxGlitchOffset = 25;
             let currentDistance = 999;
@@ -324,10 +294,8 @@
                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                 currentDistance = calculateDistance(pos.coords.latitude, pos.coords.longitude, targetLat, targetLon);
                 
-                // --- CORRECTION: On bloque la MAJ de l'UI Radar si l'AR est active ---
                 if (renderer && renderer.xr && renderer.xr.isPresenting) {
-                    arContainer.style.display = 'none';
-                    return;
+                    arContainer.style.display = 'none'; return;
                 }
 
                 distanceDisplay.innerText = `Distance : ${Math.round(currentDistance)} mètres`;
@@ -353,40 +321,67 @@
                 }
             }
 
+            // --- LE NOUVEAU SHADER DATAMOSH ---
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
                 videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
                 radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
                 videoTexture = new THREE.VideoTexture(videoElement);
+                
                 shaderMaterial = new THREE.ShaderMaterial({
                     uniforms: { tDiffuse: { value: videoTexture }, resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, intensity: { value: 0 }, time: { value: 0 } },
                     vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
                     fragmentShader: `
                         uniform sampler2D tDiffuse; uniform vec2 resolution; uniform float intensity; uniform float time; varying vec2 vUv;
+                        
                         float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
-                        float ditherPattern(vec2 pos) {
-                            int x = int(mod(pos.x, 4.0)); int y = int(mod(pos.y, 4.0));
-                            if (x==0 && y==0) return 0.0/16.0; if (x==1 && y==0) return 8.0/16.0; if (x==2 && y==0) return 2.0/16.0; if (x==3 && y==0) return 10.0/16.0;
-                            if (x==0 && y==1) return 12.0/16.0; if (x==1 && y==1) return 4.0/16.0; if (x==2 && y==1) return 14.0/16.0; if (x==3 && y==1) return 6.0/16.0;
-                            if (x==0 && y==2) return 3.0/16.0; if (x==1 && y==2) return 11.0/16.0; if (x==2 && y==2) return 1.0/16.0; if (x==3 && y==2) return 9.0/16.0;
-                            if (x==0 && y==3) return 15.0/16.0; if (x==1 && y==3) return 7.0/16.0; if (x==2 && y==3) return 13.0/16.0; if (x==3 && y==3) return 5.0/16.0;
-                            return 0.0;
-                        }
+                        
                         void main() {
-                            vec2 fragCoord = vUv * resolution; vec2 glitchUv = vUv;
-                            float jitterSpeed = 15.0; float jitterBands = 30.0; float jitterStrength = 0.04 * intensity; 
-                            float jitterLine = floor(glitchUv.y * jitterBands);
-                            float jitterJump = step(0.98 - 0.1*intensity, random(vec2(time * jitterSpeed, jitterLine))) * (random(vec2(jitterLine, 1.0)) - 0.5);
-                            glitchUv.x += jitterJump * jitterStrength;
-                            float pixelSize = 1.0 + floor(intensity * 4.0); vec2 dxy = pixelSize / resolution; vec2 uv = dxy * floor(glitchUv / dxy); 
-                            float aberrationStrength = 0.02 * intensity; 
-                            float r = texture2D(tDiffuse, uv + vec2(aberrationStrength, 0.0)).r; float g = texture2D(tDiffuse, uv).g; float b = texture2D(tDiffuse, uv - vec2(aberrationStrength, 0.0)).b;
-                            vec4 color = vec4(r, g, b, 1.0); float luma = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-                            vec3 dreamColor = mix(vec3(luma), color.rgb, 1.0 + (intensity * 3.0)); 
-                            dreamColor.r += intensity * 0.6 * luma; dreamColor.b += intensity * 0.3 * luma; dreamColor.g -= intensity * 0.2 * luma;
-                            float dither = ditherPattern(fragCoord / pixelSize); dreamColor += (dither - 0.5) * (intensity * 0.8);
-                            gl_FragColor = vec4(dreamColor, 1.0);
+                            vec2 uv = vUv;
+                            
+                            // 1. DATAMOSHING (Effet de blocs de compression)
+                            // Taille de la grille (plus petite quand l'intensité monte)
+                            float gridSize = 15.0 + (1.0 - intensity) * 40.0; 
+                            vec2 block = floor(uv * gridSize);
+                            
+                            // Le "hachage" du temps est crucial : le bruit change par saccades (4 FPS)
+                            float timeHacked = floor(time * 4.0); 
+                            float blockNoise = random(block + timeHacked);
+                            
+                            // Déclencheur du Datamosh
+                            float moshThreshold = 1.0 - (intensity * 0.85); 
+                            
+                            if (blockNoise > moshThreshold && intensity > 0.05) {
+                                // Direction de l'étirement baveux
+                                vec2 smearDir = vec2(random(block) - 0.5, random(block + 1.0) - 0.5);
+                                uv += smearDir * intensity * 0.8;
+                                
+                                // Pixelisation "Macroblock JPEG"
+                                uv = floor(uv * gridSize * 1.5) / (gridSize * 1.5);
+                            }
+
+                            // 2. LÉGER JITTER HORIZONTAL (Effet VHS glitch)
+                            float jitterLine = floor(vUv.y * 30.0);
+                            float jitterJump = step(0.95 - 0.2 * intensity, random(vec2(time * 15.0, jitterLine))) * (random(vec2(jitterLine, 1.0)) - 0.5);
+                            uv.x += jitterJump * intensity * 0.1;
+
+                            // 3. COULEURS & ABERRATION
+                            vec4 color = texture2D(tDiffuse, uv);
+                            float luma = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+                            vec3 finalColor = mix(vec3(luma), color.rgb, 1.0 + (intensity * 3.0)); 
+                            
+                            // Aberration RGB forcée sur les blocs datamoshés
+                            if (blockNoise > moshThreshold - 0.1) {
+                                float ab = 0.04 * intensity; 
+                                finalColor.r = texture2D(tDiffuse, uv + vec2(ab, 0.0)).r + (intensity * 0.5 * luma);
+                                finalColor.b = texture2D(tDiffuse, uv - vec2(ab, 0.0)).b + (intensity * 0.2 * luma);
+                            }
+                            
+                            finalColor.r += intensity * 0.6 * luma; 
+                            finalColor.g -= intensity * 0.2 * luma;
+
+                            gl_FragColor = vec4(finalColor, 1.0);
                         }
                     `
                 });
@@ -417,9 +412,7 @@
                     flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
                     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
                     
-                    // --- CORRECTION: On cache fermement le conteneur du bouton AR ---
                     arContainer.style.display = 'none'; 
-                    
                     radarUI.style.display = 'none'; arVeil.style.display = 'block'; 
                     if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                     clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
