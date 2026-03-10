@@ -15,10 +15,10 @@
             --bg-night: #0b0f19;
             --glass-bg: rgba(20, 25, 40, 0.45);
             --glass-border: rgba(255, 255, 255, 0.15);
-            --text-title: #f0e6d2; /* Nacré */
+            --text-title: #f0e6d2; 
             --text-body: #a8b2c1;
-            --accent-glow: #e0c3fc; /* Lilas doux */
-            --accent-hot: #8da9f5;
+            /* La couleur de la pureté (Cyan Glace) pour les éléments trouvés */
+            --accent-pure: #8be9fd; 
         }
 
         body { 
@@ -31,7 +31,6 @@
 
         h1, h2, h3, .serif { font-family: 'Playfair Display', serif; color: var(--text-title); font-weight: normal; }
 
-        /* Effet Verre Dépoli (Glassmorphism) */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -41,19 +40,14 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
-        /* --- BACKGROUND AR/VIDEO --- */
-        #threejs-radar-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
-        }
+        #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* Voile onirique par-dessus la caméra */
         #dream-veil {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: radial-gradient(circle at center, transparent 0%, rgba(11, 15, 25, 0.6) 100%);
             pointer-events: none; z-index: 2;
         }
 
-        /* --- UI RADAR --- */
         #radar-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; flex-direction: column; align-items: center; 
@@ -61,15 +55,11 @@
             z-index: 10; pointer-events: none; 
         }
         
-        .info-box { 
-            padding: 30px; text-align: center; width: 85%; max-width: 350px; pointer-events: auto; 
-        }
-        
+        .info-box { padding: 30px; text-align: center; width: 85%; max-width: 350px; pointer-events: auto; }
         .main-title { font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 5px; }
         .data-stream { font-size: 0.65rem; color: var(--text-body); margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
         #distance-display { font-size: 2rem; font-weight: 200; margin: 15px 0; color: var(--text-title); }
 
-        /* Boutons Éthérés */
         button {
             margin-top: 15px; padding: 15px 24px; width: 100%;
             background: rgba(255,255,255,0.05); color: var(--text-title); 
@@ -82,44 +72,37 @@
         #recalc-btn { display: none; font-size: 0.65rem; border: none; opacity: 0.5; margin-top: 20px; }
 
         #ARButton {
-            background: rgba(224, 195, 252, 0.15) !important; border: 1px solid var(--accent-glow) !important; color: var(--accent-glow) !important;
+            background: rgba(139, 233, 253, 0.15) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important;
             font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important;
             position: absolute !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important;
             width: 85% !important; max-width: 350px !important; z-index: 999 !important; border-radius: 50px !important;
         }
 
-        /* --- UI INDICATIONS AR --- */
         #xr-ui {
             position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
-            width: fit-content; z-index: 100;
-            pointer-events: none; text-align: center; display: none;
-            padding: 12px 25px; border-radius: 50px;
-            font-size: 0.8rem; letter-spacing: 2px; font-weight: 200;
-            transition: all 0.5s;
+            width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none;
+            padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600;
+            transition: all 0.4s ease;
         }
 
-        /* --- UI FICHE ARTEFACT --- */
         #artifact-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(11, 15, 25, 0.7); z-index: 3000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             box-sizing: border-box; backdrop-filter: blur(15px);
         }
-        .artifact-card {
-            padding: 40px 30px; width: 85%; max-width: 360px; text-align: center;
-        }
-        .artifact-card h2 { margin-top: 0; letter-spacing: 2px; font-size: 1.6rem; text-shadow: 0 0 15px rgba(224, 195, 252, 0.3); }
+        .artifact-card { padding: 40px 30px; width: 85%; max-width: 360px; text-align: center; }
+        .artifact-card h2 { margin-top: 0; letter-spacing: 2px; font-size: 1.6rem; text-shadow: 0 0 15px rgba(139, 233, 253, 0.3); }
         .artifact-lore { font-size: 1rem; color: var(--text-body); margin-bottom: 35px; line-height: 1.7; }
         
         .artifact-stats { text-align: left; font-size: 0.75rem; border-top: 1px solid var(--glass-border); padding-top: 20px; font-weight: 200; letter-spacing: 1px; }
         .artifact-stats p { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .artifact-stats span { color: var(--text-title); font-weight: 400; text-align: right; }
-        .mystery-word { color: var(--accent-glow) !important; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.5rem !important; text-transform: lowercase !important; }
+        .mystery-word { color: var(--accent-pure) !important; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.5rem !important; text-transform: lowercase !important; }
         
         .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 35px; }
-        #btn-inventory { background: rgba(224, 195, 252, 0.1); color: var(--accent-glow); border-color: var(--accent-glow); }
+        #btn-inventory { background: rgba(139, 233, 253, 0.1); color: var(--accent-pure); border-color: var(--accent-pure); }
         
-        /* --- UI SANCTUAIRE --- */
         #sanctuary-ui {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
             background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%);
@@ -130,24 +113,14 @@
         .sanctuary-header h2 { margin: 0; letter-spacing: 6px; font-size: 1.8rem; }
         .sanctuary-header p { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 200; letter-spacing: 2px; opacity: 0.6; margin-top: 10px; text-transform: uppercase; }
         
-        .sanctuary-list { 
-            flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; 
-            overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; 
-        }
-        
-        .fragment-slot { 
-            padding: 20px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; 
-            border: 1px dashed rgba(255,255,255,0.05); background: transparent; border-radius: 15px;
-        }
-        .fragment-slot.found { 
-            border: 1px solid var(--glass-border); 
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
-        }
+        .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
+        .fragment-slot { padding: 20px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; border: 1px dashed rgba(255,255,255,0.05); background: transparent; border-radius: 15px; }
+        .fragment-slot.found { border: 1px solid rgba(139, 233, 253, 0.4); background: linear-gradient(135deg, rgba(139, 233, 253, 0.05) 0%, rgba(255,255,255,0) 100%); }
         .fragment-slot .slot-title { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.4; }
         .fragment-slot .slot-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; opacity: 0.3; }
         .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); }
         .fragment-slot .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; text-align: right; opacity: 0; }
-        .fragment-slot.found .slot-word { opacity: 1; color: var(--accent-glow); }
+        .fragment-slot.found .slot-word { opacity: 1; color: var(--accent-pure); }
         
         .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding-bottom: env(safe-area-inset-bottom, 10px); }
         #btn-back-radar { border-color: transparent; }
@@ -328,8 +301,7 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "La mémoire affleure..."; 
-                    statusDisplay.style.color = "var(--accent-glow)";
+                    statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = "var(--accent-pure)";
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
                     if (arBtn) {
                         arBtn.innerText = "Saisir le rêve";
@@ -339,13 +311,11 @@
                         }
                     }
                 } else {
-                    statusDisplay.innerText = "Suivez le fil..."; 
-                    statusDisplay.style.color = "var(--text-body)";
+                    statusDisplay.innerText = "Suivez le fil..."; statusDisplay.style.color = "var(--text-body)";
                     arContainer.style.display = 'none'; recalcBtn.style.display = 'inline-block';
                 }
             }
 
-            // --- SHADER : MIRAGE AQUARELLE ---
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
                 videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
@@ -360,24 +330,19 @@
                         uniform sampler2D tDiffuse; uniform float intensity; uniform float time; varying vec2 vUv;
                         void main() {
                             vec2 uv = vUv;
-                            
-                            // Distorsion fluide (Mirage / Eau)
                             float wave1 = sin(uv.y * 15.0 + time * 1.5);
                             float wave2 = cos(uv.x * 15.0 + time * 1.2);
                             uv += vec2(wave1, wave2) * 0.015 * intensity;
 
-                            // Aberration chromatique douce
                             float r = texture2D(tDiffuse, uv + vec2(0.01 * intensity, 0.0)).r;
                             float g = texture2D(tDiffuse, uv).g;
                             float b = texture2D(tDiffuse, uv - vec2(0.01 * intensity, 0.0)).b;
                             vec3 color = vec3(r, g, b);
 
-                            // Luminous Watercolor Wash (Teinte violet/rose)
                             float lum = dot(color, vec3(0.299, 0.587, 0.114));
                             vec3 dreamTint = vec3(0.8, 0.6, 0.9); 
                             vec3 finalColor = mix(color, dreamTint * lum * 1.8, intensity * 0.7);
 
-                            // Doux voile lumineux au centre
                             float dist = distance(vUv, vec2(0.5));
                             finalColor += dreamTint * smoothstep(0.4, 0.0, dist) * intensity * 0.4;
 
@@ -419,7 +384,7 @@
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
                     xrUI.style.display = 'block'; 
-                    xrUI.innerText = "L'écho est fuyant..."; // Texte de base au lancement
+                    xrUI.innerText = "L'écho est confus..."; 
                     
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
@@ -427,14 +392,15 @@
                 // --- L'ARTEFACT CRISTALLIN ---
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
                 const coreGeo = new THREE.OctahedronGeometry(0.06, 0); 
+                // Changement de la couleur du cristal pour correspondre à la "Pureté Cyan Glace"
                 const coreMat = new THREE.MeshPhysicalMaterial({ 
-                    color: 0xe0c3fc, metalness: 0.1, roughness: 0.1, 
-                    transmission: 0.9, ior: 1.5, emissive: 0x8a2be2, emissiveIntensity: 0.3, transparent: true
+                    color: 0xe0ffff, metalness: 0.1, roughness: 0.1, 
+                    transmission: 0.9, ior: 1.5, emissive: 0x00d2ff, emissiveIntensity: 0.4, transparent: true
                 }); 
                 const coreMesh = new THREE.Mesh(coreGeo, coreMat);
                 
                 const wireGeo = new THREE.OctahedronGeometry(0.08, 0); 
-                const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.3 }); 
+                const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 }); 
                 const wireMesh = new THREE.Mesh(wireGeo, wireMat);
                 
                 artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
@@ -504,44 +470,44 @@
                                 let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
                                 let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
                                 
-                                // --- MÉCANIQUE CHAUD/FROID INVERSÉE (Le Froid est le but, le Chaud est le bruit) ---
+                                // --- CHAUD/FROID INVERSÉ ET DISTINCT ---
                                 if (dist < 0.4) { 
-                                    // LA CIBLE (Bleu Éthéré / Lilas)
+                                    // PURETÉ (Proche) : Cyan / Bleu Glace
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3; 
-                                    reticle.material.color.setHex(0xe0c3fc); // Lilas de la cible
+                                    reticle.material.color.setHex(0x8be9fd); 
                                     reticle.material.opacity = 0.9;
                                     reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1); 
                                     
                                     xrUI.innerText = "La source est pure. Touchez."; 
-                                    xrUI.style.color = "var(--accent-glow)"; 
-                                    xrUI.style.borderColor = "rgba(224, 195, 252, 0.6)";
-                                    xrUI.style.boxShadow = "0 0 20px rgba(224, 195, 252, 0.4)";
+                                    xrUI.style.color = "#8be9fd"; 
+                                    xrUI.style.borderColor = "rgba(139, 233, 253, 0.6)";
+                                    xrUI.style.boxShadow = "0 0 20px rgba(139, 233, 253, 0.4)";
                                     canExtract = true; 
                                 } 
                                 else if (dist < 1.2) { 
-                                    // TIÈDE / TRANSITION (Mauve doux)
+                                    // TRANSITION (Moyen) : Violet Améthyste
                                     let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15; 
-                                    reticle.material.color.setHex(0xd4a5a5); // Rose/Mauve
+                                    reticle.material.color.setHex(0xb19cd9); 
                                     reticle.material.opacity = 0.7;
                                     reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1); 
                                     
                                     xrUI.innerText = "La résonance s'apaise..."; 
-                                    xrUI.style.color = "#d4a5a5"; 
-                                    xrUI.style.borderColor = "rgba(212, 165, 165, 0.4)";
-                                    xrUI.style.boxShadow = "0 0 15px rgba(212, 165, 165, 0.2)";
+                                    xrUI.style.color = "#b19cd9"; 
+                                    xrUI.style.borderColor = "rgba(177, 156, 217, 0.4)";
+                                    xrUI.style.boxShadow = "0 0 15px rgba(177, 156, 217, 0.2)";
                                     canExtract = false; 
                                 } 
                                 else { 
-                                    // LOIN (Ambre Chaud / Rouille = Bruit/Confusion)
+                                    // FIÈVRE / BRUIT (Loin) : Rouge Corail
                                     let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05; 
-                                    reticle.material.color.setHex(0xe29578); // Ambre chaud
+                                    reticle.material.color.setHex(0xff6b6b); 
                                     reticle.material.opacity = 0.4;
                                     reticle.scale.set(slowPulse, slowPulse, 1); 
                                     
                                     xrUI.innerText = "L'écho est confus..."; 
-                                    xrUI.style.color = "#e29578"; 
-                                    xrUI.style.borderColor = "rgba(226, 149, 120, 0.15)";
-                                    xrUI.style.boxShadow = "0 8px 32px 0 rgba(0, 0, 0, 0.4)";
+                                    xrUI.style.color = "#ff6b6b"; 
+                                    xrUI.style.borderColor = "rgba(255, 107, 107, 0.2)";
+                                    xrUI.style.boxShadow = "0 8px 32px 0 rgba(255, 107, 107, 0.2)";
                                     canExtract = false; 
                                 }
                             }
