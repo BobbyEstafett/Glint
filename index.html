@@ -305,7 +305,7 @@
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                         generateTarget(startLat, startLon, spawnDistance);
                         navigator.geolocation.watchPosition(updatePosition, (err) => console.log(err), { enableHighAccuracy: true });
-                        radarLoop(); // Lance les "carillons"
+                        radarLoop(); 
                     });
                 }
                 try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); initRadarShader(cameraStream); } catch (err) { console.error(err); }
@@ -328,7 +328,8 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = var(--accent-glow);
+                    // CORRECTION ICI : Les guillemets manquaient autour de la variable CSS
+                    statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = "var(--accent-glow)";
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
                     if (arBtn) {
                         arBtn.innerText = "Saisir le rêve";
@@ -343,7 +344,6 @@
                 }
             }
 
-            // --- NOUVEAU SHADER : MIRAGE AQUARELLE ---
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
                 videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
@@ -410,7 +410,7 @@
                     
                     arContainer.style.display = 'none'; 
                     radarUI.style.display = 'none'; 
-                    document.getElementById('dream-veil').style.display = 'none'; // On enlève le voile pour voir clair en AR
+                    document.getElementById('dream-veil').style.display = 'none'; 
                     
                     if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                     clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
@@ -422,9 +422,7 @@
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
 
-                // --- L'ARTEFACT CRISTALLIN ---
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
-                // Un cristal (Octaèdre) avec un rendu de verre / transmission
                 const coreGeo = new THREE.OctahedronGeometry(0.06, 0); 
                 const coreMat = new THREE.MeshPhysicalMaterial({ 
                     color: 0xe0c3fc, metalness: 0.1, roughness: 0.1, 
@@ -432,7 +430,6 @@
                 }); 
                 const coreMesh = new THREE.Mesh(coreGeo, coreMat);
                 
-                // Petit halo filaire qui tourne autour
                 const wireGeo = new THREE.OctahedronGeometry(0.08, 0); 
                 const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.3 }); 
                 const wireMesh = new THREE.Mesh(wireGeo, wireMat);
@@ -478,7 +475,6 @@
                 });
                 scene.add(controller);
                 
-                // Réticule "Onde douce" (Anneau semi-transparent)
                 reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })); 
                 reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
                 renderer.setAnimationLoop(renderXR);
@@ -505,7 +501,6 @@
                                 let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
                                 let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
                                 
-                                // Animation douce du réticule (Respiration)
                                 let pulse = 1.0 + Math.sin(timestamp * 0.005) * 0.2;
                                 
                                 if (dist < 0.4) { 
@@ -525,7 +520,6 @@
                 
                 scene.traverse((obj) => { 
                     if (obj.name === 'artifact') { 
-                        // Rotation et lévitation (flottaison)
                         obj.rotation.y += 0.01; 
                         obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; 
                         obj.children[1].rotation.x -= 0.01; obj.children[1].rotation.z += 0.005;
@@ -534,18 +528,15 @@
                 renderer.render(scene, camera);
             }
 
-            // --- NOUVEAU SON GÉNÉRATIF (CARILLON MAGIQUE) ---
             function playGlitchPop(intensity) {
                 if (!audioCtx || intensity <= 0) return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine'; // Son pur
-                // Fréquences magiques (Gamme pentatonique)
+                osc.type = 'sine'; 
                 const freqs = [440, 493.88, 554.37, 659.25, 739.99]; 
                 osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.start();
-                // Enveloppe douce
                 gain.gain.setValueAtTime(0, audioCtx.currentTime);
                 gain.gain.linearRampToValueAtTime(0.15 * intensity, audioCtx.currentTime + 0.1);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
@@ -556,7 +547,6 @@
                 clearTimeout(radarTimeout);
                 let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
                 if (intensity > 0) playGlitchPop(intensity);
-                // Le son s'accélère quand on approche
                 let delay = 2000; if (intensity > 0) delay = 200 + ((1 - intensity) * 1500);
                 radarTimeout = setTimeout(radarLoop, delay);
             }
