@@ -305,7 +305,7 @@
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                         generateTarget(startLat, startLon, spawnDistance);
                         navigator.geolocation.watchPosition(updatePosition, (err) => console.log(err), { enableHighAccuracy: true });
-                        radarLoop(); 
+                        radarLoop(); // Lance les "carillons"
                     });
                 }
                 try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); initRadarShader(cameraStream); } catch (err) { console.error(err); }
@@ -328,7 +328,6 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    // CORRECTION ICI : Les guillemets manquaient autour de la variable CSS
                     statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = "var(--accent-glow)";
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
                     if (arBtn) {
@@ -344,6 +343,7 @@
                 }
             }
 
+            // --- SHADER : MIRAGE AQUARELLE ---
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
                 videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
@@ -422,6 +422,7 @@
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
 
+                // --- L'ARTEFACT CRISTALLIN ---
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
                 const coreGeo = new THREE.OctahedronGeometry(0.06, 0); 
                 const coreMat = new THREE.MeshPhysicalMaterial({ 
@@ -557,6 +558,17 @@
                 const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
             }
+
+            // --- ÉVÉNEMENTS DES BOUTONS DE LA FICHE ---
+            document.getElementById('btn-continue').addEventListener('click', () => { 
+                let nextCount = foundCount + 1;
+                window.location.href = window.location.pathname + '?fragment=' + nextCount;
+            });
+
+            document.getElementById('btn-inventory').addEventListener('click', () => { 
+                let nextCount = foundCount + 1;
+                window.location.href = window.location.pathname + '?fragment=' + nextCount + '&view=sanctuary';
+            });
 
             initXR();
         }
