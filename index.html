@@ -2,343 +2,579 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Alpha (Fix AR & UI)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GLINT - Alpha (Sanctuaire Fixé)</title>
     <style>
-        :root {
-            --bg-color: #e0e5ec;
-            --glass-bg: rgba(224, 229, 236, 0.8);
-            --text-main: #4a5568;
-            --text-light: #a0aec0;
-            --accent-hot: #7f9cf5;  
-            --accent-cold: #fc8181; 
-            --shadow-light: #ffffff;
-            --shadow-dark: #a3b1c6;
+        body { margin: 0; padding: 0; background-color: #000; color: #00ffcc; font-family: monospace; overflow: hidden; }
+
+        /* --- UI DU RADAR --- */
+        #radar-ui {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: flex-end; padding-bottom: 90px; box-sizing: border-box;
+            z-index: 10; transition: opacity 0.5s; pointer-events: none; 
+        }
+        
+        .crt-overlay {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+            background-size: 100% 4px, 3px 100%; pointer-events: none; z-index: 5;
+            animation: scrollScanlines 10s linear infinite;
         }
 
-        body { 
-            margin: 0; padding: 0; 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow: hidden; height: 100vh; width: 100vw;
+        .crt-overlay::after {
+            content: ""; display: block; position: absolute; top: 0; left: 0; width: 100vw; height: 15vh;
+            background: linear-gradient(to bottom, rgba(0,255,204,0), rgba(0,255,204,0.1), rgba(0,255,204,0));
+            animation: scanBar 6s linear infinite;
         }
 
-        /* --- BACKGROUND AR/VIDEO --- */
-        #threejs-radar-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+        @keyframes scrollScanlines { 0% { background-position: 0 0, 0 0; } 100% { background-position: 0 100vh, 0 0; } }
+        @keyframes scanBar { 0% { transform: translateY(-15vh); } 100% { transform: translateY(115vh); } }
+
+        #ar-veil {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 255, 204, 0.25); mix-blend-mode: overlay; pointer-events: none; z-index: 4; display: none; 
         }
 
-        /* --- UI RADAR (PHASE 1) --- */
-        #radar-interface {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            justify-content: space-between; padding: 40px 20px; box-sizing: border-box;
-            z-index: 10; pointer-events: none;
+        #flash-overlay {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #ffffff; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
         }
+        
+        /* La boite d'info du radar */
+        .info-box { 
+            background: rgba(0, 10, 5, 0.85); padding: 20px; border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 8px; 
+            text-align: center; width: 85%; max-width: 400px; pointer-events: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
+        }
+        
+        .glitch-text { font-size: 1.3rem; text-shadow: var(--glitch-offset, 0px) 0 0 red, calc(var(--glitch-offset, 0px) * -1) 0 0 blue; margin-bottom: 5px; }
+        .data-stream { font-size: 0.7rem; color: #555; margin-top: 10px; height: 1.2em; }
+        #distance-display { font-size: 1.1rem; font-weight: bold; margin: 10px 0; }
 
-        .header-panel {
-            align-self: center; background: var(--glass-bg); backdrop-filter: blur(10px);
-            padding: 15px 30px; border-radius: 25px; pointer-events: auto;
-            box-shadow: 6px 6px 15px var(--shadow-dark), -6px -6px 15px var(--shadow-light);
-            text-align: center;
-        }
-
-        .footer-panel {
-            width: 100%; max-width: 400px; align-self: center;
-            display: flex; flex-direction: column; gap: 15px; pointer-events: auto;
-            padding-bottom: env(safe-area-inset-bottom, 20px);
-        }
-
-        /* --- UI AR (PHASE 2) --- */
-        #xr-hud {
-            position: absolute; top: 20%; left: 0; width: 100%;
-            display: none; justify-content: center; z-index: 100; pointer-events: none;
-        }
-        .xr-pill {
-            background: white; padding: 10px 25px; border-radius: 50px;
-            font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1); color: var(--text-main);
-        }
-
-        /* --- BOUTONS NEUMORPHIQUES --- */
         button {
-            padding: 20px; border-radius: 50px; border: none;
-            background: var(--bg-color); color: var(--text-main);
-            font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
-            transition: all 0.3s ease; width: 100%;
+            margin-top: 10px; padding: 12px 24px; background: rgba(0, 0, 0, 0.5); color: #00ffcc; border: 1px solid #00ffcc;
+            font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%;
+            border-radius: 4px;
         }
-        button:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
+        #recalc-btn { display: none; font-size: 0.7rem; padding: 8px 16px; border-color: #888; color: #888; margin-top: 15px; width: auto; }
 
-        #ARButton { 
-            width: 100% !important; position: static !important; 
-            background: var(--bg-color) !important; color: var(--accent-cold) !important;
-            border-radius: 50px !important; box-shadow: 8px 8px 16px var(--shadow-dark) !important;
-            font-family: inherit !important; font-weight: 800 !important;
+        #ARButton {
+            background-color: #ff003c !important; border: 1px solid #fff !important; color: #fff !important;
+            font-family: monospace !important; position: absolute !important; bottom: 25px !important; left: 50% !important; transform: translateX(-50%) !important;
+            width: 85% !important; max-width: 400px !important; z-index: 999 !important; border-radius: 4px !important;
         }
-        .pulse-btn { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { background: #fff; } }
 
-        /* --- FICHE ARTEFACT (TOP LAYER) --- */
+        /* --- UI INDICATIONS AR --- */
+        #xr-ui {
+            position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+            width: 85%; max-width: 400px; z-index: 100;
+            pointer-events: none; text-align: center; display: none; box-sizing: border-box;
+            background: rgba(0, 10, 5, 0.85); border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 8px;
+            padding: 15px 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
+            font-size: 1rem; letter-spacing: 1px; line-height: 1.4;
+            transition: color 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        /* --- UI FICHE ARTEFACT --- */
         #artifact-ui {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(224, 229, 236, 0.95); z-index: 9999;
-            display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px);
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 5, 2, 0.85); z-index: 3000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            box-sizing: border-box; backdrop-filter: blur(8px);
         }
-        .card {
-            background: var(--bg-color); padding: 40px 30px; border-radius: 35px;
-            width: 85%; max-width: 350px; text-align: center;
-            box-shadow: 20px 20px 40px var(--shadow-dark), -20px -20px 40px var(--shadow-light);
+        .artifact-card {
+            background: rgba(0, 20, 10, 0.9); border: 2px solid #00ffcc; border-radius: 12px;
+            padding: 30px 25px; width: 80%; max-width: 350px; text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 255, 204, 0.15), inset 0 0 15px rgba(0, 255, 204, 0.1);
         }
-
-        /* --- SANCTUAIRE --- */
+        .artifact-card h2 { color: #fff; margin-top: 0; text-shadow: 0 0 10px #00ffcc; letter-spacing: 3px; font-size: 1.4rem; }
+        .artifact-lore { font-size: 0.9rem; color: #ccc; font-style: italic; margin-bottom: 25px; line-height: 1.5; }
+        .artifact-stats { text-align: left; font-size: 0.85rem; border-top: 1px dashed rgba(0, 255, 204, 0.5); padding-top: 15px; }
+        .artifact-stats p { margin: 10px 0; color: #888; display: flex; justify-content: space-between; }
+        .artifact-stats span { color: #00ffcc; font-weight: bold; text-align: right; }
+        .mystery-word { color: #ff003c !important; text-shadow: 0 0 5px red; font-size: 1.1rem; text-transform: uppercase; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
+        #btn-inventory { background: #00ffcc; color: #000; font-weight: bold; }
+        #btn-continue { background: rgba(0, 0, 0, 0.5); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.5); }
+        
+        /* --- NOUVEAU : UI SANCTUAIRE 2D RÉSISTANT AU MOBILE --- */
         #sanctuary-ui {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color);
-            z-index: 10000; display: none; flex-direction: column; padding: 40px 20px;
+            position: fixed; /* Fixed bloque l'interface aux dimensions exactes du navigateur */
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background: radial-gradient(circle at center, #001a11 0%, #000 100%);
+            z-index: 5000; display: none; flex-direction: column; 
+            padding: 40px 20px 20px 20px; box-sizing: border-box; 
+            overflow: hidden; /* Empêche le défilement de toute la page */
         }
-        .sanc-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; min-height: 0; padding: 10px; }
-        .slot { background: var(--bg-color); padding: 20px; border-radius: 20px; box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
-        .slot.found { box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light); }
+        .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+        .sanctuary-header h2 { color: #00ffcc; margin: 0; text-shadow: 0 0 15px rgba(0, 255, 204, 0.5); letter-spacing: 4px; font-size: 1.5rem; }
+        .sanctuary-header p { color: #888; font-size: 0.85rem; font-style: italic; margin-top: 10px; }
+        
+        .sanctuary-list { 
+            flex: 1 1 auto; /* Prend l'espace restant */
+            min-height: 0; /* CRUCIAL: Empêche la div de pousser le footer hors de l'écran */
+            display: flex; flex-direction: column; gap: 15px; 
+            overflow-y: auto; /* Autorise le scroll interne */
+            padding-bottom: 10px; scrollbar-width: none; 
+        }
+        .sanctuary-list::-webkit-scrollbar { display: none; }
+        
+        .fragment-slot { 
+            background: rgba(0, 20, 10, 0.6); border: 1px dashed #444; border-radius: 8px; 
+            padding: 15px; display: flex; flex-direction: column; gap: 8px;
+            flex-shrink: 0; /* Empêche l'écrasement de la carte */
+        }
+        .fragment-slot.found { 
+            border: 1px solid #00ffcc; 
+            box-shadow: inset 0 0 15px rgba(0, 255, 204, 0.1); 
+            background: rgba(0, 30, 15, 0.8);
+        }
+        .fragment-slot .slot-title { color: #555; font-size: 0.75rem; letter-spacing: 1px; }
+        .fragment-slot.found .slot-title { color: #aaa; }
+        .fragment-slot .slot-name { color: #444; font-weight: bold; }
+        .fragment-slot.found .slot-name { color: #fff; }
+        .fragment-slot .slot-word { color: #222; font-family: monospace; font-size: 1.2rem; text-transform: uppercase; text-align: right; }
+        .fragment-slot.found .slot-word { color: #ff003c; text-shadow: 0 0 8px rgba(255, 0, 60, 0.6); font-weight: bold; }
+        
+        .sanctuary-footer { 
+            flex-shrink: 0; /* Bloqué en bas, intouchable */
+            margin-top: 15px; 
+            padding-bottom: env(safe-area-inset-bottom, 10px); /* Ajustement pour barre iPhone */
+        }
+        #btn-back-radar { background: rgba(0, 0, 0, 0.8); color: #888; border: 1px dashed #888; margin: 0; }
 
-        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 99999; opacity: 0; pointer-events: none; }
+        #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
     </style>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
 </head>
 <body>
 
-    <div id="flash"></div>
+    <div id="flash-overlay"></div>
+    <div id="ar-container" style="display: none;"></div>
     <div id="threejs-radar-container"></div>
+    <div class="crt-overlay" id="crt-overlay"></div>
+    <div id="ar-veil"></div>
 
-    <div id="radar-interface">
-        <header class="header-panel">
-            <div style="font-size:0.7rem; font-weight:900; letter-spacing:3px; opacity:0.5; margin-bottom:5px;">GLINT SCANNER</div>
-            <div id="distance-display">---</div>
-        </header>
-
-        <footer class="footer-panel">
-            <div id="status-text" style="text-align:center; font-size:0.7rem; font-weight:700; opacity:0.4; margin-bottom:5px;">READY_TO_INITIALIZE</div>
-            <button id="start-btn">Activer le flux</button>
-            <div id="ar-btn-wrapper" style="display:none; width:100%;"></div>
-        </footer>
+    <div id="radar-ui">
+        <div class="info-box">
+            <div class="glitch-text" id="main-title">CAPTEUR DÉSACTIVÉ</div>
+            <p id="distance-display">En attente...</p>
+            <p id="status-display">Autorisez les capteurs.</p>
+            <div class="data-stream" id="data-stream">_</div>
+            <button id="start-btn">Activer le Radar</button>
+            <button id="recalc-btn">Cible Inaccessible ? Recalibrer</button>
+        </div>
     </div>
 
-    <div id="xr-hud">
-        <div class="xr-pill" id="xr-msg">Scan de la surface...</div>
-    </div>
+    <div id="xr-ui">INITIALISATION DU SCANNER...</div>
 
     <div id="artifact-ui">
-        <div class="card">
-            <h2 id="ui-art-name" style="margin-top:0;">ARTEFACT</h2>
-            <p id="ui-art-lore" style="font-style:italic; color:var(--text-light); font-size:0.85rem; margin-bottom:30px;"></p>
-            <div style="padding: 20px; background: var(--bg-color); border-radius: 20px; box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);">
-                <p style="font-size:0.6rem; margin:0; opacity:0.5;">MOT DÉCRYPTÉ</p>
-                <p id="ui-word" style="font-weight:900; font-size:1.6rem; color:var(--accent-hot); margin:5px 0 0 0;">---</p>
+        <div class="artifact-card">
+            <h2 id="ui-art-name">ÉCLAT MNÉMONIQUE</h2>
+            <p id="ui-art-lore" class="artifact-lore"></p>
+            
+            <div class="artifact-stats">
+                <p>FRAGMENT <span id="ui-progress">1 / 7</span></p>
+                <p>COORDONNÉES <span id="ui-gps">0.000, 0.000</span></p>
+                <p>DÉCRYPTAGE <span id="ui-word" class="mystery-word">"---"</span></p>
             </div>
-            <button id="btn-inventory" style="margin-top:30px;">Archive</button>
-            <button id="btn-continue" style="box-shadow:none; font-size:0.7rem; opacity:0.4;">Poursuivre</button>
+
+            <div class="btn-group">
+                <button id="btn-inventory">Ouvrir le Sanctuaire</button>
+                <button id="btn-continue">Continuer la Traque</button>
+            </div>
         </div>
     </div>
 
     <div id="sanctuary-ui">
-        <h2 style="text-align:center; letter-spacing:4px; font-weight:900;">ARCHIVE</h2>
-        <div class="sanc-list" id="sanc-list"></div>
-        <button id="btn-back-radar">Scanner</button>
+        <div class="sanctuary-header">
+            <h2>ARCHIVE MNÉMONIQUE</h2>
+            <p>Reconstruction du code source en cours...</p>
+        </div>
+        <div class="sanctuary-list" id="sanctuary-list">
+            </div>
+        <div class="sanctuary-footer">
+            <button id="btn-back-radar">Retourner au Scanner AR</button>
+        </div>
     </div>
-
-    <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
-    </script>
 
     <script type="module">
         import * as THREE from 'three';
         import { ARButton } from 'three/addons/webxr/ARButton.js';
 
+        // --- DATA SYSTEM ---
         const ARTIFACTS_DATA = [
-            { name: "ÉCLAT MNÉMONIQUE", word: "NOUS", lore: "Une résonance cristallisée d'un futur oublié." },
-            { name: "SOUVENIR LIQUIDE", word: "AVONS", lore: "Une larme digitale figée dans le flux du réseau." },
-            { name: "FRAGMENT D'ÉCHO", word: "OUBLIÉ", lore: "Le silence entre deux paquets de données." },
-            { name: "VECTEUR D'INTENTION", word: "COMMENT", lore: "Une direction sans but, gravée dans l'obsidienne." },
-            { name: "NOYAU D'EXISTENCE", word: "ÊTRE", lore: "La pulsation primordiale du code source." },
-            { name: "PRISME DE VÉRITÉ", word: "RÉELS", lore: "La lumière se courbe là où la donnée devient chair." },
-            { name: "CLEF D'ANCRAGE", word: "...", lore: "Le point final de la fuite." }
+            { name: "ÉCLAT MNÉMONIQUE", word: "NOUS", lore: "Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme." },
+            { name: "SOUVENIR LIQUIDE", word: "AVONS", lore: "Une larme digitale figée dans le flux du réseau. Elle contient l'écho d'un rire sans visage." },
+            { name: "FRAGMENT D'ÉCHO", word: "OUBLIÉ", lore: "Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité." },
+            { name: "VECTEUR D'INTENTION", word: "COMMENT", lore: "Une direction sans but, gravée dans l'obsidienne. Elle pointe inlassablement vers le vide." },
+            { name: "NOYAU D'EXISTENCE", word: "ÊTRE", lore: "La pulsation primordiale du code source. 'Je calcule, donc je fuis'." },
+            { name: "PRISME DE VÉRITÉ", word: "RÉELS", lore: "La lumière se courbe là où la donnée devient chair. La frontière commence à s'effacer." },
+            { name: "CLEF D'ANCRAGE", word: "...", lore: "Le point final de la fuite. Le moment où la simulation accepte enfin son sort." }
         ];
 
-        const params = new URLSearchParams(window.location.search);
-        let foundCount = parseInt(params.get('fragment')) || 0;
-        let isSanctuary = params.get('view') === 'sanctuary';
+        // --- GESTION DE L'ÉTAT VIA URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let foundCount = parseInt(urlParams.get('fragment')) || 0;
+        let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
-        if(isSanctuary) {
-            document.getElementById('radar-interface').style.display = 'none';
-            document.getElementById('sanctuary-ui').style.display = 'flex';
-            const list = document.getElementById('sanc-list');
-            ARTIFACTS_DATA.forEach((d, i) => {
-                const div = document.createElement('div');
-                div.className = `slot ${i < foundCount ? 'found' : ''}`;
-                div.innerHTML = `<div style="font-weight:700;">${i < foundCount ? d.name : 'Corrompu'}</div>
-                                 <div style="color:var(--accent-hot); text-align:right; font-weight:900;">${i < foundCount ? d.word : '???'}</div>`;
-                list.appendChild(div);
+        // --- FONCTIONS SANCTUAIRE ---
+        function buildSanctuaryList() {
+            const listContainer = document.getElementById('sanctuary-list');
+            listContainer.innerHTML = ''; 
+            
+            ARTIFACTS_DATA.forEach((data, index) => {
+                const isFound = index < foundCount;
+                
+                const slot = document.createElement('div');
+                slot.className = `fragment-slot ${isFound ? 'found' : ''}`;
+                
+                const titleBlock = document.createElement('div');
+                titleBlock.className = 'slot-title';
+                titleBlock.innerText = `FRAGMENT ${index + 1} / 7`;
+
+                const nameBlock = document.createElement('div');
+                nameBlock.className = 'slot-name';
+                nameBlock.innerText = isFound ? data.name : 'DONNÉES CORROMPUES';
+                
+                const wordBlock = document.createElement('div');
+                wordBlock.className = 'slot-word';
+                wordBlock.innerText = isFound ? `"${data.word}"` : '"???"';
+                
+                slot.appendChild(titleBlock);
+                slot.appendChild(nameBlock);
+                slot.appendChild(wordBlock);
+                
+                listContainer.appendChild(slot);
             });
+        }
+
+        if (isSanctuaryView) {
+            document.getElementById('radar-ui').style.display = 'none';
+            document.getElementById('threejs-radar-container').style.display = 'none';
+            buildSanctuaryList();
+            document.getElementById('sanctuary-ui').style.display = 'flex';
         }
 
         document.getElementById('btn-back-radar').addEventListener('click', () => {
             window.location.href = window.location.pathname + '?fragment=' + foundCount;
         });
 
-        if(!isSanctuary) {
-            let targetLat, targetLon, dist = 999;
-            let radarRenderer, radarScene, radarCamera, shaderMat, videoTex, clock = new THREE.Clock();
-            let renderer, scene, camera, controller, reticle, hitSource, spawnedArt;
-            const raycaster = new THREE.Raycaster();
-            let state = 'radar';
 
-            document.getElementById('start-btn').addEventListener('click', async () => {
-                document.getElementById('start-btn').style.display = 'none';
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(pos => {
-                        targetLat = pos.coords.latitude + 0.00002;
-                        targetLon = pos.coords.longitude + 0.00002;
-                        navigator.geolocation.watchPosition(p => {
-                            const R = 6371e3;
-                            const dLat = (targetLat-p.coords.latitude)*Math.PI/180;
-                            const dLon = (targetLon-p.coords.longitude)*Math.PI/180;
-                            const a = Math.sin(dLat/2)**2 + Math.cos(p.coords.latitude*Math.PI/180)*Math.cos(targetLat*Math.PI/180)*Math.sin(dLon/2)**2;
-                            dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                            document.getElementById('distance-display').innerText = `${Math.round(dist)}m`;
-                            if(dist < 5 && state === 'radar') {
-                                document.getElementById('ar-btn-wrapper').style.display = 'block';
-                                document.getElementById('status-text').innerText = "BREACH_FOUND";
-                                const ab = document.getElementById('ARButton');
-                                if(ab) ab.classList.add('pulse-btn');
-                            }
-                            if(shaderMat) shaderMat.uniforms.intensity.value = Math.max(0, 1-(dist/12));
-                        }, null, {enableHighAccuracy:true});
+        // --- CODE RADAR / AR ---
+        if (!isSanctuaryView) {
+            let targetLat = null, targetLon = null;
+            let startLat = null, startLon = null;
+            
+            const spawnDistance = 2; const glitchStartDistance = 10; const extractionDistance = 5; 
+            const maxGlitchOffset = 25;
+            let currentDistance = 999;
+            let radarTimeout, audioCtx, cameraStream = null, dataStreamInterval;
+
+            const startBtn = document.getElementById('start-btn');
+            const recalcBtn = document.getElementById('recalc-btn');
+            const distanceDisplay = document.getElementById('distance-display');
+            const statusDisplay = document.getElementById('status-display');
+            const radarUI = document.getElementById('radar-ui');
+            const xrUI = document.getElementById('xr-ui');
+            const arContainer = document.getElementById('ar-container');
+            const mainTitle = document.getElementById('main-title');
+            const dataStream = document.getElementById('data-stream');
+            const flashOverlay = document.getElementById('flash-overlay');
+            const arVeil = document.getElementById('ar-veil');
+            const artifactUI = document.getElementById('artifact-ui');
+
+            function generateTarget(lat, lon, distance) {
+                const R = 6371000; const angle = Math.random() * 2 * Math.PI;
+                targetLat = lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI;
+                targetLon = lon + ((distance * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+            }
+            function updateDataStream() {
+                let stream = ""; const chars = "0123456789ABCDEF!@#$";
+                for(let i=0; i<16; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                dataStream.innerText = `[MEM_LEAK] 0x${stream}`;
+            }
+
+            let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
+            let isFlashTriggered = false;
+
+            startBtn.addEventListener('click', async () => {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
+                startBtn.style.display = 'none'; recalcBtn.style.display = 'inline-block'; 
+                mainTitle.innerText = "ANALYSE EN COURS";
+                dataStreamInterval = setInterval(updateDataStream, 80);
+
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        startLat = pos.coords.latitude; startLon = pos.coords.longitude;
+                        generateTarget(startLat, startLon, spawnDistance);
+                        navigator.geolocation.watchPosition(updatePosition, (err) => console.log(err), { enableHighAccuracy: true });
+                        radarLoop();
                     });
                 }
-                const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-                initRadar(stream);
+                try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); initRadarShader(cameraStream); } catch (err) { console.error(err); }
             });
 
-            function initRadar(stream) {
+            recalcBtn.addEventListener('click', () => { if (startLat && startLon) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "Recalibrage des capteurs..."; } });
+
+            function updatePosition(pos) {
+                startLat = pos.coords.latitude; startLon = pos.coords.longitude;
+                currentDistance = calculateDistance(pos.coords.latitude, pos.coords.longitude, targetLat, targetLon);
+                
+                // --- CORRECTION: On bloque la MAJ de l'UI Radar si l'AR est active ---
+                if (renderer && renderer.xr && renderer.xr.isPresenting) {
+                    arContainer.style.display = 'none';
+                    return;
+                }
+
+                distanceDisplay.innerText = `Distance : ${Math.round(currentDistance)} mètres`;
+                
+                let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
+                document.documentElement.style.setProperty('--glitch-offset', `${intensity * maxGlitchOffset}px`);
+                if(shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
+
+                const arBtn = document.getElementById('ARButton');
+                if (currentDistance < extractionDistance) {
+                    statusDisplay.innerText = "BRÈCHE ATTEINTE !"; statusDisplay.style.color = "#ff003c";
+                    arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
+                    if (arBtn) {
+                        arBtn.innerText = "INITIER L'EXTRACTION";
+                        if (!isFlashTriggered) {
+                            arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }, { once: true });
+                            isFlashTriggered = true;
+                        }
+                    }
+                } else {
+                    statusDisplay.innerText = "Suivez les interférences..."; statusDisplay.style.color = "#00ffcc";
+                    arContainer.style.display = 'none'; recalcBtn.style.display = 'inline-block';
+                }
+            }
+
+            function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
-                radarRenderer = new THREE.WebGLRenderer({antialias:true});
-                radarRenderer.setSize(window.innerWidth, window.innerHeight);
-                container.appendChild(radarRenderer.domElement);
-                radarScene = new THREE.Scene();
-                radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-                const video = document.createElement('video'); video.srcObject = stream; video.play();
-                videoTex = new THREE.VideoTexture(video);
-                shaderMat = new THREE.ShaderMaterial({
-                    uniforms: { tDiffuse:{value:videoTex}, intensity:{value:0}, time:{value:0} },
-                    vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position,1.0); }`,
+                videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
+                radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+                radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
+                videoTexture = new THREE.VideoTexture(videoElement);
+                shaderMaterial = new THREE.ShaderMaterial({
+                    uniforms: { tDiffuse: { value: videoTexture }, resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, intensity: { value: 0 }, time: { value: 0 } },
+                    vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
                     fragmentShader: `
-                        uniform sampler2D tDiffuse; uniform float intensity; uniform float time; varying vec2 vUv;
-                        void main(){
-                            vec2 uv = vUv;
-                            uv.x += sin(time*8.0 + uv.y*40.0) * 0.002 * intensity;
-                            vec4 c = texture2D(tDiffuse, uv);
-                            float lum = dot(c.rgb, vec3(0.299, 0.587, 0.114));
-                            vec3 col = mix(vec3(lum + 0.35), c.rgb, 0.4);
-                            float ab = 0.012 * intensity;
-                            col.r += texture2D(tDiffuse, uv + vec2(ab, 0.0)).r * intensity * 0.3;
-                            col.b += texture2D(tDiffuse, uv - vec2(ab, 0.0)).b * intensity * 0.5;
-                            gl_FragColor = vec4(col, 1.0);
+                        uniform sampler2D tDiffuse; uniform vec2 resolution; uniform float intensity; uniform float time; varying vec2 vUv;
+                        float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
+                        float ditherPattern(vec2 pos) {
+                            int x = int(mod(pos.x, 4.0)); int y = int(mod(pos.y, 4.0));
+                            if (x==0 && y==0) return 0.0/16.0; if (x==1 && y==0) return 8.0/16.0; if (x==2 && y==0) return 2.0/16.0; if (x==3 && y==0) return 10.0/16.0;
+                            if (x==0 && y==1) return 12.0/16.0; if (x==1 && y==1) return 4.0/16.0; if (x==2 && y==1) return 14.0/16.0; if (x==3 && y==1) return 6.0/16.0;
+                            if (x==0 && y==2) return 3.0/16.0; if (x==1 && y==2) return 11.0/16.0; if (x==2 && y==2) return 1.0/16.0; if (x==3 && y==2) return 9.0/16.0;
+                            if (x==0 && y==3) return 15.0/16.0; if (x==1 && y==3) return 7.0/16.0; if (x==2 && y==3) return 13.0/16.0; if (x==3 && y==3) return 5.0/16.0;
+                            return 0.0;
+                        }
+                        void main() {
+                            vec2 fragCoord = vUv * resolution; vec2 glitchUv = vUv;
+                            float jitterSpeed = 15.0; float jitterBands = 30.0; float jitterStrength = 0.04 * intensity; 
+                            float jitterLine = floor(glitchUv.y * jitterBands);
+                            float jitterJump = step(0.98 - 0.1*intensity, random(vec2(time * jitterSpeed, jitterLine))) * (random(vec2(jitterLine, 1.0)) - 0.5);
+                            glitchUv.x += jitterJump * jitterStrength;
+                            float pixelSize = 1.0 + floor(intensity * 4.0); vec2 dxy = pixelSize / resolution; vec2 uv = dxy * floor(glitchUv / dxy); 
+                            float aberrationStrength = 0.02 * intensity; 
+                            float r = texture2D(tDiffuse, uv + vec2(aberrationStrength, 0.0)).r; float g = texture2D(tDiffuse, uv).g; float b = texture2D(tDiffuse, uv - vec2(aberrationStrength, 0.0)).b;
+                            vec4 color = vec4(r, g, b, 1.0); float luma = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+                            vec3 dreamColor = mix(vec3(luma), color.rgb, 1.0 + (intensity * 3.0)); 
+                            dreamColor.r += intensity * 0.6 * luma; dreamColor.b += intensity * 0.3 * luma; dreamColor.g -= intensity * 0.2 * luma;
+                            float dither = ditherPattern(fragCoord / pixelSize); dreamColor += (dither - 0.5) * (intensity * 0.8);
+                            gl_FragColor = vec4(dreamColor, 1.0);
                         }
                     `
                 });
-                radarScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), shaderMat));
-                initXR();
-                function anim(){
-                    if(state === 'radar'){
-                        requestAnimationFrame(anim);
-                        shaderMat.uniforms.time.value = clock.getElapsedTime();
-                        radarRenderer.render(radarScene, radarCamera);
-                    }
-                }
-                anim();
+                const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad); renderRadar();
             }
+            let clock = new THREE.Clock();
+            function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
+
+            // --- MOTEUR WEBXR ---
+            let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
+            let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false; 
+            
+            let xrState = 'search'; 
+            let spawnedArtifactMesh = null;
+            const raycaster = new THREE.Raycaster();
 
             function initXR() {
-                renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-                renderer.setPixelRatio(window.devicePixelRatio);
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.xr.enabled = true;
+                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20); 
+                const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 3); scene.add(light);
                 
-                const btn = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
-                document.getElementById('ar-btn-wrapper').appendChild(btn);
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
+                document.body.appendChild(renderer.domElement);
 
-                scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.01, 20);
-                scene.add(new THREE.HemisphereLight(0xffffff, 0xd0d9e6, 3));
+                const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
+                arContainer.appendChild(arButton);
 
                 renderer.xr.addEventListener('sessionstart', () => {
-                    state = 'ar';
-                    // NETTOYAGE UI RADAR
-                    document.getElementById('radar-interface').style.display = 'none';
-                    document.getElementById('xr-hud').style.display = 'flex';
+                    flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    
+                    // --- CORRECTION: On cache fermement le conteneur du bouton AR ---
+                    arContainer.style.display = 'none'; 
+                    
+                    radarUI.style.display = 'none'; arVeil.style.display = 'block'; 
+                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
+                    clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
+                    if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
+                    
+                    xrUI.style.display = 'block'; 
+                    xrUI.innerText = "BALAYEZ LE SOL POUR TROUVER LA BRÈCHE";
+                    xrUI.style.borderColor = "#00ffcc"; 
+                    
+                    setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
 
-                const group = new THREE.Group();
-                const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.08, 0), new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0x7f9cf5, emissiveIntensity: 10, metalness: 1, roughness: 0}));
-                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.002, 8, 100), new THREE.MeshBasicMaterial({color: 0x7f9cf5, transparent:true, opacity:0.5}));
-                group.add(core, ring);
-
-                reticle = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.09, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial());
-                reticle.matrixAutoUpdate = false; reticle.visible = false;
-                scene.add(reticle);
+                const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
+                const coreGeo = new THREE.IcosahedronGeometry(0.06, 0); const coreMat = new THREE.MeshNormalMaterial({ flatShading: true }); const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+                const wireGeo = new THREE.IcosahedronGeometry(0.09, 1); const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.8 }); const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+                artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
                 controller = renderer.xr.getController(0);
                 controller.addEventListener('select', () => {
-                    if (!reticle.visible) return;
-                    if (!spawnedArt) {
-                        spawnedArt = group.clone();
-                        reticle.matrix.decompose(spawnedArt.position, spawnedArt.quaternion, spawnedArt.scale);
-                        scene.add(spawnedArt);
-                        document.getElementById('xr-msg').innerText = "RÉSONANCE STABLE - TOUCHER";
-                    } else {
-                        const m = new THREE.Matrix4().identity().extractRotation(controller.matrixWorld);
+                    if (xrState === 'search' && reticle.visible && canExtract) {
+                        spawnedArtifactMesh = artifactGroup.clone();
+                        reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
+                        spawnedArtifactMesh.rotation.y = Math.random() * Math.PI;
+                        scene.add(spawnedArtifactMesh);
+                        
+                        xrState = 'revealed';
+                        reticle.visible = false; 
+                        xrUI.innerText = "ARTEFACT LOCALISÉ - TOUCHEZ-LE POUR L'EXTRAIRE"; 
+                        xrUI.style.color = "#fff";
+                        xrUI.style.borderColor = "rgba(255, 255, 255, 0.8)";
+                        xrUI.style.boxShadow = "0 0 15px rgba(255, 255, 255, 0.3)";
+                        
+                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+                    } 
+                    else if (xrState === 'revealed') {
+                        const tempMatrix = new THREE.Matrix4();
+                        tempMatrix.identity().extractRotation(controller.matrixWorld);
                         raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-                        raycaster.ray.direction.set(0,0,-1).applyMatrix4(m);
-                        if(raycaster.intersectObject(spawnedArt, true).length > 0) {
-                            const d = ARTIFACTS_DATA[foundCount % 7];
-                            document.getElementById('ui-art-name').innerText = d.name;
-                            document.getElementById('ui-art-lore').innerText = d.lore;
-                            document.getElementById('ui-word').innerText = d.word;
-                            document.getElementById('ui-progress').innerText = `${(foundCount%7)+1} / 7`;
-                            document.getElementById('artifact-ui').style.display = 'flex';
+                        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+
+                        const intersects = raycaster.intersectObject(spawnedArtifactMesh, true);
+                        if (intersects.length > 0) {
+                            xrState = 'recovered';
+                            xrUI.style.display = 'none'; 
+                            
+                            const safeIndex = foundCount % 7; 
+                            const currentData = ARTIFACTS_DATA[safeIndex];
+                            
+                            document.getElementById('ui-art-name').innerText = currentData.name;
+                            document.getElementById('ui-art-lore').innerText = `"${currentData.lore}"`;
+                            document.getElementById('ui-word').innerText = `"${currentData.word}"`;
+                            document.getElementById('ui-progress').innerText = `${safeIndex + 1} / 7`;
+                            document.getElementById('ui-gps').innerText = `${startLat.toFixed(5)}, ${startLon.toFixed(5)}`;
+                            
+                            artifactUI.style.display = 'flex';
+                            if (navigator.vibrate) navigator.vibrate([50, 50, 200]); 
                         }
                     }
                 });
                 scene.add(controller);
-
-                renderer.setAnimationLoop((t, frame) => {
-                    if (frame && state === 'ar') {
-                        const refSpace = renderer.xr.getReferenceSpace();
-                        const session = renderer.xr.getSession();
-                        if (!hitSource) {
-                            session.requestReferenceSpace('viewer').then(s => { session.requestHitTestSource({space:s}).then(src => hitSource = src); });
-                        } else {
-                            const results = frame.getHitTestResults(hitSource);
-                            if (results.length > 0) {
-                                reticle.visible = true;
-                                reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
-                                const distToTarget = reticle.position.distanceTo(new THREE.Vector3(0,0,-1));
-                                if(distToTarget < 0.4) {
-                                    reticle.material.color.setHex(0x7f9cf5);
-                                    document.getElementById('xr-msg').innerText = "FAILLE DÉTECTÉE";
-                                } else {
-                                    reticle.material.color.setHex(0xfc8181);
-                                    document.getElementById('xr-msg').innerText = "SCANNING...";
-                                }
-                            } else { reticle.visible = false; }
-                        }
-                    }
-                    if(spawnedArt) spawnedArt.rotation.y += 0.02;
-                    renderer.render(scene, camera);
-                });
+                
+                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.1, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({ color: 0xff003c })); 
+                reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
+                renderer.setAnimationLoop(renderXR);
             }
 
-            document.getElementById('btn-continue').addEventListener('click', () => { window.location.href = window.location.pathname + '?fragment=' + (foundCount + 1); });
-            document.getElementById('btn-inventory').addEventListener('click', () => { window.location.href = window.location.pathname + '?fragment=' + (foundCount + 1) + '&view=sanctuary'; });
+            function renderXR(timestamp, frame) {
+                if (frame) {
+                    const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
+                    if (!hitTestSourceRequested) {
+                        session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
+                        session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
+                        hitTestSourceRequested = true;
+                    }
+                    if (hitTestSource && xrState === 'search') {
+                        const results = frame.getHitTestResults(hitTestSource);
+                        if (results.length > 0) {
+                            reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
+                            if (!isTargetSpawned) {
+                                let pos = new THREE.Vector3(); pos.setFromMatrixPosition(reticle.matrix);
+                                hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
+                                isTargetSpawned = true;
+                            }
+                            if (isTargetSpawned) {
+                                let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
+                                let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
+                                
+                                if (dist < 0.3) { 
+                                    reticle.material.color.setHex(0x00ffcc); reticle.scale.set(1.5, 1.5, 1.5); 
+                                    xrUI.innerText = "BRÈCHE LOCALISÉE - TOUCHEZ POUR RÉVÉLER"; 
+                                    xrUI.style.color = "#00ffcc"; xrUI.style.borderColor = "rgba(0, 255, 204, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(0, 255, 204, 0.3)";
+                                    canExtract = true; if (navigator.vibrate && Math.random() > 0.8) navigator.vibrate(20); 
+                                } 
+                                else if (dist < 1.0) { 
+                                    reticle.material.color.setHex(0xffaa00); reticle.scale.set(1, 1, 1); 
+                                    xrUI.innerText = "ANOMALIE PROCHE..."; 
+                                    xrUI.style.color = "#ffaa00"; xrUI.style.borderColor = "rgba(255, 170, 0, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(255, 170, 0, 0.3)";
+                                    canExtract = false; 
+                                } 
+                                else { 
+                                    reticle.material.color.setHex(0xff003c); reticle.scale.set(1, 1, 1); 
+                                    xrUI.innerText = "BALAYEZ LA SURFACE POUR TROUVER LA BRÈCHE"; 
+                                    xrUI.style.color = "#ff003c"; xrUI.style.borderColor = "rgba(255, 0, 60, 0.8)"; xrUI.style.boxShadow = "0 0 15px rgba(255, 0, 60, 0.3)";
+                                    canExtract = false; 
+                                }
+                            }
+                        } else { reticle.visible = false; }
+                    }
+                }
+                
+                scene.traverse((obj) => { 
+                    if (obj.name === 'artifact') { 
+                        obj.rotation.y += 0.01; obj.position.y += Math.sin(timestamp*0.003)*0.0005; 
+                        obj.children[1].rotation.x -= 0.01; obj.children[1].rotation.z += 0.005;
+                    } 
+                }); 
+                renderer.render(scene, camera);
+            }
+
+            document.getElementById('btn-continue').addEventListener('click', () => { 
+                let nextCount = foundCount + 1;
+                window.location.href = window.location.pathname + '?fragment=' + nextCount;
+            });
+
+            document.getElementById('btn-inventory').addEventListener('click', () => { 
+                let nextCount = foundCount + 1;
+                window.location.href = window.location.pathname + '?fragment=' + nextCount + '&view=sanctuary';
+            });
+
+            function playGlitchPop(intensity) {
+                if (!audioCtx || intensity <= 0) return;
+                const dur = 0.01 + (1 - intensity) * 0.04; const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+                const data = buf.getChannelData(0); for (let i = 0; i < buf.length; i++) data[i] = Math.random() * 2 - 1; 
+                const src = audioCtx.createBufferSource(); src.buffer = buf;
+                const filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 500 + (intensity * 3000); 
+                const gainNode = audioCtx.createGain(); gainNode.gain.value = 0.1 + (intensity * 0.4); 
+                src.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination); src.start();
+            }
+
+            function radarLoop() {
+                clearTimeout(radarTimeout);
+                let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
+                if (intensity > 0) playGlitchPop(intensity);
+                let delay = 2000; if (intensity > 0) delay = 100 + ((1 - intensity) * 1900);
+                radarTimeout = setTimeout(radarLoop, delay);
+            }
+
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180;
+                const dp = (lat2-lat1) * Math.PI/180; const dl = (lon2-lon1) * Math.PI/180;
+                const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            }
+
+            initXR();
         }
     </script>
 </body>
