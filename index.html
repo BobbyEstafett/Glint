@@ -305,7 +305,7 @@
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                         generateTarget(startLat, startLon, spawnDistance);
                         navigator.geolocation.watchPosition(updatePosition, (err) => console.log(err), { enableHighAccuracy: true });
-                        radarLoop(); // Lance les "carillons"
+                        radarLoop(); 
                     });
                 }
                 try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); initRadarShader(cameraStream); } catch (err) { console.error(err); }
@@ -328,7 +328,8 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = "var(--accent-glow)";
+                    statusDisplay.innerText = "La mémoire affleure..."; 
+                    statusDisplay.style.color = "var(--accent-glow)";
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
                     if (arBtn) {
                         arBtn.innerText = "Saisir le rêve";
@@ -338,7 +339,8 @@
                         }
                     }
                 } else {
-                    statusDisplay.innerText = "Suivez le fil..."; statusDisplay.style.color = "var(--text-body)";
+                    statusDisplay.innerText = "Suivez le fil..."; 
+                    statusDisplay.style.color = "var(--text-body)";
                     arContainer.style.display = 'none'; recalcBtn.style.display = 'inline-block';
                 }
             }
@@ -417,7 +419,7 @@
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
                     xrUI.style.display = 'block'; 
-                    xrUI.innerText = "Le cristal se cache ici...";
+                    xrUI.innerText = "L'écho est fuyant..."; // Texte de base au lancement
                     
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
@@ -502,16 +504,44 @@
                                 let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
                                 let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
                                 
-                                let pulse = 1.0 + Math.sin(timestamp * 0.005) * 0.2;
-                                
+                                // --- MÉCANIQUE CHAUD/FROID INVERSÉE (Le Froid est le but, le Chaud est le bruit) ---
                                 if (dist < 0.4) { 
-                                    reticle.material.color.setHex(0xe0c3fc); reticle.scale.set(pulse * 1.5, pulse * 1.5, 1); 
-                                    xrUI.innerText = "La source est là. Cliquez."; 
+                                    // LA CIBLE (Bleu Éthéré / Lilas)
+                                    let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3; 
+                                    reticle.material.color.setHex(0xe0c3fc); // Lilas de la cible
+                                    reticle.material.opacity = 0.9;
+                                    reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1); 
+                                    
+                                    xrUI.innerText = "La source est pure. Touchez."; 
+                                    xrUI.style.color = "var(--accent-glow)"; 
+                                    xrUI.style.borderColor = "rgba(224, 195, 252, 0.6)";
+                                    xrUI.style.boxShadow = "0 0 20px rgba(224, 195, 252, 0.4)";
                                     canExtract = true; 
                                 } 
+                                else if (dist < 1.2) { 
+                                    // TIÈDE / TRANSITION (Mauve doux)
+                                    let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15; 
+                                    reticle.material.color.setHex(0xd4a5a5); // Rose/Mauve
+                                    reticle.material.opacity = 0.7;
+                                    reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1); 
+                                    
+                                    xrUI.innerText = "La résonance s'apaise..."; 
+                                    xrUI.style.color = "#d4a5a5"; 
+                                    xrUI.style.borderColor = "rgba(212, 165, 165, 0.4)";
+                                    xrUI.style.boxShadow = "0 0 15px rgba(212, 165, 165, 0.2)";
+                                    canExtract = false; 
+                                } 
                                 else { 
-                                    reticle.material.color.setHex(0xffffff); reticle.scale.set(pulse, pulse, 1); 
-                                    xrUI.innerText = "Cherchez la lueur..."; 
+                                    // LOIN (Ambre Chaud / Rouille = Bruit/Confusion)
+                                    let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05; 
+                                    reticle.material.color.setHex(0xe29578); // Ambre chaud
+                                    reticle.material.opacity = 0.4;
+                                    reticle.scale.set(slowPulse, slowPulse, 1); 
+                                    
+                                    xrUI.innerText = "L'écho est confus..."; 
+                                    xrUI.style.color = "#e29578"; 
+                                    xrUI.style.borderColor = "rgba(226, 149, 120, 0.15)";
+                                    xrUI.style.boxShadow = "0 8px 32px 0 rgba(0, 0, 0, 0.4)";
                                     canExtract = false; 
                                 }
                             }
