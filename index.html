@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Génération Procédurale)</title>
+    <title>GLINT - Érrance Onirique (Cible Verrouillée)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,8 @@
             --glass-border: rgba(255, 255, 255, 0.15);
             --text-title: #f0e6d2; 
             --text-body: #a8b2c1;
+            /* Sera écrasé dynamiquement */
+            --accent-pure: #8be9fd; 
         }
 
         body { 
@@ -35,14 +37,14 @@
 
         #radar-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; box-sizing: border-box; z-index: 10; pointer-events: none; }
         
-        .info-box { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 20px; text-align: center; width: 85%; max-width: 350px; height: 300px; pointer-events: auto; box-sizing: border-box; }
+        .info-box { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 20px; text-align: center; width: 85%; max-width: 350px; height: 300px; pointer-events: auto; box-sizing: border-box; transition: box-shadow 1s ease; }
         .info-top { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100px; width: 100%; }
         .info-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; width: 100%; }
         .info-bottom { display: flex; justify-content: center; align-items: flex-end; height: 20px; width: 100%; }
 
         .main-title { font-size: 1.5rem; letter-spacing: 2px; margin: 0 0 10px 0; line-height: 1; }
         #distance-display { font-size: 2rem; font-weight: 200; margin: 0; color: var(--text-title); line-height: 1; display: flex; align-items: center; }
-        #status-display { font-weight: 200; font-size: 0.8rem; margin: 0; line-height: 1.2; text-wrap: balance; height: 2em; display: flex; align-items: center; }
+        #status-display { font-weight: 200; font-size: 0.8rem; margin: 0; line-height: 1.2; text-wrap: balance; height: 2em; display: flex; align-items: center; justify-content: center; }
         .data-stream { font-size: 0.65rem; color: var(--text-body); margin: 0; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; line-height: 1; }
 
         button { display: flex; align-items: center; justify-content: center; text-align: center; margin: 0; height: 55px; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); color: var(--text-title); font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; border: 1px solid var(--glass-border); border-radius: 50px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.4s ease; line-height: 1; }
@@ -50,7 +52,7 @@
         #recalc-btn { display: none; font-size: 0.65rem; border: none; opacity: 0.5; height: 40px; background: transparent; }
 
         #ar-container { width: 100%; display: none; }
-        #ARButton { font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important; position: relative !important; bottom: auto !important; left: auto !important; transform: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; height: 55px !important; border-radius: 50px !important; }
+        #ARButton { background: rgba(255,255,255, 0.05) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important; font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important; position: relative !important; bottom: auto !important; left: auto !important; transform: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; height: 55px !important; border-radius: 50px !important; box-shadow: 0 0 15px var(--accent-pure) !important; }
 
         #xr-ui { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none; padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600; transition: all 0.4s ease; }
 
@@ -58,15 +60,16 @@
         .delay-1 { animation-delay: 1s; } .delay-2 { animation-delay: 2s; } .delay-3 { animation-delay: 3s; }
         @keyframes fadeInAnim { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        #artifact-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.7); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; backdrop-filter: blur(15px); }
-        .artifact-card { padding: 40px 30px; width: 85%; max-width: 360px; text-align: center; }
-        .artifact-card h2 { margin-top: 0; letter-spacing: 2px; font-size: 1.6rem; line-height: 1.2; }
+        #artifact-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.8); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; backdrop-filter: blur(15px); }
+        .artifact-card { padding: 40px 30px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 0 40px var(--accent-pure); }
+        .artifact-card h2 { margin-top: 0; letter-spacing: 2px; font-size: 1.6rem; line-height: 1.2; text-shadow: 0 0 15px var(--accent-pure); }
         .artifact-lore { font-size: 1rem; color: var(--text-body); margin-bottom: 35px; line-height: 1.7; text-wrap: balance; }
         .artifact-stats { text-align: left; font-size: 0.75rem; border-top: 1px solid var(--glass-border); padding-top: 20px; font-weight: 200; letter-spacing: 1px; }
         .artifact-stats p { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .artifact-stats span { color: var(--text-title); font-weight: 400; text-align: right; }
-        .mystery-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.5rem !important; text-transform: lowercase !important; }
+        .mystery-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.5rem !important; text-transform: lowercase !important; color: var(--accent-pure) !important; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 35px; }
+        #btn-inventory { background: transparent; color: var(--accent-pure); border-color: var(--accent-pure); }
         
         #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%); z-index: 5000; display: none; flex-direction: column; padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
         .sanctuary-header { text-align: center; margin-bottom: 30px; flex-shrink: 0; }
@@ -75,7 +78,7 @@
         .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
         .star { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin: 0 4px; transition: all 1s; }
         .star-link { height: 1px; width: 12px; background: var(--glass-border); transition: background 1s; }
-        .final-revelation { font-family: 'Playfair Display', serif; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-style: italic; animation: fadeInAnim 3s forwards; text-wrap: balance; }
+        .final-revelation { font-family: 'Playfair Display', serif; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-style: italic; animation: fadeInAnim 3s forwards; text-wrap: balance; color: var(--text-title); text-shadow: 0 0 15px rgba(255,255,255,0.8); }
         .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
         .fragment-slot { padding: 20px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; border: 1px dashed rgba(255,255,255,0.05); background: transparent; border-radius: 15px; }
         .fragment-slot.found { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%); }
@@ -85,6 +88,7 @@
         .fragment-slot .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; text-align: right; opacity: 0; }
         .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding-bottom: env(safe-area-inset-bottom, 10px); }
         #btn-back-radar { border-color: transparent; }
+        #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
         #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-out; }
     </style>
     <script type="importmap">
@@ -101,7 +105,7 @@
     <div id="glow-right" class="edge-glow"></div>
 
     <div id="radar-ui">
-        <div class="info-box glass-panel">
+        <div class="info-box glass-panel" id="main-panel">
             <div class="info-top">
                 <h1 class="main-title serif" id="main-title">Sommeil</h1>
                 <p id="distance-display">---</p>
@@ -110,7 +114,7 @@
             <div class="info-mid">
                 <button id="start-btn">Ouvrir l'œil</button>
                 <div id="ar-container"></div>
-                <button id="recalc-btn">Se recentrer</button>
+                <button id="recalc-btn">Repositionner les fragments</button>
             </div>
             <div class="info-bottom">
                 <div class="data-stream" id="data-stream">_</div>
@@ -118,10 +122,10 @@
         </div>
     </div>
 
-    <div id="xr-ui" class="glass-panel">CHERCHEZ LA LUEUR...</div>
+    <div id="xr-ui" class="glass-panel">Laissez votre regard errer...</div>
 
     <div id="artifact-ui">
-        <div class="artifact-card glass-panel">
+        <div class="artifact-card glass-panel" id="art-card">
             <h2 id="ui-art-name" class="fade-in-seq">ÉCLAT MNÉMONIQUE</h2>
             <p id="ui-art-lore" class="artifact-lore serif fade-in-seq delay-1"></p>
             <div class="artifact-stats fade-in-seq delay-2">
@@ -145,6 +149,7 @@
         <div class="sanctuary-list" id="sanctuary-list"></div>
         <div class="sanctuary-footer">
             <button id="btn-back-radar">Fermer les yeux (Retour)</button>
+            <button id="btn-reset" style="display:none;">Recommencer l'Errance</button>
         </div>
     </div>
 
@@ -155,62 +160,25 @@
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
-        // --- LE COEUR DE LA GÉNÉRATION PROCÉDURALE ---
-        const ARTIFACTS_DATA = [
-            { 
-                name: "La Première Goutte", word: "NOUS", 
-                lore: "«\u00A0Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme.\u00A0»",
-                colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron",
-                audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water"
-            },
-            { 
-                name: "Souvenir Liquide", word: "AVONS", 
-                lore: "«\u00A0Une larme digitale figée dans le flux. Elle contient l'écho d'un rire sans visage.\u00A0»",
-                colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron",
-                audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble"
-            },
-            { 
-                name: "Le Poids de l'Absence", word: "OUBLIÉ", 
-                lore: "«\u00A0Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité.\u00A0»",
-                colorHex: 0xbd93f9, cssColor: "rgba(189, 147, 249, 1)", shape: "box",
-                audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate"
-            },
-            { 
-                name: "Vecteur Cendré", word: "COMMENT", 
-                lore: "«\u00A0Une direction sans but, gravée dans l'obsidienne. Elle pointe inlassablement vers le vide.\u00A0»",
-                colorHex: 0xff79c6, cssColor: "rgba(255, 121, 198, 1)", shape: "cone",
-                audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split"
-            },
-            { 
-                name: "Noyau Palpitant", word: "ÊTRE", 
-                lore: "«\u00A0La pulsation primordiale du code source. Je calcule, donc je fuis.\u00A0»",
-                colorHex: 0x50fa7b, cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron",
-                audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse"
-            },
-            { 
-                name: "Prisme de l'Aube", word: "RÉELS", 
-                lore: "«\u00A0La lumière se courbe là où la donnée devient chair. La frontière commence à s'effacer.\u00A0»",
-                colorHex: 0xf1fa8c, cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder",
-                audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror"
-            },
-            { 
-                name: "L'Acceptation", word: "...", 
-                lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»",
-                colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere",
-                audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom"
-            }
+        const ARTIFACT_PROFILES = [
+            { id: 0, colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "La Première Goutte", word: "NOUS", lore: "«\u00A0Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme.\u00A0»" },
+            { id: 1, colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Souvenir Liquide", word: "AVONS", lore: "«\u00A0Une larme digitale figée dans le flux. Elle contient l'écho d'un rire sans visage.\u00A0»" },
+            { id: 2, colorHex: 0xbd93f9, cssColor: "rgba(189, 147, 249, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "Le Poids de l'Absence", word: "OUBLIÉ", lore: "«\u00A0Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité.\u00A0»" },
+            { id: 3, colorHex: 0xff79c6, cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Vecteur Cendré", word: "COMMENT", lore: "«\u00A0Une direction sans but, gravée dans l'obsidienne. Elle pointe inlassablement vers le vide.\u00A0»" },
+            { id: 4, colorHex: 0x50fa7b, cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Noyau Palpitant", word: "ÊTRE", lore: "«\u00A0La pulsation primordiale du code source. Je calcule, donc je fuis.\u00A0»" },
+            { id: 5, colorHex: 0xf1fa8c, cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Prisme de l'Aube", word: "RÉELS", lore: "«\u00A0La lumière se courbe là où la donnée devient chair. La frontière commence à s'effacer.\u00A0»" },
+            { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "L'Acceptation", word: "...", lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»" }
         ];
 
+        // --- GESTION SAUVEGARDE & VERROUILLAGE (Lock-On) ---
+        // On ajoute currentTargetId pour mémoriser la cible verrouillée
+        let gameState = JSON.parse(localStorage.getItem('glint_state')) || { initialized: false, artifacts: [], foundCount: 0, currentTargetId: null };
         const urlParams = new URLSearchParams(window.location.search);
-        let rawCount = parseInt(urlParams.get('fragment')) || 0;
-        let foundCount = Math.min(rawCount, 7); 
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
-        
-        // On récupère les propriétés visuelles et sonores du niveau actuel
-        let currentLevelIndex = Math.min(foundCount, 6);
-        let currentData = ARTIFACTS_DATA[currentLevelIndex];
 
-        if (foundCount >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?fragment=7&view=sanctuary'); }
+        let activeProfile = ARTIFACT_PROFILES[0]; // Profil par défaut
+
+        if (gameState.foundCount >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?view=sanctuary'); }
 
         function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
@@ -219,37 +187,41 @@
             
             for(let i=0; i<7; i++) {
                 let star = document.createElement('div');
-                let color = ARTIFACTS_DATA[i].cssColor;
-                star.className = `star ${i < foundCount ? 'active' : ''}`;
-                if(i < foundCount) { star.style.background = color; star.style.boxShadow = `0 0 10px ${color}`; }
+                let isFound = gameState.initialized && gameState.artifacts[i].found;
+                let color = ARTIFACT_PROFILES[i].cssColor;
+                
+                star.className = `star ${isFound ? 'active' : ''}`;
+                if(isFound) { star.style.background = color; star.style.boxShadow = `0 0 10px ${color}`; }
                 constelContainer.appendChild(star);
+                
                 if (i < 6) {
                     let link = document.createElement('div');
-                    link.className = `star-link ${i < foundCount - 1 ? 'active' : ''}`;
-                    if(i < foundCount - 1) { link.style.background = color; }
+                    let isNextFound = gameState.initialized && gameState.artifacts[i+1].found;
+                    link.className = `star-link ${isFound && isNextFound ? 'active' : ''}`;
+                    if(isFound && isNextFound) { link.style.background = color; }
                     constelContainer.appendChild(link);
                 }
             }
 
-            if (foundCount >= 7) {
+            if (gameState.foundCount >= 7) {
+                document.getElementById('btn-back-radar').style.display = 'none'; 
+                document.getElementById('btn-reset').style.display = 'block'; 
                 let rev = document.createElement('div'); rev.className = 'final-revelation';
                 rev.innerText = "«\u00A0NOUS AVONS OUBLIÉ COMMENT ÊTRE RÉELS...\u00A0»";
-                rev.style.color = "var(--text-title)"; rev.style.textShadow = "0 0 15px rgba(255,255,255,0.8)";
                 document.getElementById('sanctuary-ui').insertBefore(rev, listContainer);
-                document.getElementById('btn-back-radar').style.display = 'none'; 
             }
 
-            ARTIFACTS_DATA.forEach((data, index) => {
-                const isFound = index < foundCount;
+            ARTIFACT_PROFILES.forEach((profile, index) => {
+                const isFound = gameState.initialized && gameState.artifacts[index].found;
                 const slot = document.createElement('div');
                 slot.className = `fragment-slot ${isFound ? 'found' : ''}`;
-                if(isFound) slot.style.borderColor = data.cssColor.replace('1)', '0.4)');
+                if(isFound) slot.style.borderColor = profile.cssColor.replace('1)', '0.4)');
                 
-                let wordColor = isFound ? data.cssColor : '';
+                let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
                     <div class="slot-title">RÉFLEXION ${index + 1}</div>
-                    <div class="slot-name">${isFound ? data.name : 'Pensée évanouie'}</div>
-                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'};">${isFound ? data.word : ''}</div>
+                    <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Pensée évanouie'}</div>
+                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'};">${isFound ? profile.word : ''}</div>
                 `;
                 listContainer.appendChild(slot);
             });
@@ -260,30 +232,57 @@
             buildSanctuaryList(); document.getElementById('sanctuary-ui').style.display = 'flex';
         }
 
-        document.getElementById('btn-back-radar').addEventListener('click', () => { navigateTo(window.location.pathname + '?fragment=' + foundCount); });
+        document.getElementById('btn-back-radar').addEventListener('click', () => { navigateTo(window.location.pathname); });
+        document.getElementById('btn-reset').addEventListener('click', () => { localStorage.removeItem('glint_state'); navigateTo(window.location.pathname); });
 
-        if (!isSanctuaryView && foundCount < 7) {
-            let targetLat = null, targetLon = null, startLat = null, startLon = null;
-            const spawnDistance = 2; const glitchStartDistance = 10; const extractionDistance = 5; 
+        if (!isSanctuaryView && gameState.foundCount < 7) {
+            let startLat = null, startLon = null;
+            const extractionDistance = 5; const glitchStartDistance = 15; 
             let currentDistance = 999; let radarTimeout, audioCtx, cameraStream = null, dataStreamInterval;
 
             const startBtn = document.getElementById('start-btn'); const recalcBtn = document.getElementById('recalc-btn');
             const distanceDisplay = document.getElementById('distance-display'); const statusDisplay = document.getElementById('status-display');
             const arContainer = document.getElementById('ar-container'); const flashOverlay = document.getElementById('flash-overlay');
 
-            function generateTarget(lat, lon, distance) {
-                const R = 6371000; const angle = Math.random() * 2 * Math.PI;
-                targetLat = lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI;
-                targetLon = lon + ((distance * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+            function generateAllTargets(lat, lon) {
+                const arr = [];
+                for(let i=0; i<7; i++) {
+                    const dist = 5 + Math.random() * 20; 
+                    const angle = Math.random() * 2 * Math.PI;
+                    const tLat = lat + ((dist * Math.cos(angle)) / 6371000) * 180 / Math.PI;
+                    const tLon = lon + ((dist * Math.sin(angle)) / (6371000 * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+                    arr.push({ id: i, lat: tLat, lon: tLon, found: false });
+                }
+                return arr;
             }
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
+            let coreMesh, wireMesh;
+
+            // Fonction de verrouillage de la cible
+            function setActiveProfile(id) {
+                activeProfile = ARTIFACT_PROFILES[id];
+                
+                document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
+                document.getElementById('glow-left').style.background = `linear-gradient(to right, ${activeProfile.cssColor.replace('1)', '0.4)')}, transparent)`;
+                document.getElementById('glow-right').style.background = `linear-gradient(to left, ${activeProfile.cssColor.replace('1)', '0.4)')}, transparent)`;
+                
+                if (shaderMaterial) updateRadarShader(activeProfile);
+
+                if (coreMesh && wireMesh) {
+                    coreMesh.geometry = getGeometry(activeProfile.shape);
+                    coreMesh.material.color.setHex(activeProfile.colorHex);
+                    coreMesh.material.emissive.setHex(activeProfile.colorHex);
+                    wireMesh.geometry = getGeometry(activeProfile.shape, true);
+                }
+            }
 
             startBtn.addEventListener('click', async () => {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
                 startBtn.style.display = 'none'; recalcBtn.style.display = 'block'; 
                 document.getElementById('main-title').innerText = "Écoute";
+                
                 dataStreamInterval = setInterval(() => {
                     let stream = ""; const chars = "01010011...";
                     for(let i=0; i<8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -291,24 +290,80 @@
                 }, 150);
 
                 if ("geolocation" in navigator) {
-                    navigator.geolocation.getCurrentPosition((pos) => {
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
-                        generateTarget(startLat, startLon, spawnDistance);
+                        
+                        if (!gameState.initialized) {
+                            gameState.artifacts = generateAllTargets(startLat, startLon);
+                            gameState.initialized = true;
+                        }
+                        
+                        // VERROUILLAGE : On cherche la cible la plus proche au lancement
+                        if (gameState.currentTargetId === null) {
+                            let closestArt = null; let minDist = Infinity;
+                            gameState.artifacts.forEach(art => {
+                                if (!art.found) {
+                                    let d = calculateDistance(startLat, startLon, art.lat, art.lon);
+                                    if (d < minDist) { minDist = d; closestArt = art; }
+                                }
+                            });
+                            if (closestArt) {
+                                gameState.currentTargetId = closestArt.id;
+                            }
+                        }
+                        
+                        localStorage.setItem('glint_state', JSON.stringify(gameState));
+                        
+                        // On applique le profil avant de lancer la caméra
+                        if (gameState.currentTargetId !== null) {
+                            setActiveProfile(gameState.currentTargetId);
+                        }
+
+                        // Lancement de la caméra APRES avoir défini le profil
+                        try { 
+                            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
+                            initRadarShader(cameraStream); 
+                        } catch (err) {}
+
                         navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
                         radarLoop(); 
                     });
                 }
-                
-                try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); initRadarShader(cameraStream); } catch (err) {}
             });
 
-            recalcBtn.addEventListener('click', () => { if (startLat) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "L'esprit divague..."; } });
+            // Si on recalibre, on force un nouveau verrouillage
+            recalcBtn.addEventListener('click', () => { 
+                if (startLat) { 
+                    gameState.artifacts = generateAllTargets(startLat, startLon);
+                    gameState.currentTargetId = null; // On annule le verrou
+                    
+                    let closestArt = null; let minDist = Infinity;
+                    gameState.artifacts.forEach(art => {
+                        if (!art.found) {
+                            let d = calculateDistance(startLat, startLon, art.lat, art.lon);
+                            if (d < minDist) { minDist = d; closestArt = art; }
+                        }
+                    });
+                    if (closestArt) {
+                        gameState.currentTargetId = closestArt.id;
+                        setActiveProfile(closestArt.id);
+                    }
+                    
+                    localStorage.setItem('glint_state', JSON.stringify(gameState));
+                    statusDisplay.innerText = "La carte se reconfigure..."; 
+                } 
+            });
 
             function updatePosition(pos) {
                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
-                currentDistance = calculateDistance(startLat, startLon, targetLat, targetLon);
                 
                 if (renderer && renderer.xr && renderer.xr.isPresenting) { arContainer.style.display = 'none'; return; }
+
+                // LA TRAQUE : On ne calcule la distance qu'avec la cible verrouillée
+                let targetArt = gameState.artifacts.find(a => a.id === gameState.currentTargetId);
+                if (!targetArt) return;
+
+                currentDistance = calculateDistance(startLat, startLon, targetArt.lat, targetArt.lon);
 
                 distanceDisplay.innerText = `${Math.round(currentDistance)} m`;
                 let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
@@ -316,14 +371,15 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = currentData.cssColor;
+                    statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = activeProfile.cssColor;
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
+                    document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
                     
                     if (arBtn) {
                         arBtn.innerText = "Saisir le rêve";
-                        arBtn.style.background = currentData.cssColor.replace('1)', '0.15)');
-                        arBtn.style.border = `1px solid ${currentData.cssColor}`;
-                        arBtn.style.color = currentData.cssColor;
+                        arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
+                        arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
+                        arBtn.style.color = activeProfile.cssColor;
 
                         if (!isFlashTriggered) {
                             arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([100, 50, 100]); }, { once: true });
@@ -332,20 +388,31 @@
                     }
                 } else {
                     statusDisplay.innerText = "Suivez le fil..."; statusDisplay.style.color = "var(--text-body)";
+                    document.getElementById('main-panel').style.boxShadow = `0 8px 32px 0 rgba(0, 0, 0, 0.4)`;
                     arContainer.style.display = 'none'; recalcBtn.style.display = 'block';
                 }
             }
 
-            // --- GÉNÉRATION DYNAMIQUE DU SHADER ---
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
-                videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
+                videoElement = document.createElement('video'); 
+                videoElement.setAttribute('playsinline', ''); videoElement.setAttribute('autoplay', ''); videoElement.setAttribute('muted', '');
+                videoElement.srcObject = stream; videoElement.play();
+                
                 radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
                 videoTexture = new THREE.VideoTexture(videoElement);
                 
+                updateRadarShader(activeProfile);
+                if(!radarRenderer.setAnimationLoop) renderRadar(); 
+            }
+
+            function updateRadarShader(profile) {
+                if(!radarScene) return;
+                radarScene.clear();
+                
                 let uvMod = ""; let isSplit = false; let isBloom = false;
-                switch(currentData.shaderMod) {
+                switch(profile.shaderMod) {
                     case "wobble": uvMod = "uv.x += sin(uv.y * 50.0 + time * 10.0) * 0.02 * intensity;"; break;
                     case "pixelate": uvMod = "float pixels = max(10.0, 100.0 - (intensity * 90.0)); uv = floor(uv * pixels) / pixels;"; break;
                     case "split": isSplit = true; break;
@@ -355,8 +422,7 @@
                     case "water": default: uvMod = "uv += vec2(sin(uv.y * 15.0 + time * 1.5), cos(uv.x * 15.0 + time * 1.2)) * 0.015 * intensity;"; break;
                 }
 
-                // Extraction des couleurs RVB de l'Hex pour teinter le rêve
-                let hex = currentData.colorHex;
+                let hex = profile.colorHex;
                 let rTint = ((hex >> 16) & 255) / 255; let gTint = ((hex >> 8) & 255) / 255; let bTint = (hex & 255) / 255;
 
                 shaderMaterial = new THREE.ShaderMaterial({
@@ -367,27 +433,22 @@
                         void main() {
                             vec2 uv = vUv;
                             ${uvMod}
-                            
                             float splitDist = ${isSplit ? '0.05' : '0.01'} * intensity;
                             float r = texture2D(tDiffuse, uv + vec2(splitDist, 0.0)).r;
                             float g = texture2D(tDiffuse, uv).g;
                             float b = texture2D(tDiffuse, uv - vec2(splitDist, 0.0)).b;
                             vec3 color = vec3(r, g, b);
-                            
                             float lum = dot(color, vec3(0.299, 0.587, 0.114));
                             vec3 dreamTint = vec3(${rTint}, ${gTint}, ${bTint}); 
-                            
                             vec3 finalColor = mix(color, dreamTint * lum * 2.0, intensity * 0.8);
                             float dist = distance(vUv, vec2(0.5));
                             finalColor += dreamTint * smoothstep(0.4, 0.0, dist) * intensity * 0.6;
-                            
                             ${isBloom ? 'finalColor *= 1.0 + (intensity * 2.0);' : ''}
-                            
                             gl_FragColor = vec4(finalColor, 1.0);
                         }
                     `
                 });
-                const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad); renderRadar();
+                const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad); 
             }
             
             let clock = new THREE.Clock();
@@ -398,15 +459,16 @@
             let xrState = 'search'; let spawnedArtifactMesh = null;
             const raycaster = new THREE.Raycaster();
 
-            function getGeometry(shapeName) {
+            function getGeometry(shapeName, isWire=false) {
+                const s = isWire ? 1.2 : 1; 
                 switch(shapeName) {
-                    case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06, 0);
-                    case 'box': return new THREE.BoxGeometry(0.08, 0.08, 0.08);
-                    case 'cone': return new THREE.ConeGeometry(0.05, 0.1, 16);
-                    case 'icosahedron': return new THREE.IcosahedronGeometry(0.06, 0);
-                    case 'cylinder': return new THREE.CylinderGeometry(0.04, 0.04, 0.1, 16);
-                    case 'sphere': return new THREE.SphereGeometry(0.05, 32, 32);
-                    case 'octahedron': default: return new THREE.OctahedronGeometry(0.06, 0);
+                    case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
+                    case 'box': return new THREE.BoxGeometry(0.08*s, 0.08*s, 0.08*s);
+                    case 'cone': return new THREE.ConeGeometry(0.05*s, 0.1*s, 16);
+                    case 'icosahedron': return new THREE.IcosahedronGeometry(0.06*s, 0);
+                    case 'cylinder': return new THREE.CylinderGeometry(0.04*s, 0.04*s, 0.1*s, 16);
+                    case 'sphere': return new THREE.SphereGeometry(0.05*s, 32, 32);
+                    case 'octahedron': default: return new THREE.OctahedronGeometry(0.06*s, 0);
                 }
             }
 
@@ -428,21 +490,15 @@
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
                     document.getElementById('xr-ui').style.display = 'block'; 
-                    document.getElementById('xr-ui').innerText = "Balayez l'espace du regard...";
+                    document.getElementById('xr-ui').innerText = "Laissez votre regard errer...";
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
 
-                // --- GÉNÉRATION DYNAMIQUE DE L'ARTEFACT 3D ---
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
-                const coreMat = new THREE.MeshPhysicalMaterial({ 
-                    color: 0xffffff, metalness: 0.1, roughness: 0.1, 
-                    transmission: 0.9, ior: 1.5, emissive: currentData.colorHex, emissiveIntensity: 0.4, transparent: true
-                }); 
-                const coreMesh = new THREE.Mesh(getGeometry(currentData.shape), coreMat);
-                
+                const coreMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissiveIntensity: 0.4, transparent: true }); 
+                coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
                 const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 }); 
-                const wireMesh = new THREE.Mesh(getGeometry(currentData.shape), wireMat);
-                wireMesh.scale.set(1.2, 1.2, 1.2); // Légèrement plus grand pour englober
+                wireMesh = new THREE.Mesh(getGeometry('octahedron', true), wireMat);
                 
                 artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
@@ -466,17 +522,22 @@
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
                             xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none'; 
                             
-                            // UI Fiche colorée
-                            document.getElementById('ui-art-name').innerText = currentData.name;
-                            document.getElementById('ui-art-name').style.textShadow = `0 0 15px ${currentData.cssColor.replace('1)', '0.5)')}`;
-                            document.getElementById('ui-art-lore').innerHTML = currentData.lore;
-                            document.getElementById('ui-word').innerText = `"${currentData.word}"`;
-                            document.getElementById('ui-word').style.color = currentData.cssColor;
-                            document.getElementById('ui-progress').innerText = `${foundCount + 1} / 7`;
+                            // ASSIMILATION : Le verrou est brisé, on sauvegarde la découverte
+                            gameState.artifacts[gameState.currentTargetId].found = true;
+                            gameState.foundCount++;
+                            gameState.currentTargetId = null; // Libère la cible pour le prochain scan
+                            localStorage.setItem('glint_state', JSON.stringify(gameState));
+
+                            document.getElementById('ui-art-name').innerText = activeProfile.name;
+                            document.getElementById('ui-art-name').style.textShadow = `0 0 15px ${activeProfile.cssColor.replace('1)', '0.5)')}`;
+                            document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
+                            document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
+                            document.getElementById('ui-word').style.color = activeProfile.cssColor;
+                            document.getElementById('ui-progress').innerText = `${gameState.foundCount} / 7`;
                             
-                            document.getElementById('btn-inventory').style.color = currentData.cssColor;
-                            document.getElementById('btn-inventory').style.borderColor = currentData.cssColor;
-                            document.getElementById('btn-inventory').style.background = currentData.cssColor.replace('1)', '0.1)');
+                            document.getElementById('btn-inventory').style.color = activeProfile.cssColor;
+                            document.getElementById('btn-inventory').style.borderColor = activeProfile.cssColor;
+                            document.getElementById('btn-inventory').style.background = activeProfile.cssColor.replace('1)', '0.1)');
 
                             document.getElementById('artifact-ui').style.display = 'flex';
                             if (navigator.vibrate) navigator.vibrate([50, 100, 200]); 
@@ -513,7 +574,7 @@
                                 
                                 let projVec = hiddenTarget.clone().project(camera);
                                 let isBehind = projVec.z > 1;
-                                let glowColor = currentData.cssColor.replace('1)', '0.4)');
+                                let glowColor = activeProfile.cssColor.replace('1)', '0.4)');
                                 
                                 if (projVec.x < -0.8 || (isBehind && projVec.x > 0)) {
                                     document.getElementById('glow-left').style.opacity = '1'; document.getElementById('glow-right').style.opacity = '0';
@@ -527,10 +588,10 @@
 
                                 if (dist < 0.4) { 
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3; 
-                                    reticle.material.color.setHex(currentData.colorHex); 
+                                    reticle.material.color.setHex(activeProfile.colorHex); 
                                     reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1); 
-                                    document.getElementById('xr-ui').innerText = "La source est pure. Touchez."; document.getElementById('xr-ui').style.color = currentData.cssColor; 
-                                    document.getElementById('xr-ui').style.borderColor = currentData.cssColor.replace('1)', '0.6)');
+                                    document.getElementById('xr-ui').innerText = "La source est pure. Touchez."; document.getElementById('xr-ui').style.color = activeProfile.cssColor; 
+                                    document.getElementById('xr-ui').style.borderColor = activeProfile.cssColor.replace('1)', '0.6)');
                                     canExtract = true; 
                                 } 
                                 else if (dist < 1.2) { 
@@ -550,7 +611,7 @@
                             }
                         } else { 
                             reticle.visible = false; 
-                            document.getElementById('xr-ui').innerText = "Balayez l'espace du regard...";
+                            document.getElementById('xr-ui').innerText = "Cherchez la résonance autour de vous...";
                             document.getElementById('xr-ui').style.color = "var(--text-title)";
                             document.getElementById('xr-ui').style.borderColor = "var(--glass-border)";
                             document.getElementById('xr-ui').style.boxShadow = "none";
@@ -558,17 +619,15 @@
                         }
                     }
                 }
-                scene.traverse((obj) => { if (obj.name === 'artifact') { obj.rotation.y += 0.01; obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; obj.children[1].rotation.x -= 0.01; obj.children[1].rotation.z += 0.005; } }); 
+                scene.traverse((obj) => { if (obj.name === 'artifact') { obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; obj.children[0].rotation.y += 0.01; obj.children[0].rotation.x += 0.005; obj.children[1].rotation.y -= 0.015; obj.children[1].rotation.x -= 0.008; obj.children[1].rotation.z += 0.005; } }); 
                 renderer.render(scene, camera);
             }
 
-            // --- AUDIO GÉNÉRATIF BASÉ SUR L'ARTEFACT ---
             function playGlitchPop(intensity) {
-                if (!audioCtx || intensity <= 0) return;
+                if (!audioCtx || intensity <= 0 || !activeProfile) return;
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.type = 'sine'; 
-                // Utilise la gamme de fréquences définie dans l'objet de la BDD
-                const freqs = currentData.audioFreqs; 
+                const freqs = activeProfile.audioFreqs; 
                 osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
                 osc.connect(gain); gain.connect(audioCtx.destination); osc.start();
                 gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.15 * intensity, audioCtx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
@@ -590,8 +649,8 @@
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
             }
 
-            document.getElementById('btn-continue').addEventListener('click', () => { navigateTo(window.location.pathname + '?fragment=' + (foundCount + 1)); });
-            document.getElementById('btn-inventory').addEventListener('click', () => { navigateTo(window.location.pathname + '?fragment=' + (foundCount + 1) + '&view=sanctuary'); });
+            document.getElementById('btn-continue').addEventListener('click', () => { navigateTo(window.location.pathname); });
+            document.getElementById('btn-inventory').addEventListener('click', () => { navigateTo(window.location.pathname + '?view=sanctuary'); });
 
             initXR();
         }
