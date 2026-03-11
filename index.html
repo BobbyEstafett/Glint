@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Polish 3D)</title>
+    <title>GLINT - Érrance Onirique (Ultimate Master)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +11,6 @@
 
     <style>
         :root {
-            /* Palette Crépuscule / Rêve */
             --bg-night: #0b0f19;
             --glass-bg: rgba(20, 25, 40, 0.45);
             --glass-border: rgba(255, 255, 255, 0.15);
@@ -30,7 +29,7 @@
 
         h1, h2, h3, .serif { font-family: 'Playfair Display', serif; color: var(--text-title); font-weight: normal; text-wrap: balance; }
 
-        /* --- UX: RIDEAU DE TRANSITION --- */
+        /* --- RIDEAU DE TRANSITION --- */
         #transition-veil {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: var(--bg-night); z-index: 999999;
@@ -38,29 +37,19 @@
         }
 
         .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
         #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #dream-veil { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, transparent 0%, rgba(11, 15, 25, 0.6) 100%); pointer-events: none; z-index: 2; }
 
-        #dream-veil {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, transparent 0%, rgba(11, 15, 25, 0.6) 100%);
-            pointer-events: none; z-index: 2;
-        }
-
-        /* --- UX: GUIDAGE AR (Glow Latéral) --- */
-        .edge-glow {
-            position: absolute; top: 0; width: 80px; height: 100vh; pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.4s ease;
-        }
+        /* --- GUIDAGE AR --- */
+        .edge-glow { position: absolute; top: 0; width: 80px; height: 100vh; pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.4s ease; }
         #glow-left { left: 0; background: linear-gradient(to right, rgba(139, 233, 253, 0.4), transparent); }
         #glow-right { right: 0; background: linear-gradient(to left, rgba(139, 233, 253, 0.4), transparent); }
 
+        /* --- UI RADAR (Flexbox Fixe) --- */
         #radar-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; flex-direction: column; align-items: center;
@@ -106,11 +95,10 @@
         #xr-ui {
             position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
             width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none;
-            padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600;
-            transition: all 0.4s ease;
+            padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600; transition: all 0.4s ease;
         }
 
-        /* --- UX: APPARITION DU TEXTE --- */
+        /* --- APPARITION TEXTE ARTEFACT --- */
         .fade-in-seq { opacity: 0; animation: fadeInAnim 1.5s ease forwards; }
         .delay-1 { animation-delay: 1s; }
         .delay-2 { animation-delay: 2s; }
@@ -119,7 +107,7 @@
 
         #artifact-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(11, 15, 25, 0.7); z-index: 3000;
+            background: rgba(11, 15, 25, 0.8); z-index: 3000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             box-sizing: border-box; backdrop-filter: blur(15px);
         }
@@ -135,6 +123,7 @@
         .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 35px; }
         #btn-inventory { background: rgba(139, 233, 253, 0.1); color: var(--accent-pure); border-color: var(--accent-pure); }
         
+        /* --- SANCTUAIRE --- */
         #sanctuary-ui {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%);
@@ -201,7 +190,7 @@
         </div>
     </div>
 
-    <div id="xr-ui" class="glass-panel">CHERCHEZ LA LUEUR...</div>
+    <div id="xr-ui" class="glass-panel"></div>
 
     <div id="artifact-ui">
         <div class="artifact-card glass-panel">
@@ -342,7 +331,7 @@
 
             startBtn.addEventListener('click', async () => {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
-                startBtn.style.display = 'none'; recalcBtn.style.display = 'flex';
+                startBtn.style.display = 'none'; recalcBtn.style.display = 'block';
                 mainTitle.innerText = "Écoute";
                 
                 dataStreamInterval = setInterval(() => {
@@ -377,16 +366,14 @@
                 }
 
                 distanceDisplay.innerText = `${Math.round(currentDistance)} m`;
-                let intensity = currentDistance <= glitchStartDistance ? 1 - (currentDistance / glitchStartDistance) : 0;
+                
+                let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
                 if(shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
                     statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = "var(--accent-pure)";
-                    
-                    arContainer.style.display = 'block';
-                    recalcBtn.style.display = 'none';
-                    
+                    arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     if (arBtn) {
                         arBtn.innerText = "Saisir le rêve";
                         if (!isFlashTriggered) {
@@ -396,14 +383,13 @@
                     }
                 } else {
                     statusDisplay.innerText = "Suivez le fil..."; statusDisplay.style.color = "var(--text-body)";
-                    arContainer.style.display = 'none';
-                    recalcBtn.style.display = 'flex';
+                    arContainer.style.display = 'none'; recalcBtn.style.display = 'block';
                 }
             }
 
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
-                videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
+                videoElement = document.createElement('video'); videoElement.setAttribute('playsinline', ''); videoElement.setAttribute('autoplay', ''); videoElement.setAttribute('muted', ''); videoElement.srcObject = stream; videoElement.play();
                 radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
                 videoTexture = new THREE.VideoTexture(videoElement);
@@ -463,25 +449,26 @@
                     clearTimeout(radarTimeout); clearInterval(dataStreamInterval);
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
+                    // L'UX EXACTE DEMANDÉE POUR LE DÉBUT DE L'AR
                     xrUI.style.display = 'block';
-                    xrUI.innerText = "L'écho est confus...";
+                    xrUI.innerText = "Scannez le sol lentement...";
+                    xrUI.style.color = "var(--text-title)";
+                    xrUI.style.borderColor = "var(--glass-border)";
+                    xrUI.style.boxShadow = "0 8px 32px 0 rgba(0, 0, 0, 0.4)";
                     
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
                 });
 
-                // --- 7 GÉOMÉTRIES UNIQUES POUR LES 7 FRAGMENTS ---
                 const safeIndex = foundCount % 7;
-                
                 const geometries = [
-                    new THREE.OctahedronGeometry(0.06, 0),     // 0: Base
-                    new THREE.IcosahedronGeometry(0.06, 0),    // 1: D20
-                    new THREE.TetrahedronGeometry(0.07, 0),    // 2: Pyramide
-                    new THREE.DodecahedronGeometry(0.05, 0),   // 3: D12
-                    new THREE.TorusGeometry(0.05, 0.02, 8, 24),// 4: Anneau
-                    new THREE.TorusKnotGeometry(0.04, 0.015, 64, 8), // 5: Noeud complexe
-                    new THREE.IcosahedronGeometry(0.06, 1)     // 6: Sphère finale
+                    new THREE.OctahedronGeometry(0.06, 0),
+                    new THREE.IcosahedronGeometry(0.06, 0),
+                    new THREE.TetrahedronGeometry(0.07, 0),
+                    new THREE.DodecahedronGeometry(0.05, 0),
+                    new THREE.TorusGeometry(0.05, 0.02, 8, 24),
+                    new THREE.TorusKnotGeometry(0.04, 0.015, 64, 8),
+                    new THREE.IcosahedronGeometry(0.06, 1)
                 ];
-
                 const wireGeometries = [
                     new THREE.OctahedronGeometry(0.08, 0),
                     new THREE.IcosahedronGeometry(0.08, 0),
@@ -493,16 +480,10 @@
                 ];
 
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
-                
-                const coreMat = new THREE.MeshPhysicalMaterial({
-                    color: 0xe0ffff, metalness: 0.1, roughness: 0.1,
-                    transmission: 0.9, ior: 1.5, emissive: 0x00d2ff, emissiveIntensity: 0.4, transparent: true
-                });
+                const coreMat = new THREE.MeshPhysicalMaterial({ color: 0xe0ffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissive: 0x00d2ff, emissiveIntensity: 0.4, transparent: true });
                 const coreMesh = new THREE.Mesh(geometries[safeIndex], coreMat);
-                
                 const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 });
                 const wireMesh = new THREE.Mesh(wireGeometries[safeIndex], wireMat);
-                
                 artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
                 controller = renderer.xr.getController(0);
@@ -513,7 +494,7 @@
                         scene.add(spawnedArtifactMesh);
                         
                         xrState = 'revealed'; reticle.visible = false;
-                        document.getElementById('xr-ui').innerText = "Tendez la main";
+                        document.getElementById('xr-ui').innerText = "Tendez la main pour l'assimiler";
                         document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                         
                         if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
@@ -550,7 +531,7 @@
                     const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
                     if (!hitTestSourceRequested) {
                         session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
-                        session.addEventListener('end', () => { hitTestSourceRequested = false; location.reload(); });
+                        session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
                         hitTestSourceRequested = true;
                     }
                     if (hitTestSource && xrState === 'search') {
@@ -579,30 +560,33 @@
                                 if (dist < 0.4) {
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
                                     reticle.material.color.setHex(0x8be9fd); reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "La source est pure."; document.getElementById('xr-ui').style.color = "#8be9fd";
+                                    document.getElementById('xr-ui').innerText = "La source est pure. Touchez."; document.getElementById('xr-ui').style.color = "#8be9fd"; document.getElementById('xr-ui').style.borderColor = "rgba(139, 233, 253, 0.6)";
                                     canExtract = true;
                                 }
                                 else if (dist < 1.2) {
                                     reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(1.2, 1.2, 1);
-                                    document.getElementById('xr-ui').innerText = "La résonance s'apaise..."; document.getElementById('xr-ui').style.color = "#b19cd9";
+                                    document.getElementById('xr-ui').innerText = "La résonance s'apaise..."; document.getElementById('xr-ui').style.color = "#b19cd9"; document.getElementById('xr-ui').style.borderColor = "rgba(177, 156, 217, 0.4)";
                                     canExtract = false;
                                 }
                                 else {
                                     reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(1, 1, 1);
-                                    document.getElementById('xr-ui').innerText = "L'écho est confus..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
+                                    document.getElementById('xr-ui').innerText = "L'écho est confus..."; document.getElementById('xr-ui').style.color = "#ff6b6b"; document.getElementById('xr-ui').style.borderColor = "rgba(255, 107, 107, 0.2)";
                                     canExtract = false;
                                 }
                             }
-                        } else { reticle.visible = false; }
+                        } else {
+                            reticle.visible = false;
+                            // L'UX EXACTE SI LE SOL N'EST PAS TROUVÉ
+                            document.getElementById('xr-ui').innerText = "Cherchez une surface plane...";
+                            document.getElementById('xr-ui').style.color = "var(--text-title)";
+                            document.getElementById('xr-ui').style.borderColor = "var(--glass-border)";
+                        }
                     }
                 }
                 scene.traverse((obj) => {
                     if (obj.name === 'artifact') {
-                        // Mouvement vertical fluide
                         obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
-                        // Rotation indépendante du Core
                         if(obj.children[0]) { obj.children[0].rotation.y += 0.01; obj.children[0].rotation.x += 0.005; }
-                        // Rotation indépendante inverse de la Wireframe
                         if(obj.children[1]) { obj.children[1].rotation.y -= 0.015; obj.children[1].rotation.x -= 0.008; obj.children[1].rotation.z += 0.005; }
                     }
                 });
