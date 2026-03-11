@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (UX Update)</title>
+    <title>GLINT - Érrance Onirique (Camera Fix)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -176,10 +176,9 @@
             setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200);
         });
 
-        // Fonction de transition douce
         function navigateTo(url) {
             document.getElementById('transition-veil').style.opacity = '1';
-            setTimeout(() => window.location.href = url, 1200); // Laisse le temps au fade
+            setTimeout(() => window.location.href = url, 1200);
         }
 
         const ARTIFACTS_DATA = [
@@ -194,12 +193,10 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         let rawCount = parseInt(urlParams.get('fragment')) || 0;
-        let foundCount = Math.min(rawCount, 7); // Bloque à 7 max
+        let foundCount = Math.min(rawCount, 7);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
-        // 5. GESTION DE LA FIN ("L'Éveil")
         if (foundCount >= 7 && !isSanctuaryView) {
-            // Si on a fini, on force la vue Sanctuaire
             navigateTo(window.location.pathname + '?fragment=7&view=sanctuary');
         }
 
@@ -208,7 +205,6 @@
             const constelContainer = document.getElementById('constellation');
             listContainer.innerHTML = ''; constelContainer.innerHTML = '';
             
-            // Construction de la Constellation
             for(let i=0; i<7; i++) {
                 let star = document.createElement('div');
                 star.className = `star ${i < foundCount ? 'active' : ''}`;
@@ -220,16 +216,14 @@
                 }
             }
 
-            // Si le jeu est fini, affichage de la révélation finale
             if (foundCount >= 7) {
                 let rev = document.createElement('div');
                 rev.className = 'final-revelation';
                 rev.innerText = "« NOUS AVONS OUBLIÉ COMMENT ÊTRE RÉELS... »";
                 document.getElementById('sanctuary-ui').insertBefore(rev, listContainer);
-                document.getElementById('btn-back-radar').style.display = 'none'; // Fin du voyage
+                document.getElementById('btn-back-radar').style.display = 'none';
             }
 
-            // Construction de la Liste
             ARTIFACTS_DATA.forEach((data, index) => {
                 const isFound = index < foundCount;
                 const slot = document.createElement('div');
@@ -290,7 +284,15 @@
                         radarLoop();
                     });
                 }
-                try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); initRadarShader(cameraStream); } catch (err) {}
+                
+                // CRUCIAL: Ajout des attributs vidéo pour mobile (iOS particulièrement)
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    initRadarShader(cameraStream);
+                } catch (err) {
+                    console.error("Erreur Caméra :", err);
+                    statusDisplay.innerText = "Accès caméra refusé.";
+                }
             });
 
             recalcBtn.addEventListener('click', () => { if (startLat) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "L'esprit divague..."; } });
@@ -326,7 +328,16 @@
 
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
-                videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
+                videoElement = document.createElement('video');
+                
+                // FIX MOBILE : Obligatoire pour iOS Safari
+                videoElement.setAttribute('playsinline', '');
+                videoElement.setAttribute('autoplay', '');
+                videoElement.setAttribute('muted', '');
+                
+                videoElement.srcObject = stream;
+                videoElement.play();
+                
                 radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
                 videoTexture = new THREE.VideoTexture(videoElement);
@@ -355,10 +366,17 @@
                     `
                 });
                 radarScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial));
+                renderRadar();
             }
             
             let clock = new THREE.Clock();
-            function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
+            function renderRadar() {
+                if (radarRenderer && shaderMaterial) {
+                    requestAnimationFrame(renderRadar);
+                    shaderMaterial.uniforms.time.value = clock.getElapsedTime();
+                    radarRenderer.render(radarScene, radarCamera);
+                }
+            }
 
             let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
             let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false;
@@ -400,7 +418,7 @@
                         
                         xrState = 'revealed'; reticle.visible = false;
                         document.getElementById('xr-ui').innerText = "Tendez la main";
-                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0'; // Cache le glow
+                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                         
                         if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
                     }
@@ -512,7 +530,6 @@
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             }
 
-            // Boutons qui utilisent la nouvelle fonction de Transition (Rideau)
             document.getElementById('btn-continue').addEventListener('click', () => {
                 navigateTo(window.location.pathname + '?fragment=' + (foundCount + 1));
             });
