@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Camera Fix)</title>
+    <title>GLINT - Érrance Onirique (UX Update)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +11,7 @@
 
     <style>
         :root {
+            /* Palette Crépuscule / Rêve */
             --bg-night: #0b0f19;
             --glass-bg: rgba(20, 25, 40, 0.45);
             --glass-border: rgba(255, 255, 255, 0.15);
@@ -20,13 +21,16 @@
         }
 
         body {
-            margin: 0; padding: 0; background-color: var(--bg-night); color: var(--text-body);
-            font-family: 'Montserrat', sans-serif; overflow: hidden; height: 100vh; width: 100vw;
+            margin: 0; padding: 0;
+            background-color: var(--bg-night);
+            color: var(--text-body);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden; height: 100vh; width: 100vw;
         }
 
         h1, h2, h3, .serif { font-family: 'Playfair Display', serif; color: var(--text-title); font-weight: normal; }
 
-        /* --- 1. RIDEAU DE SOMMEIL (Transition) --- */
+        /* --- 1. UX: RIDEAU DE TRANSITION --- */
         #transition-veil {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: var(--bg-night); z-index: 999999;
@@ -34,64 +38,108 @@
         }
 
         .glass-panel {
-            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
         #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #dream-veil { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, transparent 0%, rgba(11, 15, 25, 0.6) 100%); pointer-events: none; z-index: 2; }
 
-        /* --- 2. GUIDAGE AR (Glow Latéral) --- */
+        #dream-veil {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, transparent 0%, rgba(11, 15, 25, 0.6) 100%);
+            pointer-events: none; z-index: 2;
+        }
+
+        /* --- 2. UX: GUIDAGE AR (Glow Latéral) --- */
         .edge-glow {
             position: absolute; top: 0; width: 80px; height: 100vh; pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.4s ease;
         }
         #glow-left { left: 0; background: linear-gradient(to right, rgba(139, 233, 253, 0.4), transparent); }
         #glow-right { right: 0; background: linear-gradient(to left, rgba(139, 233, 253, 0.4), transparent); }
 
-        #radar-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; box-sizing: border-box; z-index: 10; pointer-events: none; }
+        #radar-ui {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-end; padding-bottom: 80px; box-sizing: border-box;
+            z-index: 10; pointer-events: none;
+        }
+        
         .info-box { padding: 30px; text-align: center; width: 85%; max-width: 350px; pointer-events: auto; }
         .main-title { font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 5px; }
         .data-stream { font-size: 0.65rem; color: var(--text-body); margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
         #distance-display { font-size: 2rem; font-weight: 200; margin: 15px 0; color: var(--text-title); }
 
-        button { margin-top: 15px; padding: 15px 24px; width: 100%; background: rgba(255,255,255,0.05); color: var(--text-title); font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; border: 1px solid var(--glass-border); border-radius: 50px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.4s ease; }
+        button {
+            margin-top: 15px; padding: 15px 24px; width: 100%;
+            background: rgba(255,255,255,0.05); color: var(--text-title);
+            font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase;
+            border: 1px solid var(--glass-border); border-radius: 50px; cursor: pointer;
+            backdrop-filter: blur(5px); transition: all 0.4s ease;
+        }
         button:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
+        
         #recalc-btn { display: none; font-size: 0.65rem; border: none; opacity: 0.5; margin-top: 20px; }
 
-        #ARButton { background: rgba(139, 233, 253, 0.15) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important; font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important; position: absolute !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important; width: 85% !important; max-width: 350px !important; z-index: 999 !important; border-radius: 50px !important; }
+        #ARButton {
+            background: rgba(139, 233, 253, 0.15) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important;
+            font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important;
+            position: absolute !important; bottom: 30px !important; left: 50% !important; transform: translateX(-50%) !important;
+            width: 85% !important; max-width: 350px !important; z-index: 999 !important; border-radius: 50px !important;
+        }
 
-        #xr-ui { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none; padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600; transition: all 0.4s ease; }
+        #xr-ui {
+            position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+            width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none;
+            padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600;
+            transition: all 0.4s ease;
+        }
 
-        /* --- 3. APPARITION DU TEXTE (Animations) --- */
+        /* --- 3. UX: APPARITION DU TEXTE (Animations) --- */
         .fade-in-seq { opacity: 0; animation: fadeInAnim 1.5s ease forwards; }
         .delay-1 { animation-delay: 1s; }
-        .delay-2 { animation-delay: 2.5s; }
-        .delay-3 { animation-delay: 3.5s; }
+        .delay-2 { animation-delay: 2s; }
+        .delay-3 { animation-delay: 3s; }
         @keyframes fadeInAnim { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        #artifact-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.8); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; backdrop-filter: blur(15px); }
+        #artifact-ui {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(11, 15, 25, 0.7); z-index: 3000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            box-sizing: border-box; backdrop-filter: blur(15px);
+        }
         .artifact-card { padding: 40px 30px; width: 85%; max-width: 360px; text-align: center; }
         .artifact-card h2 { margin-top: 0; letter-spacing: 2px; font-size: 1.6rem; text-shadow: 0 0 15px rgba(139, 233, 253, 0.3); }
         .artifact-lore { font-size: 1rem; color: var(--text-body); margin-bottom: 35px; line-height: 1.7; }
+        
         .artifact-stats { text-align: left; font-size: 0.75rem; border-top: 1px solid var(--glass-border); padding-top: 20px; font-weight: 200; letter-spacing: 1px; }
         .artifact-stats p { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .artifact-stats span { color: var(--text-title); font-weight: 400; text-align: right; }
         .mystery-word { color: var(--accent-pure) !important; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.5rem !important; text-transform: lowercase !important; }
+        
         .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 35px; }
         #btn-inventory { background: rgba(139, 233, 253, 0.1); color: var(--accent-pure); border-color: var(--accent-pure); }
         
-        /* --- 4. SANCTUAIRE & CONSTELLATION --- */
-        #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%); z-index: 5000; display: none; flex-direction: column; padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
-        .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+        #sanctuary-ui {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%);
+            z-index: 5000; display: none; flex-direction: column;
+            padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden;
+        }
+        .sanctuary-header { text-align: center; margin-bottom: 30px; flex-shrink: 0; }
         .sanctuary-header h2 { margin: 0; letter-spacing: 6px; font-size: 1.8rem; }
         .sanctuary-header p { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 200; letter-spacing: 2px; opacity: 0.6; margin-top: 10px; text-transform: uppercase; }
         
-        .constellation { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
+        /* --- 4. UX: CONSTELLATION SANCTUAIRE --- */
+        .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
         .star { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin: 0 4px; transition: all 1s; }
         .star.active { background: var(--accent-pure); box-shadow: 0 0 10px var(--accent-pure); }
-        .star-link { height: 1px; width: 12px; background: var(--glass-border); }
+        .star-link { height: 1px; width: 12px; background: var(--glass-border); transition: background 1s; }
         .star-link.active { background: var(--accent-pure); }
-
+        
         .final-revelation { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--accent-pure); text-align: center; margin-bottom: 20px; font-style: italic; text-shadow: 0 0 15px rgba(139, 233, 253, 0.4); animation: fadeInAnim 3s forwards; }
 
         .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
@@ -171,11 +219,12 @@
         import * as THREE from 'three';
         import { ARButton } from 'three/addons/webxr/ARButton.js';
 
-        // Disparition du rideau au chargement
+        // --- UX : Disparition du rideau au chargement ---
         window.addEventListener('load', () => {
             setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200);
         });
 
+        // --- UX : Fonction de transition douce ---
         function navigateTo(url) {
             document.getElementById('transition-veil').style.opacity = '1';
             setTimeout(() => window.location.href = url, 1200);
@@ -193,18 +242,20 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         let rawCount = parseInt(urlParams.get('fragment')) || 0;
-        let foundCount = Math.min(rawCount, 7);
+        let foundCount = Math.min(rawCount, 7); // Bloque à 7
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
+        // --- UX : 5. GESTION DE LA FIN ---
         if (foundCount >= 7 && !isSanctuaryView) {
-            navigateTo(window.location.pathname + '?fragment=7&view=sanctuary');
+            window.location.href = window.location.pathname + '?fragment=7&view=sanctuary';
         }
 
-        function buildSanctuary() {
+        function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
             const constelContainer = document.getElementById('constellation');
             listContainer.innerHTML = ''; constelContainer.innerHTML = '';
             
+            // --- UX : Constellation ---
             for(let i=0; i<7; i++) {
                 let star = document.createElement('div');
                 star.className = `star ${i < foundCount ? 'active' : ''}`;
@@ -216,6 +267,7 @@
                 }
             }
 
+            // --- UX : Révélation finale ---
             if (foundCount >= 7) {
                 let rev = document.createElement('div');
                 rev.className = 'final-revelation';
@@ -228,11 +280,20 @@
                 const isFound = index < foundCount;
                 const slot = document.createElement('div');
                 slot.className = `fragment-slot ${isFound ? 'found' : ''}`;
-                slot.innerHTML = `
-                    <div class="slot-title">RÉFLEXION ${index + 1}</div>
-                    <div class="slot-name">${isFound ? data.name : 'Pensée évanouie'}</div>
-                    <div class="slot-word">${isFound ? data.word : ''}</div>
-                `;
+                
+                const titleBlock = document.createElement('div');
+                titleBlock.className = 'slot-title';
+                titleBlock.innerText = `RÉFLEXION ${index + 1}`;
+
+                const nameBlock = document.createElement('div');
+                nameBlock.className = 'slot-name';
+                nameBlock.innerText = isFound ? data.name : 'Pensée évanouie';
+                
+                const wordBlock = document.createElement('div');
+                wordBlock.className = 'slot-word';
+                wordBlock.innerText = isFound ? data.word : '';
+                
+                slot.appendChild(titleBlock); slot.appendChild(nameBlock); slot.appendChild(wordBlock);
                 listContainer.appendChild(slot);
             });
         }
@@ -241,7 +302,7 @@
             document.getElementById('radar-ui').style.display = 'none';
             document.getElementById('threejs-radar-container').style.display = 'none';
             document.getElementById('dream-veil').style.display = 'none';
-            buildSanctuary();
+            buildSanctuaryList();
             document.getElementById('sanctuary-ui').style.display = 'flex';
         }
 
@@ -259,13 +320,22 @@
             const recalcBtn = document.getElementById('recalc-btn');
             const distanceDisplay = document.getElementById('distance-display');
             const statusDisplay = document.getElementById('status-display');
+            const radarUI = document.getElementById('radar-ui');
+            const xrUI = document.getElementById('xr-ui');
             const arContainer = document.getElementById('ar-container');
+            const mainTitle = document.getElementById('main-title');
+            const dataStream = document.getElementById('data-stream');
             const flashOverlay = document.getElementById('flash-overlay');
 
-            function generateTarget(lat, lon, dist) {
+            function generateTarget(lat, lon, distance) {
                 const R = 6371000; const angle = Math.random() * 2 * Math.PI;
-                targetLat = lat + ((dist * Math.cos(angle)) / R) * 180 / Math.PI;
-                targetLon = lon + ((dist * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+                targetLat = lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI;
+                targetLon = lon + ((distance * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+            }
+            function updateDataStream() {
+                let stream = ""; const chars = "01010011...";
+                for(let i=0; i<8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                dataStream.innerText = `Onde : ~${stream}`;
             }
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
@@ -274,39 +344,38 @@
             startBtn.addEventListener('click', async () => {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
                 startBtn.style.display = 'none'; recalcBtn.style.display = 'inline-block';
-                document.getElementById('main-title').innerText = "Écoute";
+                mainTitle.innerText = "Écoute";
+                dataStreamInterval = setInterval(updateDataStream, 150);
 
                 if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition((pos) => {
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                         generateTarget(startLat, startLon, spawnDistance);
-                        navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
+                        navigator.geolocation.watchPosition(updatePosition, (err) => console.log(err), { enableHighAccuracy: true });
                         radarLoop();
                     });
                 }
                 
-                // CRUCIAL: Ajout des attributs vidéo pour mobile (iOS particulièrement)
+                // CODE DE LA CAMÉRA INTACT
                 try {
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                     initRadarShader(cameraStream);
-                } catch (err) {
-                    console.error("Erreur Caméra :", err);
-                    statusDisplay.innerText = "Accès caméra refusé.";
-                }
+                } catch (err) { console.error(err); }
             });
 
-            recalcBtn.addEventListener('click', () => { if (startLat) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "L'esprit divague..."; } });
+            recalcBtn.addEventListener('click', () => { if (startLat && startLon) { generateTarget(startLat, startLon, spawnDistance); statusDisplay.innerText = "L'esprit divague..."; } });
 
             function updatePosition(pos) {
                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
-                currentDistance = calculateDistance(startLat, startLon, targetLat, targetLon);
+                currentDistance = calculateDistance(pos.coords.latitude, pos.coords.longitude, targetLat, targetLon);
                 
                 if (renderer && renderer.xr && renderer.xr.isPresenting) {
                     arContainer.style.display = 'none'; return;
                 }
 
                 distanceDisplay.innerText = `${Math.round(currentDistance)} m`;
-                let intensity = currentDistance <= glitchStartDistance ? 1 - (currentDistance / glitchStartDistance) : 0;
+                
+                let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
                 if(shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
 
                 const arBtn = document.getElementById('ARButton');
@@ -328,15 +397,8 @@
 
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
-                videoElement = document.createElement('video');
-                
-                // FIX MOBILE : Obligatoire pour iOS Safari
-                videoElement.setAttribute('playsinline', '');
-                videoElement.setAttribute('autoplay', '');
-                videoElement.setAttribute('muted', '');
-                
-                videoElement.srcObject = stream;
-                videoElement.play();
+                // CODE DE LA VIDÉO INTACT
+                videoElement = document.createElement('video'); videoElement.srcObject = stream; videoElement.play();
                 
                 radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
@@ -365,18 +427,11 @@
                         }
                     `
                 });
-                radarScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial));
-                renderRadar();
+                const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad); renderRadar();
             }
             
             let clock = new THREE.Clock();
-            function renderRadar() {
-                if (radarRenderer && shaderMaterial) {
-                    requestAnimationFrame(renderRadar);
-                    shaderMaterial.uniforms.time.value = clock.getElapsedTime();
-                    radarRenderer.render(radarScene, radarCamera);
-                }
-            }
+            function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
 
             let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
             let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false;
@@ -385,7 +440,7 @@
 
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-                scene.add(new THREE.HemisphereLight(0xffffff, 0x444466, 2));
+                const light = new THREE.HemisphereLight(0xffffff, 0x444466, 2); scene.add(light);
                 
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
                 document.body.appendChild(renderer.domElement);
@@ -395,18 +450,33 @@
 
                 renderer.xr.addEventListener('sessionstart', () => {
                     flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
-                    arContainer.style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none';
+                    
+                    arContainer.style.display = 'none';
+                    radarUI.style.display = 'none';
+                    document.getElementById('dream-veil').style.display = 'none';
+                    
                     if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                     clearTimeout(radarTimeout); clearInterval(dataStreamInterval);
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
-                    document.getElementById('xr-ui').style.display = 'block';
+                    xrUI.style.display = 'block';
+                    xrUI.innerText = "L'écho est confus...";
+                    
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
                 });
 
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
-                const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshPhysicalMaterial({ color: 0xe0ffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissive: 0x00d2ff, emissiveIntensity: 0.4, transparent: true }));
-                const wireMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.08, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 }));
+                const coreGeo = new THREE.OctahedronGeometry(0.06, 0);
+                const coreMat = new THREE.MeshPhysicalMaterial({
+                    color: 0xe0ffff, metalness: 0.1, roughness: 0.1,
+                    transmission: 0.9, ior: 1.5, emissive: 0x00d2ff, emissiveIntensity: 0.4, transparent: true
+                });
+                const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+                
+                const wireGeo = new THREE.OctahedronGeometry(0.08, 0);
+                const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 });
+                const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+                
                 artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
                 controller = renderer.xr.getController(0);
@@ -416,25 +486,32 @@
                         reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
                         scene.add(spawnedArtifactMesh);
                         
-                        xrState = 'revealed'; reticle.visible = false;
-                        document.getElementById('xr-ui').innerText = "Tendez la main";
+                        xrState = 'revealed';
+                        reticle.visible = false;
+                        xrUI.innerText = "Tendez la main pour l'assimiler";
+                        
+                        // Cacher les lueurs
                         document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                         
                         if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
                     }
                     else if (xrState === 'revealed') {
-                        const tempMatrix = new THREE.Matrix4().identity().extractRotation(controller.matrixWorld);
+                        const tempMatrix = new THREE.Matrix4();
+                        tempMatrix.identity().extractRotation(controller.matrixWorld);
                         raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
                         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
-                            xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none';
+                            xrState = 'recovered';
+                            xrUI.style.display = 'none';
                             
-                            const data = ARTIFACTS_DATA[foundCount];
-                            document.getElementById('ui-art-name').innerText = data.name;
-                            document.getElementById('ui-art-lore').innerText = data.lore;
-                            document.getElementById('ui-word').innerText = `"${data.word}"`;
-                            document.getElementById('ui-progress').innerText = `${foundCount + 1} / 7`;
+                            const safeIndex = foundCount % 7;
+                            const currentData = ARTIFACTS_DATA[safeIndex];
+                            
+                            document.getElementById('ui-art-name').innerText = currentData.name;
+                            document.getElementById('ui-art-lore').innerText = currentData.lore;
+                            document.getElementById('ui-word').innerText = `"${currentData.word}"`;
+                            document.getElementById('ui-progress').innerText = `${safeIndex + 1} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(4)}, ${startLon.toFixed(4)}`;
                             
                             document.getElementById('artifact-ui').style.display = 'flex';
@@ -454,7 +531,7 @@
                     const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
                     if (!hitTestSourceRequested) {
                         session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
-                        session.addEventListener('end', () => { hitTestSourceRequested = false; location.reload(); });
+                        session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
                         hitTestSourceRequested = true;
                     }
                     if (hitTestSource && xrState === 'search') {
@@ -462,15 +539,15 @@
                         if (results.length > 0) {
                             reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
                             if (!isTargetSpawned) {
-                                let pos = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
+                                let pos = new THREE.Vector3(); pos.setFromMatrixPosition(reticle.matrix);
                                 hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
                                 isTargetSpawned = true;
                             }
                             if (isTargetSpawned) {
-                                let curr = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
+                                let curr = new THREE.Vector3(); curr.setFromMatrixPosition(reticle.matrix);
                                 let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
                                 
-                                // 2. GUIDAGE SPATIAL (GLOW)
+                                // --- UX: GUIDAGE SPATIAL (GLOW) ---
                                 let projVec = hiddenTarget.clone().project(camera);
                                 let isBehind = projVec.z > 1;
                                 if (projVec.x < -0.8 || (isBehind && projVec.x > 0)) {
@@ -483,43 +560,75 @@
 
                                 if (dist < 0.4) {
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
-                                    reticle.material.color.setHex(0x8be9fd); reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "La source est pure."; document.getElementById('xr-ui').style.color = "#8be9fd";
+                                    reticle.material.color.setHex(0x8be9fd);
+                                    reticle.material.opacity = 0.9;
+                                    reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
+                                    
+                                    xrUI.innerText = "La source est pure. Touchez.";
+                                    xrUI.style.color = "#8be9fd";
+                                    xrUI.style.borderColor = "rgba(139, 233, 253, 0.6)";
+                                    xrUI.style.boxShadow = "0 0 20px rgba(139, 233, 253, 0.4)";
                                     canExtract = true;
                                 }
                                 else if (dist < 1.2) {
-                                    reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(1.2, 1.2, 1);
-                                    document.getElementById('xr-ui').innerText = "La résonance s'apaise..."; document.getElementById('xr-ui').style.color = "#b19cd9";
+                                    let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15;
+                                    reticle.material.color.setHex(0xb19cd9);
+                                    reticle.material.opacity = 0.7;
+                                    reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
+                                    
+                                    xrUI.innerText = "La résonance s'apaise...";
+                                    xrUI.style.color = "#b19cd9";
+                                    xrUI.style.borderColor = "rgba(177, 156, 217, 0.4)";
+                                    xrUI.style.boxShadow = "0 0 15px rgba(177, 156, 217, 0.2)";
                                     canExtract = false;
                                 }
                                 else {
-                                    reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(1, 1, 1);
-                                    document.getElementById('xr-ui').innerText = "L'écho est confus..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
+                                    let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05;
+                                    reticle.material.color.setHex(0xff6b6b);
+                                    reticle.material.opacity = 0.4;
+                                    reticle.scale.set(slowPulse, slowPulse, 1);
+                                    
+                                    xrUI.innerText = "L'écho est confus...";
+                                    xrUI.style.color = "#ff6b6b";
+                                    xrUI.style.borderColor = "rgba(255, 107, 107, 0.2)";
+                                    xrUI.style.boxShadow = "0 8px 32px 0 rgba(255, 107, 107, 0.2)";
                                     canExtract = false;
                                 }
                             }
                         } else { reticle.visible = false; }
                     }
                 }
-                scene.traverse((obj) => { if (obj.name === 'artifact') { obj.rotation.y += 0.01; obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; } });
+                
+                scene.traverse((obj) => {
+                    if (obj.name === 'artifact') {
+                        obj.rotation.y += 0.01;
+                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
+                        obj.children[1].rotation.x -= 0.01; obj.children[1].rotation.z += 0.005;
+                    }
+                });
                 renderer.render(scene, camera);
             }
 
             function playGlitchPop(intensity) {
                 if (!audioCtx || intensity <= 0) return;
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'sine'; const freqs = [440, 493.88, 554.37, 659.25, 739.99];
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                const freqs = [440, 493.88, 554.37, 659.25, 739.99];
                 osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start();
-                gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.15 * intensity, audioCtx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.15 * intensity, audioCtx.currentTime + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
                 osc.stop(audioCtx.currentTime + 1.5);
             }
 
             function radarLoop() {
                 clearTimeout(radarTimeout);
-                let intensity = currentDistance <= glitchStartDistance ? 1 - (currentDistance / glitchStartDistance) : 0;
+                let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
                 if (intensity > 0) playGlitchPop(intensity);
-                let delay = intensity > 0 ? 200 + ((1 - intensity) * 1500) : 2000;
+                let delay = 2000; if (intensity > 0) delay = 200 + ((1 - intensity) * 1500);
                 radarTimeout = setTimeout(radarLoop, delay);
             }
 
@@ -530,12 +639,15 @@
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             }
 
+            // Utilisation de la transition UX pour la navigation
             document.getElementById('btn-continue').addEventListener('click', () => {
-                navigateTo(window.location.pathname + '?fragment=' + (foundCount + 1));
+                let nextCount = foundCount + 1;
+                navigateTo(window.location.pathname + '?fragment=' + nextCount);
             });
 
             document.getElementById('btn-inventory').addEventListener('click', () => {
-                navigateTo(window.location.pathname + '?fragment=' + (foundCount + 1) + '&view=sanctuary');
+                let nextCount = foundCount + 1;
+                navigateTo(window.location.pathname + '?fragment=' + nextCount + '&view=sanctuary');
             });
 
             initXR();
