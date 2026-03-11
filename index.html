@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Cible Verrouillée)</title>
+    <title>GLINT - Érrance Onirique (Cible Verrouillée - Fix)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,6 @@
             --glass-border: rgba(255, 255, 255, 0.15);
             --text-title: #f0e6d2; 
             --text-body: #a8b2c1;
-            /* Sera écrasé dynamiquement */
             --accent-pure: #8be9fd; 
         }
 
@@ -170,13 +169,11 @@
             { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "L'Acceptation", word: "...", lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»" }
         ];
 
-        // --- GESTION SAUVEGARDE & VERROUILLAGE (Lock-On) ---
-        // On ajoute currentTargetId pour mémoriser la cible verrouillée
         let gameState = JSON.parse(localStorage.getItem('glint_state')) || { initialized: false, artifacts: [], foundCount: 0, currentTargetId: null };
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
-        let activeProfile = ARTIFACT_PROFILES[0]; // Profil par défaut
+        let activeProfile = ARTIFACT_PROFILES[0];
 
         if (gameState.foundCount >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?view=sanctuary'); }
 
@@ -260,7 +257,6 @@
             let isFlashTriggered = false;
             let coreMesh, wireMesh;
 
-            // Fonction de verrouillage de la cible
             function setActiveProfile(id) {
                 activeProfile = ARTIFACT_PROFILES[id];
                 
@@ -271,6 +267,8 @@
                 if (shaderMaterial) updateRadarShader(activeProfile);
 
                 if (coreMesh && wireMesh) {
+                    coreMesh.geometry.dispose();
+                    wireMesh.geometry.dispose();
                     coreMesh.geometry = getGeometry(activeProfile.shape);
                     coreMesh.material.color.setHex(activeProfile.colorHex);
                     coreMesh.material.emissive.setHex(activeProfile.colorHex);
@@ -289,8 +287,15 @@
                     document.getElementById('data-stream').innerText = `Onde : ~${stream}`;
                 }, 150);
 
+                // FIX 1: Lancement IMMÉDIAT de la caméra au clic (Requis par iOS)
+                try { 
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
+                    initRadarShader(cameraStream); 
+                } catch (err) { console.error(err); }
+
+                // FIX 1 suite : Requête GPS ensuite
                 if ("geolocation" in navigator) {
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                    navigator.geolocation.getCurrentPosition((pos) => {
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                         
                         if (!gameState.initialized) {
@@ -298,7 +303,6 @@
                             gameState.initialized = true;
                         }
                         
-                        // VERROUILLAGE : On cherche la cible la plus proche au lancement
                         if (gameState.currentTargetId === null) {
                             let closestArt = null; let minDist = Infinity;
                             gameState.artifacts.forEach(art => {
@@ -307,23 +311,14 @@
                                     if (d < minDist) { minDist = d; closestArt = art; }
                                 }
                             });
-                            if (closestArt) {
-                                gameState.currentTargetId = closestArt.id;
-                            }
+                            if (closestArt) { gameState.currentTargetId = closestArt.id; }
                         }
                         
                         localStorage.setItem('glint_state', JSON.stringify(gameState));
                         
-                        // On applique le profil avant de lancer la caméra
                         if (gameState.currentTargetId !== null) {
-                            setActiveProfile(gameState.currentTargetId);
+                            setActiveProfile(gameState.currentTargetId); // Applique le shader correspondant
                         }
-
-                        // Lancement de la caméra APRES avoir défini le profil
-                        try { 
-                            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
-                            initRadarShader(cameraStream); 
-                        } catch (err) {}
 
                         navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
                         radarLoop(); 
@@ -331,11 +326,19 @@
                 }
             });
 
-            // Si on recalibre, on force un nouveau verrouillage
+            // FIX 2: Recalculer les positions UNIQUEMENT pour les artefacts non trouvés
             recalcBtn.addEventListener('click', () => { 
-                if (startLat) { 
-                    gameState.artifacts = generateAllTargets(startLat, startLon);
-                    gameState.currentTargetId = null; // On annule le verrou
+                if (startLat && startLon) { 
+                    const newPoints = generateAllTargets(startLat, startLon);
+                    
+                    gameState.artifacts.forEach((art, i) => {
+                        if (!art.found) {
+                            art.lat = newPoints[i].lat;
+                            art.lon = newPoints[i].lon;
+                        }
+                    });
+                    
+                    gameState.currentTargetId = null; // Brise le verrou
                     
                     let closestArt = null; let minDist = Infinity;
                     gameState.artifacts.forEach(art => {
@@ -344,6 +347,7 @@
                             if (d < minDist) { minDist = d; closestArt = art; }
                         }
                     });
+                    
                     if (closestArt) {
                         gameState.currentTargetId = closestArt.id;
                         setActiveProfile(closestArt.id);
@@ -359,7 +363,6 @@
                 
                 if (renderer && renderer.xr && renderer.xr.isPresenting) { arContainer.style.display = 'none'; return; }
 
-                // LA TRAQUE : On ne calcule la distance qu'avec la cible verrouillée
                 let targetArt = gameState.artifacts.find(a => a.id === gameState.currentTargetId);
                 if (!targetArt) return;
 
@@ -408,8 +411,13 @@
             }
 
             function updateRadarShader(profile) {
-                if(!radarScene) return;
-                radarScene.clear();
+                if(!radarScene || !videoTexture) return;
+                
+                // Nettoyage de l'ancien quad
+                while(radarScene.children.length > 0){ 
+                    let child = radarScene.children[0]; radarScene.remove(child);
+                    if(child.material) child.material.dispose(); if(child.geometry) child.geometry.dispose();
+                }
                 
                 let uvMod = ""; let isSplit = false; let isBloom = false;
                 switch(profile.shaderMod) {
@@ -522,10 +530,9 @@
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
                             xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none'; 
                             
-                            // ASSIMILATION : Le verrou est brisé, on sauvegarde la découverte
                             gameState.artifacts[gameState.currentTargetId].found = true;
                             gameState.foundCount++;
-                            gameState.currentTargetId = null; // Libère la cible pour le prochain scan
+                            gameState.currentTargetId = null; // Libère le verrou
                             localStorage.setItem('glint_state', JSON.stringify(gameState));
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
