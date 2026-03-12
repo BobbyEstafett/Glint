@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Mémoire Éclatée)</title>
+    <title>GLINT - Érrance Onirique (Illusion Non-Linéaire)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,6 @@
             --glass-border: rgba(255, 255, 255, 0.15);
             --text-title: #f0e6d2; 
             --text-body: #a8b2c1;
-            /* Couleur pure dynamique */
             --accent-pure: #8be9fd; 
         }
 
@@ -114,7 +113,7 @@
             <div class="info-mid">
                 <button id="start-btn">Ouvrir l'œil</button>
                 <div id="ar-container"></div>
-                <button id="recalc-btn">Repositionner les fragments</button>
+                <button id="recalc-btn">Se recentrer</button>
             </div>
             <div class="info-bottom">
                 <div class="data-stream" id="data-stream">_</div>
@@ -160,8 +159,7 @@
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
-        // --- LES 7 PROFILS UNIQUES ---
-        const ARTIFACT_PROFILES = [
+        const ARTIFACTS_DATA = [
             { id: 0, colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "La Première Goutte", word: "NOUS", lore: "«\u00A0Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme.\u00A0»" },
             { id: 1, colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Souvenir Liquide", word: "AVONS", lore: "«\u00A0Une larme digitale figée dans le flux. Elle contient l'écho d'un rire sans visage.\u00A0»" },
             { id: 2, colorHex: 0xbd93f9, cssColor: "rgba(189, 147, 249, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "Le Poids de l'Absence", word: "OUBLIÉ", lore: "«\u00A0Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité.\u00A0»" },
@@ -171,23 +169,29 @@
             { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "L'Acceptation", word: "...", lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»" }
         ];
 
-        // --- GESTION DE LA SAUVEGARDE NON-LINÉAIRE ---
-        // On mémorise 7 points. Chacun possède un 'id' (de 0 à 6) lié au profil de l'artefact.
-        let gameState = JSON.parse(localStorage.getItem('glint_state')) || { 
-            initialized: false, 
-            artifacts: [], 
-            foundCount: 0, 
-            currentTargetId: null 
-        };
+        // --- SAUVEGARDE NARRATIVE (Tableau des IDs trouvés) ---
+        // Exemple: foundIds: [4, 1, 6] signifie qu'on a trouvé les artefacts n°4, 1 et 6.
+        let gameState = JSON.parse(localStorage.getItem('glint_state')) || { foundIds: [] };
         
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
-        let activeProfile = ARTIFACT_PROFILES[0]; // Par défaut
+        // Fonction pour piocher un artefact non trouvé au hasard
+        function pickRandomUnfound() {
+            let unfound = [];
+            for (let i = 0; i < 7; i++) {
+                if (!gameState.foundIds.includes(i)) unfound.push(i);
+            }
+            if (unfound.length === 0) return null;
+            let randomIndex = Math.floor(Math.random() * unfound.length);
+            return unfound[randomIndex];
+        }
 
-        if (gameState.foundCount >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?view=sanctuary'); }
+        let activeProfile = ARTIFACTS_DATA[0]; // Profil par défaut
 
-        // --- AFFICHAGE DU CARNET NON-LINÉAIRE ---
+        if (gameState.foundIds.length >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?view=sanctuary'); }
+
+        // --- AFFICHAGE DU CARNET ---
         function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
             const constelContainer = document.getElementById('constellation');
@@ -196,8 +200,8 @@
             // Constellation
             for(let i=0; i<7; i++) {
                 let star = document.createElement('div');
-                let isFound = gameState.initialized && gameState.artifacts[i].found;
-                let color = ARTIFACT_PROFILES[i].cssColor;
+                let isFound = gameState.foundIds.includes(i);
+                let color = ARTIFACTS_DATA[i].cssColor;
                 
                 star.className = `star ${isFound ? 'active' : ''}`;
                 if(isFound) { star.style.background = color; star.style.boxShadow = `0 0 10px ${color}`; }
@@ -205,15 +209,15 @@
                 
                 if (i < 6) {
                     let link = document.createElement('div');
-                    let isNextFound = gameState.initialized && gameState.artifacts[i+1].found;
-                    // On relie le trait uniquement si les deux étoiles adjacentes sont trouvées
+                    let isNextFound = gameState.foundIds.includes(i + 1);
+                    // Le lien s'allume si l'étoile en cours ET la suivante sont trouvées
                     link.className = `star-link ${isFound && isNextFound ? 'active' : ''}`;
                     if(isFound && isNextFound) { link.style.background = color; }
                     constelContainer.appendChild(link);
                 }
             }
 
-            if (gameState.foundCount >= 7) {
+            if (gameState.foundIds.length >= 7) {
                 document.getElementById('btn-back-radar').style.display = 'none'; 
                 document.getElementById('btn-reset').style.display = 'block'; 
                 let rev = document.createElement('div'); rev.className = 'final-revelation';
@@ -221,9 +225,9 @@
                 document.getElementById('sanctuary-ui').insertBefore(rev, listContainer);
             }
 
-            // Liste de fragments : on affiche ce qui a été trouvé dans le désordre
-            ARTIFACT_PROFILES.forEach((profile, index) => {
-                const isFound = gameState.initialized && gameState.artifacts[index].found;
+            // Liste de tous les fragments (de 0 à 6)
+            ARTIFACTS_DATA.forEach((profile, index) => {
+                const isFound = gameState.foundIds.includes(index);
                 const slot = document.createElement('div');
                 slot.className = `fragment-slot ${isFound ? 'found' : ''}`;
                 if(isFound) slot.style.borderColor = profile.cssColor.replace('1)', '0.4)');
@@ -246,52 +250,42 @@
         document.getElementById('btn-back-radar').addEventListener('click', () => { navigateTo(window.location.pathname); });
         document.getElementById('btn-reset').addEventListener('click', () => { localStorage.removeItem('glint_state'); navigateTo(window.location.pathname); });
 
-        if (!isSanctuaryView && gameState.foundCount < 7) {
-            let startLat = null, startLon = null;
-            const extractionDistance = 5; const glitchStartDistance = 15; 
+        if (!isSanctuaryView && gameState.foundIds.length < 7) {
+            let targetLat = null, targetLon = null, startLat = null, startLon = null;
+            const spawnDistance = 2; const glitchStartDistance = 15; const extractionDistance = 5; 
             let currentDistance = 999; let radarTimeout, audioCtx, cameraStream = null, dataStreamInterval;
 
             const startBtn = document.getElementById('start-btn'); const recalcBtn = document.getElementById('recalc-btn');
             const distanceDisplay = document.getElementById('distance-display'); const statusDisplay = document.getElementById('status-display');
             const arContainer = document.getElementById('ar-container'); const flashOverlay = document.getElementById('flash-overlay');
 
-            // Génère 7 emplacements géographiques distincts
-            function generateAllTargets(lat, lon) {
-                const arr = [];
-                for(let i=0; i<7; i++) {
-                    const dist = 5 + Math.random() * 20; 
-                    const angle = Math.random() * 2 * Math.PI;
-                    const tLat = lat + ((dist * Math.cos(angle)) / 6371000) * 180 / Math.PI;
-                    const tLon = lon + ((dist * Math.sin(angle)) / (6371000 * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
-                    arr.push({ id: i, lat: tLat, lon: tLon, found: false });
-                }
-                return arr;
+            // --- 1 SEUL POINT PHYSIQUE À LA FOIS ---
+            function generateTarget(lat, lon, distance) {
+                const R = 6371000; const angle = Math.random() * 2 * Math.PI;
+                targetLat = lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI;
+                targetLon = lon + ((distance * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
             }
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
             let coreMesh, wireMesh;
 
-            // Fonction pour appliquer visuellement la cible verrouillée
-            function setActiveProfile(id) {
-                activeProfile = ARTIFACT_PROFILES[id];
+            function setActiveProfile(profile) {
+                document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
+                document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
+                document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 
-                document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
-                document.getElementById('glow-left').style.background = `linear-gradient(to right, ${activeProfile.cssColor.replace('1)', '0.4)')}, transparent)`;
-                document.getElementById('glow-right').style.background = `linear-gradient(to left, ${activeProfile.cssColor.replace('1)', '0.4)')}, transparent)`;
-                
-                if (shaderMaterial) updateRadarShader(activeProfile);
+                if (shaderMaterial) updateRadarShader(profile);
 
                 if (coreMesh && wireMesh) {
                     coreMesh.geometry.dispose(); wireMesh.geometry.dispose();
-                    coreMesh.geometry = getGeometry(activeProfile.shape);
-                    coreMesh.material.color.setHex(activeProfile.colorHex);
-                    coreMesh.material.emissive.setHex(activeProfile.colorHex);
-                    wireMesh.geometry = getGeometry(activeProfile.shape, true);
+                    coreMesh.geometry = getGeometry(profile.shape);
+                    coreMesh.material.color.setHex(profile.colorHex);
+                    coreMesh.material.emissive.setHex(profile.colorHex);
+                    wireMesh.geometry = getGeometry(profile.shape, true);
                 }
             }
 
-            // Démarrage : FIX CAMÉRA IMMÉDIAT
             startBtn.addEventListener('click', async () => {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
                 startBtn.style.display = 'none'; recalcBtn.style.display = 'block'; 
@@ -303,86 +297,43 @@
                     document.getElementById('data-stream').innerText = `Onde : ~${stream}`;
                 }, 150);
 
-                // Démarrage de la vidéo *immédiatement* pour que les mobiles ne bloquent pas
+                // FIX CAMÉRA IMMÉDIAT
                 try { 
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
                     initRadarShader(cameraStream); 
-                } catch (err) { console.error(err); }
+                } catch (err) { console.error("Erreur caméra:", err); }
 
-                // Ensuite, on gère le GPS et le Verrouillage
+                // TIRAGE AU SORT NARRATIF
+                let randomId = pickRandomUnfound();
+                if (randomId !== null) {
+                    activeProfile = ARTIFACTS_DATA[randomId];
+                    setActiveProfile(activeProfile);
+                }
+
+                // GPS & SPAWN
                 if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition((pos) => {
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
-                        
-                        if (!gameState.initialized) {
-                            gameState.artifacts = generateAllTargets(startLat, startLon);
-                            gameState.initialized = true;
-                        }
-                        
-                        // VERROUILLAGE de l'artefact le plus proche
-                        if (gameState.currentTargetId === null) {
-                            let closestArt = null; let minDist = Infinity;
-                            gameState.artifacts.forEach(art => {
-                                if (!art.found) {
-                                    let d = calculateDistance(startLat, startLon, art.lat, art.lon);
-                                    if (d < minDist) { minDist = d; closestArt = art; }
-                                }
-                            });
-                            if (closestArt) { gameState.currentTargetId = closestArt.id; }
-                        }
-                        
-                        localStorage.setItem('glint_state', JSON.stringify(gameState));
-                        
-                        if (gameState.currentTargetId !== null) {
-                            setActiveProfile(gameState.currentTargetId);
-                        }
-
+                        generateTarget(startLat, startLon, spawnDistance);
                         navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
                         radarLoop(); 
                     });
                 }
             });
 
-            // REPOSITIONNEMENT : Ne modifie que les points non trouvés
+            // RECENTRER : Ne change que les coordonnées physiques
             recalcBtn.addEventListener('click', () => { 
                 if (startLat && startLon) { 
-                    const newPoints = generateAllTargets(startLat, startLon);
-                    
-                    gameState.artifacts.forEach((art, i) => {
-                        if (!art.found) { art.lat = newPoints[i].lat; art.lon = newPoints[i].lon; }
-                    });
-                    
-                    gameState.currentTargetId = null; // Brise le verrou
-                    
-                    let closestArt = null; let minDist = Infinity;
-                    gameState.artifacts.forEach(art => {
-                        if (!art.found) {
-                            let d = calculateDistance(startLat, startLon, art.lat, art.lon);
-                            if (d < minDist) { minDist = d; closestArt = art; }
-                        }
-                    });
-                    
-                    if (closestArt) {
-                        gameState.currentTargetId = closestArt.id;
-                        setActiveProfile(closestArt.id);
-                    }
-                    
-                    localStorage.setItem('glint_state', JSON.stringify(gameState));
+                    generateTarget(startLat, startLon, spawnDistance);
                     statusDisplay.innerText = "La carte se reconfigure..."; 
                 } 
             });
 
             function updatePosition(pos) {
                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
-                
                 if (renderer && renderer.xr && renderer.xr.isPresenting) { arContainer.style.display = 'none'; return; }
 
-                // LOGIQUE : On ne calcule la distance qu'avec la cible verrouillée
-                if (gameState.currentTargetId === null) return;
-                let targetArt = gameState.artifacts.find(a => a.id === gameState.currentTargetId);
-                if (!targetArt) return;
-
-                currentDistance = calculateDistance(startLat, startLon, targetArt.lat, targetArt.lon);
+                currentDistance = calculateDistance(startLat, startLon, targetLat, targetLon);
 
                 distanceDisplay.innerText = `${Math.round(currentDistance)} m`;
                 let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
@@ -422,14 +373,13 @@
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
                 videoTexture = new THREE.VideoTexture(videoElement);
                 
-                updateRadarShader(activeProfile); // Initie le shader par défaut
-                renderRadar(); // DÉMARRE LA BOUCLE (Fix de l'écran noir)
+                updateRadarShader(activeProfile);
+                renderRadar(); 
             }
 
             function updateRadarShader(profile) {
                 if(!radarScene || !videoTexture) return;
                 
-                // Nettoyage de l'ancien quad
                 while(radarScene.children.length > 0){ 
                     let child = radarScene.children[0]; radarScene.remove(child);
                     if(child.material) child.material.dispose(); if(child.geometry) child.geometry.dispose();
@@ -546,18 +496,19 @@
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
                             xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none'; 
                             
-                            // ASSIMILATION : Le fragment spécifique est marqué comme trouvé
-                            gameState.artifacts[gameState.currentTargetId].found = true;
-                            gameState.foundCount++;
-                            gameState.currentTargetId = null; // Libère le verrou pour le prochain fragment
-                            localStorage.setItem('glint_state', JSON.stringify(gameState));
+                            // ASSIMILATION : On enregistre l'ID aléatoire qui a été trouvé !
+                            if (!gameState.foundIds.includes(activeProfile.id)) {
+                                gameState.foundIds.push(activeProfile.id);
+                                localStorage.setItem('glint_state', JSON.stringify(gameState));
+                            }
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
                             document.getElementById('ui-art-name').style.textShadow = `0 0 15px ${activeProfile.cssColor.replace('1)', '0.5)')}`;
                             document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
                             document.getElementById('ui-word').style.color = activeProfile.cssColor;
-                            document.getElementById('ui-progress').innerText = `${gameState.foundCount} / 7`;
+                            
+                            document.getElementById('ui-progress').innerText = `${gameState.foundIds.length} / 7`;
                             
                             document.getElementById('btn-inventory').style.color = activeProfile.cssColor;
                             document.getElementById('btn-inventory').style.borderColor = activeProfile.cssColor;
