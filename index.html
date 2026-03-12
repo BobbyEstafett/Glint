@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Illusion Non-Linéaire V1 - Fix Pixel)</title>
+    <title>GLINT - Érrance Onirique (Golden Master + UI Sounds)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -156,13 +156,85 @@
         import * as THREE from 'three';
         import { ARButton } from 'three/addons/webxr/ARButton.js';
 
+        // --- GESTION AUDIO GLOBALE (UI SOUNDS) ---
+        let audioCtx = null;
+        function getAudioCtx() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // Fonction générative pour les sons d'interface
+        function playUISound(type) {
+            const ctx = getAudioCtx();
+            const t = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            if (type === 'action') {
+                // Son d'éveil (Ouvrir l'oeil) : Balayage ascendant doux
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, t);
+                osc.frequency.exponentialRampToValueAtTime(800, t + 0.3);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.2, t + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+                osc.start(t); osc.stop(t + 0.3);
+            } 
+            else if (type === 'click') {
+                // Clic simple (Se recentrer) : Petit blip cristallin
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.exponentialRampToValueAtTime(300, t + 0.1);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                osc.start(t); osc.stop(t + 0.1);
+            } 
+            else if (type === 'transition') {
+                // Transition (Boutons vers carnet) : Souffle descendant
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.exponentialRampToValueAtTime(200, t + 0.4);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+                osc.start(t); osc.stop(t + 0.4);
+            }
+            else if (type === 'success') {
+                // Assimilation : Accord majeur majestueux
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, t); // La
+                osc.frequency.setValueAtTime(554.37, t + 0.1); // Do#
+                osc.frequency.setValueAtTime(659.25, t + 0.2); // Mi
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.2, t + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 1.5);
+                osc.start(t); osc.stop(t + 1.5);
+                
+                // Couche supplémentaire pour la profondeur
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(880, t);
+                gain2.gain.setValueAtTime(0, t);
+                gain2.gain.linearRampToValueAtTime(0.1, t + 0.2);
+                gain2.gain.exponentialRampToValueAtTime(0.01, t + 2.0);
+                osc2.connect(gain2); gain2.connect(ctx.destination);
+                osc2.start(t); osc2.stop(t + 2.0);
+            }
+        }
+
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
         const ARTIFACTS_DATA = [
             { id: 0, colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "La Première Goutte", word: "NOUS", lore: "«\u00A0Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme.\u00A0»" },
             { id: 1, colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Souvenir Liquide", word: "AVONS", lore: "«\u00A0Une larme digitale figée dans le flux. Elle contient l'écho d'un rire sans visage.\u00A0»" },
-            // Changement exclusif de la couleur de l'id 2 (Bleu Profond) pour éviter la confusion avec le violet d'approche du radar
             { id: 2, colorHex: 0x1e90ff, cssColor: "rgba(30, 144, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "Le Poids de l'Absence", word: "OUBLIÉ", lore: "«\u00A0Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité.\u00A0»" },
             { id: 3, colorHex: 0xff79c6, cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Vecteur Cendré", word: "COMMENT", lore: "«\u00A0Une direction sans but, gravée dans l'obsidienne. Elle pointe inlassablement vers le vide.\u00A0»" },
             { id: 4, colorHex: 0x50fa7b, cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Noyau Palpitant", word: "ÊTRE", lore: "«\u00A0La pulsation primordiale du code source. Je calcule, donc je fuis.\u00A0»" },
@@ -172,7 +244,6 @@
 
         let rawState = localStorage.getItem('glint_save_v3');
         let gameState = rawState ? JSON.parse(rawState) : { foundIds: [] };
-        
         if (!gameState || !Array.isArray(gameState.foundIds)) {
             gameState = { foundIds: [] };
             localStorage.setItem('glint_save_v3', JSON.stringify(gameState));
@@ -247,13 +318,20 @@
             buildSanctuaryList(); document.getElementById('sanctuary-ui').style.display = 'flex';
         }
 
-        document.getElementById('btn-back-radar').addEventListener('click', () => { navigateTo(window.location.pathname); });
-        document.getElementById('btn-reset').addEventListener('click', () => { localStorage.removeItem('glint_save_v3'); navigateTo(window.location.pathname); });
+        // --- AJOUT DES UI SOUNDS SUR LES BOUTONS HORS RADAR ---
+        document.getElementById('btn-back-radar').addEventListener('click', () => { 
+            playUISound('transition'); 
+            navigateTo(window.location.pathname); 
+        });
+        document.getElementById('btn-reset').addEventListener('click', () => { 
+            playUISound('action'); 
+            localStorage.removeItem('glint_save_v3'); navigateTo(window.location.pathname); 
+        });
 
         if (!isSanctuaryView && gameState.foundIds.length < 7) {
             let targetLat = null, targetLon = null, startLat = null, startLon = null;
             const spawnDistance = 2; const glitchStartDistance = 15; const extractionDistance = 5; 
-            let currentDistance = 999; let radarTimeout, audioCtx, cameraStream = null, dataStreamInterval;
+            let currentDistance = 999; let radarTimeout, cameraStream = null, dataStreamInterval;
 
             const startBtn = document.getElementById('start-btn'); const recalcBtn = document.getElementById('recalc-btn');
             const distanceDisplay = document.getElementById('distance-display'); const statusDisplay = document.getElementById('status-display');
@@ -287,7 +365,9 @@
             }
 
             startBtn.addEventListener('click', async () => {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume();
+                // Lancement du son UI "Action"
+                playUISound('action');
+                
                 startBtn.style.display = 'none'; recalcBtn.style.display = 'block'; 
                 document.getElementById('main-title').innerText = "Écoute";
                 
@@ -319,6 +399,7 @@
             });
 
             recalcBtn.addEventListener('click', () => { 
+                playUISound('click'); // Son UI Clic
                 if (startLat && startLon) { 
                     generateTarget(startLat, startLon, spawnDistance);
                     statusDisplay.innerText = "La carte se reconfigure..."; 
@@ -492,6 +573,9 @@
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
                             xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none'; 
                             
+                            // Son UI Succès !
+                            playUISound('success');
+
                             if (!gameState.foundIds.includes(activeProfile.id)) {
                                 gameState.foundIds.push(activeProfile.id);
                                 localStorage.setItem('glint_save_v3', JSON.stringify(gameState));
@@ -594,14 +678,15 @@
             }
 
             function playGlitchPop(intensity) {
-                if (!audioCtx || intensity <= 0 || !activeProfile) return;
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                const ctx = getAudioCtx(); // Appel sécurisé pour le radar de fond
+                if (!ctx || intensity <= 0 || !activeProfile) return;
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
                 osc.type = 'sine'; 
                 const freqs = activeProfile.audioFreqs; 
                 osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start();
-                gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.15 * intensity, audioCtx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-                osc.stop(audioCtx.currentTime + 1.5);
+                osc.connect(gain); gain.connect(ctx.destination); osc.start();
+                gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.15 * intensity, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+                osc.stop(ctx.currentTime + 1.5);
             }
 
             function radarLoop() {
@@ -619,8 +704,15 @@
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
             }
 
-            document.getElementById('btn-continue').addEventListener('click', () => { navigateTo(window.location.pathname); });
-            document.getElementById('btn-inventory').addEventListener('click', () => { navigateTo(window.location.pathname + '?view=sanctuary'); });
+            // Boutons d'interface : ajout de playUISound()
+            document.getElementById('btn-continue').addEventListener('click', () => { 
+                playUISound('transition');
+                navigateTo(window.location.pathname); 
+            });
+            document.getElementById('btn-inventory').addEventListener('click', () => { 
+                playUISound('transition');
+                navigateTo(window.location.pathname + '?view=sanctuary'); 
+            });
 
             initXR();
         }
