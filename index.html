@@ -162,7 +162,8 @@
         const ARTIFACTS_DATA = [
             { id: 0, colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "La Première Goutte", word: "NOUS", lore: "«\u00A0Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme.\u00A0»" },
             { id: 1, colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Souvenir Liquide", word: "AVONS", lore: "«\u00A0Une larme digitale figée dans le flux. Elle contient l'écho d'un rire sans visage.\u00A0»" },
-            { id: 2, colorHex: 0xbd93f9, cssColor: "rgba(189, 147, 249, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "Le Poids de l'Absence", word: "OUBLIÉ", lore: "«\u00A0Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité.\u00A0»" },
+            // Changement exclusif de la couleur de l'id 2 (Bleu Profond) pour éviter la confusion avec le violet d'approche du radar
+            { id: 2, colorHex: 0x1e90ff, cssColor: "rgba(30, 144, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "Le Poids de l'Absence", word: "OUBLIÉ", lore: "«\u00A0Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité.\u00A0»" },
             { id: 3, colorHex: 0xff79c6, cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Vecteur Cendré", word: "COMMENT", lore: "«\u00A0Une direction sans but, gravée dans l'obsidienne. Elle pointe inlassablement vers le vide.\u00A0»" },
             { id: 4, colorHex: 0x50fa7b, cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Noyau Palpitant", word: "ÊTRE", lore: "«\u00A0La pulsation primordiale du code source. Je calcule, donc je fuis.\u00A0»" },
             { id: 5, colorHex: 0xf1fa8c, cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Prisme de l'Aube", word: "RÉELS", lore: "«\u00A0La lumière se courbe là où la donnée devient chair. La frontière commence à s'effacer.\u00A0»" },
@@ -380,7 +381,6 @@
                     if(child.material) child.material.dispose(); if(child.geometry) child.geometry.dispose();
                 }
                 
-                // FIX PIXELATE: Condition d'intensité ajoutée et fondu (mix) pour éviter le blocage à 100x100
                 let uvMod = ""; let isSplit = false; let isBloom = false;
                 switch(profile.shaderMod) {
                     case "wobble": uvMod = "uv.x += sin(uv.y * 50.0 + time * 10.0) * 0.02 * intensity;"; break;
