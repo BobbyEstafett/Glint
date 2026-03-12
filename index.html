@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Illusion Non-Linéaire - Fix Save)</title>
+    <title>GLINT - Érrance Onirique (Illusion Non-Linéaire V1 - Fix Pixel)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -169,11 +169,9 @@
             { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "L'Acceptation", word: "...", lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»" }
         ];
 
-        // --- SÉCURITÉ DE SAUVEGARDE : Nouvelle clé "glint_save_v3" pour purger les vieux caches ! ---
         let rawState = localStorage.getItem('glint_save_v3');
         let gameState = rawState ? JSON.parse(rawState) : { foundIds: [] };
         
-        // Blindage absolu : si la structure de la sauvegarde est mauvaise, on reset
         if (!gameState || !Array.isArray(gameState.foundIds)) {
             gameState = { foundIds: [] };
             localStorage.setItem('glint_save_v3', JSON.stringify(gameState));
@@ -182,7 +180,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
-        // Tirage au sort robuste
         function pickRandomUnfound() {
             let unfound = [];
             for (let i = 0; i < 7; i++) {
@@ -193,11 +190,10 @@
             return unfound[randomIndex];
         }
 
-        let activeProfile = ARTIFACTS_DATA[0]; // Sécurité par défaut
+        let activeProfile = ARTIFACTS_DATA[0]; 
 
         if (gameState.foundIds.length >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?view=sanctuary'); }
 
-        // --- AFFICHAGE DU CARNET ---
         function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
             const constelContainer = document.getElementById('constellation');
@@ -251,7 +247,6 @@
         }
 
         document.getElementById('btn-back-radar').addEventListener('click', () => { navigateTo(window.location.pathname); });
-        // Hard reset
         document.getElementById('btn-reset').addEventListener('click', () => { localStorage.removeItem('glint_save_v3'); navigateTo(window.location.pathname); });
 
         if (!isSanctuaryView && gameState.foundIds.length < 7) {
@@ -301,20 +296,17 @@
                     document.getElementById('data-stream').innerText = `Onde : ~${stream}`;
                 }, 150);
 
-                // TIRAGE AU SORT NARRATIF
                 let randomId = pickRandomUnfound();
                 if (randomId !== null) {
                     activeProfile = ARTIFACTS_DATA[randomId];
                 }
 
-                // LANCEMENT IMMÉDIAT CAMÉRA POUR IOS
                 try { 
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
                     initRadarShader(cameraStream); 
-                    setActiveProfile(activeProfile); // Application visuelle
+                    setActiveProfile(activeProfile); 
                 } catch (err) { console.error("Erreur caméra:", err); }
 
-                // GPS & SPAWN
                 if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition((pos) => {
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
@@ -388,10 +380,11 @@
                     if(child.material) child.material.dispose(); if(child.geometry) child.geometry.dispose();
                 }
                 
+                // FIX PIXELATE: Condition d'intensité ajoutée et fondu (mix) pour éviter le blocage à 100x100
                 let uvMod = ""; let isSplit = false; let isBloom = false;
                 switch(profile.shaderMod) {
                     case "wobble": uvMod = "uv.x += sin(uv.y * 50.0 + time * 10.0) * 0.02 * intensity;"; break;
-                    case "pixelate": uvMod = "float pixels = max(10.0, 100.0 - (intensity * 90.0)); uv = floor(uv * pixels) / pixels;"; break;
+                    case "pixelate": uvMod = "if(intensity > 0.0) { float pixels = max(10.0, 100.0 - (intensity * 90.0)); uv = mix(uv, floor(uv * pixels) / pixels, smoothstep(0.0, 0.2, intensity)); }"; break;
                     case "split": isSplit = true; break;
                     case "pulse": uvMod = "uv -= 0.5; uv *= 1.0 - (sin(time * 8.0) * 0.15 * intensity); uv += 0.5;"; break;
                     case "mirror": uvMod = "if(intensity>0.1){ uv = abs(uv - 0.5) + 0.5; uv -= vec2(intensity * 0.1); }"; break;
@@ -467,7 +460,7 @@
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
                     document.getElementById('xr-ui').style.display = 'block'; 
-                    document.getElementById('xr-ui').innerText = "Laissez votre regard errer...";
+                    
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
                 });
 
@@ -499,7 +492,6 @@
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
                             xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none'; 
                             
-                            // ASSIMILATION : On enregistre l'ID aléatoire qui a été trouvé !
                             if (!gameState.foundIds.includes(activeProfile.id)) {
                                 gameState.foundIds.push(activeProfile.id);
                                 localStorage.setItem('glint_save_v3', JSON.stringify(gameState));
