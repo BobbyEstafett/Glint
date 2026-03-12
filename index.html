@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Illusion Non-Linéaire)</title>
+    <title>GLINT - Érrance Onirique (Illusion Non-Linéaire - Fix Save)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -169,14 +169,20 @@
             { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "L'Acceptation", word: "...", lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»" }
         ];
 
-        // --- SAUVEGARDE NARRATIVE (Tableau des IDs trouvés) ---
-        // Exemple: foundIds: [4, 1, 6] signifie qu'on a trouvé les artefacts n°4, 1 et 6.
-        let gameState = JSON.parse(localStorage.getItem('glint_state')) || { foundIds: [] };
+        // --- SÉCURITÉ DE SAUVEGARDE : Nouvelle clé "glint_save_v3" pour purger les vieux caches ! ---
+        let rawState = localStorage.getItem('glint_save_v3');
+        let gameState = rawState ? JSON.parse(rawState) : { foundIds: [] };
         
+        // Blindage absolu : si la structure de la sauvegarde est mauvaise, on reset
+        if (!gameState || !Array.isArray(gameState.foundIds)) {
+            gameState = { foundIds: [] };
+            localStorage.setItem('glint_save_v3', JSON.stringify(gameState));
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
-        // Fonction pour piocher un artefact non trouvé au hasard
+        // Tirage au sort robuste
         function pickRandomUnfound() {
             let unfound = [];
             for (let i = 0; i < 7; i++) {
@@ -187,7 +193,7 @@
             return unfound[randomIndex];
         }
 
-        let activeProfile = ARTIFACTS_DATA[0]; // Profil par défaut
+        let activeProfile = ARTIFACTS_DATA[0]; // Sécurité par défaut
 
         if (gameState.foundIds.length >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?view=sanctuary'); }
 
@@ -197,7 +203,6 @@
             const constelContainer = document.getElementById('constellation');
             listContainer.innerHTML = ''; constelContainer.innerHTML = '';
             
-            // Constellation
             for(let i=0; i<7; i++) {
                 let star = document.createElement('div');
                 let isFound = gameState.foundIds.includes(i);
@@ -210,7 +215,6 @@
                 if (i < 6) {
                     let link = document.createElement('div');
                     let isNextFound = gameState.foundIds.includes(i + 1);
-                    // Le lien s'allume si l'étoile en cours ET la suivante sont trouvées
                     link.className = `star-link ${isFound && isNextFound ? 'active' : ''}`;
                     if(isFound && isNextFound) { link.style.background = color; }
                     constelContainer.appendChild(link);
@@ -225,7 +229,6 @@
                 document.getElementById('sanctuary-ui').insertBefore(rev, listContainer);
             }
 
-            // Liste de tous les fragments (de 0 à 6)
             ARTIFACTS_DATA.forEach((profile, index) => {
                 const isFound = gameState.foundIds.includes(index);
                 const slot = document.createElement('div');
@@ -248,7 +251,8 @@
         }
 
         document.getElementById('btn-back-radar').addEventListener('click', () => { navigateTo(window.location.pathname); });
-        document.getElementById('btn-reset').addEventListener('click', () => { localStorage.removeItem('glint_state'); navigateTo(window.location.pathname); });
+        // Hard reset
+        document.getElementById('btn-reset').addEventListener('click', () => { localStorage.removeItem('glint_save_v3'); navigateTo(window.location.pathname); });
 
         if (!isSanctuaryView && gameState.foundIds.length < 7) {
             let targetLat = null, targetLon = null, startLat = null, startLon = null;
@@ -259,7 +263,6 @@
             const distanceDisplay = document.getElementById('distance-display'); const statusDisplay = document.getElementById('status-display');
             const arContainer = document.getElementById('ar-container'); const flashOverlay = document.getElementById('flash-overlay');
 
-            // --- 1 SEUL POINT PHYSIQUE À LA FOIS ---
             function generateTarget(lat, lon, distance) {
                 const R = 6371000; const angle = Math.random() * 2 * Math.PI;
                 targetLat = lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI;
@@ -271,6 +274,7 @@
             let coreMesh, wireMesh;
 
             function setActiveProfile(profile) {
+                if(!profile) return;
                 document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
                 document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
@@ -297,18 +301,18 @@
                     document.getElementById('data-stream').innerText = `Onde : ~${stream}`;
                 }, 150);
 
-                // FIX CAMÉRA IMMÉDIAT
-                try { 
-                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
-                    initRadarShader(cameraStream); 
-                } catch (err) { console.error("Erreur caméra:", err); }
-
                 // TIRAGE AU SORT NARRATIF
                 let randomId = pickRandomUnfound();
                 if (randomId !== null) {
                     activeProfile = ARTIFACTS_DATA[randomId];
-                    setActiveProfile(activeProfile);
                 }
+
+                // LANCEMENT IMMÉDIAT CAMÉRA POUR IOS
+                try { 
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
+                    initRadarShader(cameraStream); 
+                    setActiveProfile(activeProfile); // Application visuelle
+                } catch (err) { console.error("Erreur caméra:", err); }
 
                 // GPS & SPAWN
                 if ("geolocation" in navigator) {
@@ -321,7 +325,6 @@
                 }
             });
 
-            // RECENTRER : Ne change que les coordonnées physiques
             recalcBtn.addEventListener('click', () => { 
                 if (startLat && startLon) { 
                     generateTarget(startLat, startLon, spawnDistance);
@@ -499,7 +502,7 @@
                             // ASSIMILATION : On enregistre l'ID aléatoire qui a été trouvé !
                             if (!gameState.foundIds.includes(activeProfile.id)) {
                                 gameState.foundIds.push(activeProfile.id);
-                                localStorage.setItem('glint_state', JSON.stringify(gameState));
+                                localStorage.setItem('glint_save_v3', JSON.stringify(gameState));
                             }
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
