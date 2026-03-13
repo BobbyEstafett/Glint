@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Apothéose Narrative)</title>
+    <title>GLINT - Oneiric Wandering</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -97,7 +97,6 @@
         #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
         #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-out; }
 
-        /* --- AJOUT CSS : L'APOTHÉOSE NARRATIVE --- */
         #apotheosis-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: var(--bg-night);
@@ -135,14 +134,14 @@
     <div id="radar-ui">
         <div class="info-box glass-panel" id="main-panel">
             <div class="info-top">
-                <h1 class="main-title serif" id="main-title">Sommeil</h1>
+                <h1 class="main-title serif" id="main-title">Slumber</h1>
                 <p id="distance-display">---</p>
-                <p id="status-display">En attente d'éveil.</p>
+                <p id="status-display">Awaiting awakening.</p>
             </div>
             <div class="info-mid">
-                <button id="start-btn">Ouvrir l'œil</button>
+                <button id="start-btn">Open your eye</button>
                 <div id="ar-container"></div>
-                <button id="recalc-btn">Se recentrer</button>
+                <button id="recalc-btn">Recenter</button>
             </div>
             <div class="info-bottom">
                 <div class="data-stream" id="data-stream">_</div>
@@ -150,35 +149,35 @@
         </div>
     </div>
 
-    <div id="xr-ui" class="glass-panel">Laissez votre regard errer...</div>
+    <div id="xr-ui" class="glass-panel">Let your gaze wander...</div>
 
     <div id="artifact-ui">
         <div class="artifact-card glass-panel" id="art-card">
-            <h2 id="ui-art-name" class="fade-in-seq">ÉCLAT MNÉMONIQUE</h2>
+            <h2 id="ui-art-name" class="fade-in-seq">MNEMONIC SHARD</h2>
             <p id="ui-art-lore" class="artifact-lore serif fade-in-seq delay-1"></p>
             <div class="artifact-stats fade-in-seq delay-2">
-                <p>MÉMOIRE <span id="ui-progress">1 / 7</span></p>
-                <p>POINT D'ANCRAGE <span id="ui-gps">0.000, 0.000</span></p>
-                <p>RÉSONANCE <span id="ui-word" class="mystery-word">"---"</span></p>
+                <p>MEMORY <span id="ui-progress">1 / 7</span></p>
+                <p>ANCHOR POINT <span id="ui-gps">0.000, 0.000</span></p>
+                <p>RESONANCE <span id="ui-word" class="mystery-word">"---"</span></p>
             </div>
             <div class="btn-group fade-in-seq delay-3">
-                <button id="btn-inventory">Ouvrir le Carnet</button>
-                <button id="btn-continue">Poursuivre l'Errance</button>
+                <button id="btn-inventory">Open the Journal</button>
+                <button id="btn-continue">Continue Wandering</button>
             </div>
         </div>
     </div>
 
     <div id="sanctuary-ui">
         <div class="sanctuary-header">
-            <h2 class="serif">LE CARNET</h2>
-            <p>Pensées reconstituées</p>
+            <h2 class="serif">THE JOURNAL</h2>
+            <p>Reconstructed thoughts</p>
             <div id="constellation" class="constellation"></div>
             <div id="memory-map"></div>
         </div>
         <div class="sanctuary-list" id="sanctuary-list"></div>
         <div class="sanctuary-footer">
-            <button id="btn-back-radar">Fermer les yeux (Retour)</button>
-            <button id="btn-reset" style="display:none;">Recommencer l'Errance</button>
+            <button id="btn-back-radar">Close your eyes (Return)</button>
+            <button id="btn-reset" style="display:none;">Restart the Wandering</button>
         </div>
     </div>
 
@@ -211,18 +210,15 @@
                 const freqs = [1046.50, 1318.51, 1567.98, 2093.00, 2637.02, 3135.96];
                 freqs.forEach((f, i) => { let jitter = Math.random() * 0.15; sparkle(f, 0.05 + jitter, 2.5, 0.08); sparkle(f * 1.01, 0.1 + jitter, 2.0, 0.04); });
             }
-            // --- NOUVEAU SON : APOTHÉOSE ---
             else if (type === 'apotheosis') {
-                // Bourdonnement grave (Drone spatial)
                 const oscDrone = ctx.createOscillator(); const gainDrone = ctx.createGain();
-                oscDrone.type = 'sine'; oscDrone.frequency.value = 55; // Un La très grave
+                oscDrone.type = 'sine'; oscDrone.frequency.value = 55;
                 oscDrone.connect(gainDrone); gainDrone.connect(ctx.destination);
                 gainDrone.gain.setValueAtTime(0, t);
                 gainDrone.gain.linearRampToValueAtTime(0.3, t + 5);
                 gainDrone.gain.exponentialRampToValueAtTime(0.001, t + 18);
                 oscDrone.start(t); oscDrone.stop(t + 18);
                 
-                // Nappe d'accords qui monte lentement
                 [440, 554.37, 659.25, 880].forEach((f, i) => {
                     const osc = ctx.createOscillator(); const g = ctx.createGain();
                     osc.type = 'triangle'; osc.frequency.value = f;
@@ -239,17 +235,16 @@
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
         const ARTIFACTS_DATA = [
-            { id: 0, colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "La Première Goutte", word: "NOUS", lore: "«\u00A0Une résonance cristallisée d'un futur oublié. Les données palpitent encore d'une chaleur fantôme.\u00A0»" },
-            { id: 1, colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Souvenir Liquide", word: "AVONS", lore: "«\u00A0Une larme digitale figée dans le flux. Elle contient l'écho d'un rire sans visage.\u00A0»" },
-            { id: 2, colorHex: 0x1e90ff, cssColor: "rgba(30, 144, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "Le Poids de l'Absence", word: "OUBLIÉ", lore: "«\u00A0Le silence entre deux paquets de données. Une absence qui pèse lourdement sur la réalité.\u00A0»" },
-            { id: 3, colorHex: 0xff79c6, cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Vecteur Cendré", word: "COMMENT", lore: "«\u00A0Une direction sans but, gravée dans l'obsidienne. Elle pointe inlassablement vers le vide.\u00A0»" },
-            { id: 4, colorHex: 0x50fa7b, cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Noyau Palpitant", word: "ÊTRE", lore: "«\u00A0La pulsation primordiale du code source. Je calcule, donc je fuis.\u00A0»" },
-            { id: 5, colorHex: 0xf1fa8c, cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Prisme de l'Aube", word: "RÉELS", lore: "«\u00A0La lumière se courbe là où la donnée devient chair. La frontière commence à s'effacer.\u00A0»" },
-            { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "L'Acceptation", word: "...", lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»" }
+            { id: 0, colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "The First Drop", word: "WE", lore: "«\u00A0A crystallized resonance of a forgotten future. The data still pulses with a phantom warmth.\u00A0»" },
+            { id: 1, colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Liquid Memory", word: "HAVE", lore: "«\u00A0A digital tear frozen in the stream. It holds the echo of a faceless laugh.\u00A0»" },
+            { id: 2, colorHex: 0x1e90ff, cssColor: "rgba(30, 144, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "The Weight of Absence", word: "FORGOTTEN", lore: "«\u00A0The silence between two data packets. An absence that weighs heavily on reality.\u00A0»" },
+            { id: 3, colorHex: 0xff79c6, cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Ashen Vector", word: "HOW", lore: "«\u00A0A direction without a goal, engraved in obsidian. It points relentlessly into the void.\u00A0»" },
+            { id: 4, colorHex: 0x50fa7b, cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Pulsating Core", word: "TO", lore: "«\u00A0The primordial beat of the source code. I compute, therefore I flee.\u00A0»" },
+            { id: 5, colorHex: 0xf1fa8c, cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Dawn Prism", word: "BE", lore: "«\u00A0Light bends where data becomes flesh. The boundary begins to fade.\u00A0»" },
+            { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "The Acceptance", word: "REAL", lore: "«\u00A0The endpoint of the flight. The moment the simulation finally surrenders.\u00A0»" }
         ];
 
         let rawState = localStorage.getItem('glint_save_v4');
-        // AJOUT: On s'assure d'avoir la clé apotheosisPlayed dans la sauvegarde
         let gameState = rawState ? JSON.parse(rawState) : { foundNodes: [], apotheosisPlayed: false };
         if (!gameState || !Array.isArray(gameState.foundNodes)) {
             gameState = { foundNodes: [], apotheosisPlayed: false };
@@ -272,27 +267,22 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
-        // Remplacement de la simple redirection par l'analyse de l'Apothéose
         if (gameState.foundNodes.length >= 7 && !isSanctuaryView) {
             navigateTo(window.location.pathname + '?view=sanctuary');
         }
 
-        // --- LA SÉQUENCE CINÉMATOGRAPHIQUE DE FIN ---
         async function playApotheosisSequence() {
             const overlay = document.getElementById('apotheosis-overlay');
             overlay.style.display = 'flex';
-            void overlay.offsetWidth; // Force le navigateur à dessiner (Reflow)
+            void overlay.offsetWidth;
             overlay.style.opacity = '1';
             
             playUISound('apotheosis');
             
-            // Attente du fondu au noir
             await new Promise(r => setTimeout(r, 2000));
 
-            // Récupère les 7 mots dans l'ordre chronologique de l'histoire
             const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
             
-            // Affichage séquentiel
             for (let i = 0; i < words.length; i++) {
                 const el = document.createElement('div');
                 el.className = 'apo-word';
@@ -303,13 +293,12 @@
                 void el.offsetWidth;
                 el.classList.add('show');
                 
-                await new Promise(r => setTimeout(r, 1800)); // Temps de lecture
-                el.classList.remove('show'); // Fondu au noir
-                await new Promise(r => setTimeout(r, 1000)); // Silence avant le suivant
+                await new Promise(r => setTimeout(r, 1800));
+                el.classList.remove('show');
+                await new Promise(r => setTimeout(r, 1000));
                 overlay.removeChild(el);
             }
             
-            // Disparition de l'overlay pour laisser place au Carnet complet
             await new Promise(r => setTimeout(r, 1000));
             overlay.style.opacity = '0';
             await new Promise(r => setTimeout(r, 2000));
@@ -354,7 +343,7 @@
                 document.getElementById('btn-back-radar').style.display = 'none';
                 document.getElementById('btn-reset').style.display = 'block';
                 let rev = document.createElement('div'); rev.className = 'final-revelation';
-                rev.innerText = "«\u00A0NOUS AVONS OUBLIÉ COMMENT ÊTRE RÉELS...\u00A0»";
+                rev.innerText = "«\u00A0WE HAVE FORGOTTEN HOW TO BE REAL\u00A0»";
                 document.getElementById('sanctuary-ui').insertBefore(rev, listContainer);
             }
 
@@ -366,36 +355,29 @@
                 
                 let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
-                    <div class="slot-title">RÉFLEXION ${index + 1}</div>
-                    <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Pensée évanouie'}</div>
+                    <div class="slot-title">REFLECTION ${index + 1}</div>
+                    <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
                     <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'};">${isFound ? profile.word : ''}</div>
                 `;
                 listContainer.appendChild(slot);
             });
         }
 
-        // --- GESTION DU CHARGEMENT DU CARNET ---
         if (isSanctuaryView) {
             document.getElementById('radar-ui').style.display = 'none';
             document.getElementById('threejs-radar-container').style.display = 'none';
             document.getElementById('dream-veil').style.display = 'none';
             
-            // Si on a les 7 fragments et que la séquence n'a jamais été jouée
             if (gameState.foundNodes.length >= 7 && !gameState.apotheosisPlayed) {
-                // On cache d'abord l'UI du carnet le temps de la séquence
                 document.getElementById('sanctuary-ui').style.display = 'none';
                 
                 playApotheosisSequence().then(() => {
-                    // À la fin de la séquence, on sauvegarde qu'elle a été lue
                     gameState.apotheosisPlayed = true;
                     localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
-                    
-                    // Puis on affiche le Carnet complet
                     buildSanctuaryList();
                     document.getElementById('sanctuary-ui').style.display = 'flex';
                 });
             } else {
-                // Ouverture normale du carnet
                 buildSanctuaryList();
                 document.getElementById('sanctuary-ui').style.display = 'flex';
             }
@@ -444,12 +426,12 @@
                 playUISound('action');
                 audioCtx = getAudioCtx();
                 startBtn.style.display = 'none'; recalcBtn.style.display = 'block';
-                document.getElementById('main-title').innerText = "Écoute";
+                document.getElementById('main-title').innerText = "Listen";
                 
                 dataStreamInterval = setInterval(() => {
                     let stream = ""; const chars = "01010011...";
                     for(let i=0; i<8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
-                    document.getElementById('data-stream').innerText = `Onde : ~${stream}`;
+                    document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
                 }, 150);
 
                 let randomId = pickRandomUnfound();
@@ -461,7 +443,7 @@
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                     initRadarShader(cameraStream);
                     setActiveProfile(activeProfile);
-                } catch (err) { console.error("Erreur caméra:", err); }
+                } catch (err) { console.error("Camera error:", err); }
 
                 if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition((pos) => {
@@ -477,7 +459,7 @@
                 playUISound('click');
                 if (startLat && startLon) {
                     generateTarget(startLat, startLon, spawnDistance);
-                    statusDisplay.innerText = "La carte se reconfigure...";
+                    statusDisplay.innerText = "Map is reconfiguring...";
                 }
             });
 
@@ -493,12 +475,12 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "La mémoire affleure..."; statusDisplay.style.color = activeProfile.cssColor;
+                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
                     
                     if (arBtn) {
-                        arBtn.innerText = "Saisir le rêve";
+                        arBtn.innerText = "Grasp the dream";
                         arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
                         arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
                         arBtn.style.color = activeProfile.cssColor;
@@ -509,7 +491,7 @@
                         }
                     }
                 } else {
-                    statusDisplay.innerText = "Suivez le fil..."; statusDisplay.style.color = "var(--text-body)";
+                    statusDisplay.innerText = "Follow the thread..."; statusDisplay.style.color = "var(--text-body)";
                     document.getElementById('main-panel').style.boxShadow = `0 8px 32px 0 rgba(0, 0, 0, 0.4)`;
                     arContainer.style.display = 'none'; recalcBtn.style.display = 'block';
                 }
@@ -636,7 +618,7 @@
                         scene.add(spawnedArtifactMesh);
                         
                         xrState = 'revealed'; reticle.visible = false;
-                        document.getElementById('xr-ui').innerText = "Tendez la main pour l'assimiler";
+                        document.getElementById('xr-ui').innerText = "Reach out to assimilate it";
                         document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                         if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
                     }
@@ -718,28 +700,28 @@
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
                                     reticle.material.color.setHex(activeProfile.colorHex);
                                     reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "La source est pure. Touchez."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
+                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
                                     document.getElementById('xr-ui').style.borderColor = activeProfile.cssColor.replace('1)', '0.6)');
                                     canExtract = true;
                                 }
                                 else if (dist < 1.2) {
                                     let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15;
                                     reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
-                                    document.getElementById('xr-ui').innerText = "La résonance s'apaise..."; document.getElementById('xr-ui').style.color = "#b19cd9";
+                                    document.getElementById('xr-ui').innerText = "The resonance fades..."; document.getElementById('xr-ui').style.color = "#b19cd9";
                                     document.getElementById('xr-ui').style.borderColor = "rgba(177, 156, 217, 0.4)";
                                     canExtract = false;
                                 }
                                 else {
                                     let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05;
                                     reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(slowPulse, slowPulse, 1);
-                                    document.getElementById('xr-ui').innerText = "L'écho est confus..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
+                                    document.getElementById('xr-ui').innerText = "The echo is confused..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
                                     document.getElementById('xr-ui').style.borderColor = "rgba(255, 107, 107, 0.2)";
                                     canExtract = false;
                                 }
                             }
                         } else {
                             reticle.visible = false;
-                            document.getElementById('xr-ui').innerText = "Cherchez la résonance autour de vous...";
+                            document.getElementById('xr-ui').innerText = "Search for the resonance around you...";
                             document.getElementById('xr-ui').style.color = "var(--text-title)";
                             document.getElementById('xr-ui').style.borderColor = "var(--glass-border)";
                             document.getElementById('xr-ui').style.boxShadow = "none";
