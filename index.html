@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Érrance Onirique (Cartographie)</title>
+    <title>GLINT - Érrance Onirique (Apothéose Narrative)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,9 +78,8 @@
         .sanctuary-header h2 { margin: 0; letter-spacing: 6px; font-size: 1.8rem; }
         .sanctuary-header p { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 200; letter-spacing: 2px; opacity: 0.6; margin-top: 10px; text-transform: uppercase; }
         
-        /* Conteneur de la nouvelle carte Leaflet */
         #memory-map { width: 100%; height: 180px; border-radius: 15px; margin-bottom: 20px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); z-index: 1; flex-shrink: 0; display: none; }
-        .leaflet-control-attribution { display: none !important; } /* Epurer la carte */
+        .leaflet-control-attribution { display: none !important; }
         
         .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
         .star { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin: 0 4px; transition: all 1s; }
@@ -97,6 +96,25 @@
         #btn-back-radar { border-color: transparent; }
         #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
         #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-out; }
+
+        /* --- AJOUT CSS : L'APOTHÉOSE NARRATIVE --- */
+        #apotheosis-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: var(--bg-night);
+            z-index: 9999999; display: none; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 2s ease-in-out;
+        }
+        .apo-word {
+            font-family: 'Playfair Display', serif; font-style: italic;
+            font-size: 2.8rem; letter-spacing: 4px; opacity: 0;
+            position: absolute; text-transform: lowercase;
+            transition: opacity 1.5s ease-in-out, transform 3s ease-out;
+            transform: scale(0.8); text-align: center;
+        }
+        .apo-word.show {
+            opacity: 1; transform: scale(1.1); text-shadow: 0 0 30px currentColor;
+        }
+
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -106,6 +124,9 @@
 
     <div id="transition-veil"></div>
     <div id="flash-overlay"></div>
+    
+    <div id="apotheosis-overlay"></div>
+
     <div id="threejs-radar-container"></div>
     <div id="dream-veil"></div>
     <div id="glow-left" class="edge-glow"></div>
@@ -190,6 +211,28 @@
                 const freqs = [1046.50, 1318.51, 1567.98, 2093.00, 2637.02, 3135.96];
                 freqs.forEach((f, i) => { let jitter = Math.random() * 0.15; sparkle(f, 0.05 + jitter, 2.5, 0.08); sparkle(f * 1.01, 0.1 + jitter, 2.0, 0.04); });
             }
+            // --- NOUVEAU SON : APOTHÉOSE ---
+            else if (type === 'apotheosis') {
+                // Bourdonnement grave (Drone spatial)
+                const oscDrone = ctx.createOscillator(); const gainDrone = ctx.createGain();
+                oscDrone.type = 'sine'; oscDrone.frequency.value = 55; // Un La très grave
+                oscDrone.connect(gainDrone); gainDrone.connect(ctx.destination);
+                gainDrone.gain.setValueAtTime(0, t);
+                gainDrone.gain.linearRampToValueAtTime(0.3, t + 5);
+                gainDrone.gain.exponentialRampToValueAtTime(0.001, t + 18);
+                oscDrone.start(t); oscDrone.stop(t + 18);
+                
+                // Nappe d'accords qui monte lentement
+                [440, 554.37, 659.25, 880].forEach((f, i) => {
+                    const osc = ctx.createOscillator(); const g = ctx.createGain();
+                    osc.type = 'triangle'; osc.frequency.value = f;
+                    osc.connect(g); g.connect(ctx.destination);
+                    g.gain.setValueAtTime(0, t);
+                    g.gain.linearRampToValueAtTime(0.05, t + 3 + (i*1.5));
+                    g.gain.exponentialRampToValueAtTime(0.001, t + 18);
+                    osc.start(t); osc.stop(t + 18);
+                });
+            }
         }
 
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
@@ -205,14 +248,14 @@
             { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "L'Acceptation", word: "...", lore: "«\u00A0Le point final de la fuite. Le moment où la simulation s'abandonne enfin.\u00A0»" }
         ];
 
-        // --- SAUVEGARDE V4 : On enregistre l'ID, mais aussi le LAT et LON pour la carte ! ---
         let rawState = localStorage.getItem('glint_save_v4');
-        let gameState = rawState ? JSON.parse(rawState) : { foundNodes: [] }; // Format: [{id: 0, lat: 48.8, lon: 2.3}]
-        
+        // AJOUT: On s'assure d'avoir la clé apotheosisPlayed dans la sauvegarde
+        let gameState = rawState ? JSON.parse(rawState) : { foundNodes: [], apotheosisPlayed: false };
         if (!gameState || !Array.isArray(gameState.foundNodes)) {
-            gameState = { foundNodes: [] };
+            gameState = { foundNodes: [], apotheosisPlayed: false };
             localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
         }
+        if (gameState.apotheosisPlayed === undefined) gameState.apotheosisPlayed = false;
 
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
@@ -228,9 +271,51 @@
         }
 
         let activeProfile = ARTIFACTS_DATA[0];
-        if (gameState.foundNodes.length >= 7 && !isSanctuaryView) { navigateTo(window.location.pathname + '?view=sanctuary'); }
 
-        // --- AFFICHAGE DU CARNET + CARTE LEAFLET ---
+        // Remplacement de la simple redirection par l'analyse de l'Apothéose
+        if (gameState.foundNodes.length >= 7 && !isSanctuaryView) {
+            navigateTo(window.location.pathname + '?view=sanctuary');
+        }
+
+        // --- LA SÉQUENCE CINÉMATOGRAPHIQUE DE FIN ---
+        async function playApotheosisSequence() {
+            const overlay = document.getElementById('apotheosis-overlay');
+            overlay.style.display = 'flex';
+            void overlay.offsetWidth; // Force le navigateur à dessiner (Reflow)
+            overlay.style.opacity = '1';
+            
+            playUISound('apotheosis');
+            
+            // Attente du fondu au noir
+            await new Promise(r => setTimeout(r, 2000));
+
+            // Récupère les 7 mots dans l'ordre chronologique de l'histoire
+            const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
+            
+            // Affichage séquentiel
+            for (let i = 0; i < words.length; i++) {
+                const el = document.createElement('div');
+                el.className = 'apo-word';
+                el.style.color = words[i].color;
+                el.innerText = words[i].text;
+                overlay.appendChild(el);
+                
+                void el.offsetWidth;
+                el.classList.add('show');
+                
+                await new Promise(r => setTimeout(r, 1800)); // Temps de lecture
+                el.classList.remove('show'); // Fondu au noir
+                await new Promise(r => setTimeout(r, 1000)); // Silence avant le suivant
+                overlay.removeChild(el);
+            }
+            
+            // Disparition de l'overlay pour laisser place au Carnet complet
+            await new Promise(r => setTimeout(r, 1000));
+            overlay.style.opacity = '0';
+            await new Promise(r => setTimeout(r, 2000));
+            overlay.style.display = 'none';
+        }
+
         let mapInstance = null;
 
         function buildSanctuaryList() {
@@ -239,51 +324,25 @@
             const mapContainer = document.getElementById('memory-map');
             listContainer.innerHTML = '';
             
-            // Logique d'affichage : Carte si on a des points, sinon Constellation abstraite
             if (gameState.foundNodes.length > 0) {
                 constelContainer.style.display = 'none';
                 mapContainer.style.display = 'block';
                 
-                // Initialisation de la carte (retardée pour que le display:block prenne effet)
                 setTimeout(() => {
                     if (!mapInstance) {
-                        // Centrer sur le premier point trouvé
                         mapInstance = L.map('memory-map', { zoomControl: false, attributionControl: false }).setView([gameState.foundNodes[0].lat, gameState.foundNodes[0].lon], 16);
-                        
-                        // Thème CartoDB Dark Matter (Parfait pour ambiance Cyber/Neon)
-                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                            maxZoom: 19
-                        }).addTo(mapInstance);
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapInstance);
                     }
-
                     let latlngs = [];
-
-                    // Placer les points
                     gameState.foundNodes.forEach((node) => {
                         const profile = ARTIFACTS_DATA.find(p => p.id === node.id);
                         latlngs.push([node.lat, node.lon]);
-
-                        L.circleMarker([node.lat, node.lon], {
-                            radius: 6,
-                            color: profile.cssColor,
-                            fillColor: profile.cssColor,
-                            fillOpacity: 0.8,
-                            weight: 2
-                        }).addTo(mapInstance);
+                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColor, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
                     });
-
-                    // Tracer la "constellation" géographique
-                    if (latlngs.length > 1) {
-                        L.polyline(latlngs, {color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4'}).addTo(mapInstance);
-                    }
-                    
-                    // Recadrer la vue si on a plusieurs points
-                    if (latlngs.length > 1) {
-                        mapInstance.fitBounds(L.polyline(latlngs).getBounds(), {padding: [20, 20]});
-                    }
+                    if (latlngs.length > 1) { L.polyline(latlngs, {color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4'}).addTo(mapInstance); }
+                    if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), {padding: [20, 20]}); }
                 }, 100);
             } else {
-                // Pas encore de GPS enregistré ? On montre la constellation vide
                 constelContainer.innerHTML = '';
                 for(let i=0; i<7; i++) {
                     let star = document.createElement('div'); star.className = 'star'; constelContainer.appendChild(star);
@@ -299,7 +358,6 @@
                 document.getElementById('sanctuary-ui').insertBefore(rev, listContainer);
             }
 
-            // Génération de la liste de textes
             ARTIFACTS_DATA.forEach((profile, index) => {
                 const isFound = gameState.foundNodes.find(n => n.id === index) !== undefined;
                 const slot = document.createElement('div');
@@ -316,9 +374,31 @@
             });
         }
 
+        // --- GESTION DU CHARGEMENT DU CARNET ---
         if (isSanctuaryView) {
-            document.getElementById('radar-ui').style.display = 'none'; document.getElementById('threejs-radar-container').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none';
-            buildSanctuaryList(); document.getElementById('sanctuary-ui').style.display = 'flex';
+            document.getElementById('radar-ui').style.display = 'none';
+            document.getElementById('threejs-radar-container').style.display = 'none';
+            document.getElementById('dream-veil').style.display = 'none';
+            
+            // Si on a les 7 fragments et que la séquence n'a jamais été jouée
+            if (gameState.foundNodes.length >= 7 && !gameState.apotheosisPlayed) {
+                // On cache d'abord l'UI du carnet le temps de la séquence
+                document.getElementById('sanctuary-ui').style.display = 'none';
+                
+                playApotheosisSequence().then(() => {
+                    // À la fin de la séquence, on sauvegarde qu'elle a été lue
+                    gameState.apotheosisPlayed = true;
+                    localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
+                    
+                    // Puis on affiche le Carnet complet
+                    buildSanctuaryList();
+                    document.getElementById('sanctuary-ui').style.display = 'flex';
+                });
+            } else {
+                // Ouverture normale du carnet
+                buildSanctuaryList();
+                document.getElementById('sanctuary-ui').style.display = 'flex';
+            }
         }
 
         document.getElementById('btn-back-radar').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
@@ -536,7 +616,7 @@
                     if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
                     
                     document.getElementById('xr-ui').style.display = 'block';
-                    document.getElementById('xr-ui').innerText = "Laissez votre regard errer...";
+                    
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
                 });
 
@@ -570,13 +650,8 @@
                             
                             playUISound('success');
 
-                            // --- SAUVEGARDE DE LA COORDONNÉE EXACTE ---
                             if (!gameState.foundNodes.find(n => n.id === activeProfile.id)) {
-                                gameState.foundNodes.push({
-                                    id: activeProfile.id,
-                                    lat: startLat, // Position du joueur lors de la découverte
-                                    lon: startLon
-                                });
+                                gameState.foundNodes.push({ id: activeProfile.id, lat: startLat, lon: startLon });
                                 localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
                             }
 
