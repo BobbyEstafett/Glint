@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Metaphysical Aura</title>
+    <title>GLINT - Oneiric Wandering</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         :root {
-            --bg-night: #050508; /* Un fond encore plus profond et organique */
-            --glass-bg: rgba(15, 15, 20, 0.5);
-            --glass-border: rgba(255, 255, 255, 0.05);
+            --bg-night: #0b0f19;
+            --glass-bg: rgba(20, 25, 40, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.15);
             --text-title: #f0e6d2;
-            --text-body: rgba(168, 178, 193, 0.8);
+            --text-body: #a8b2c1;
             --accent-pure: #8be9fd;
         }
 
@@ -27,114 +27,135 @@
             font-family: 'Montserrat', sans-serif; overflow: hidden; height: 100vh; width: 100vw;
         }
 
-        /* LE GRAIN PHOTOGRAPHIQUE GLOBAL */
-        body::after {
-            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.25; pointer-events: none; z-index: 9999; mix-blend-mode: overlay;
-        }
-
         h1, h2, h3, .serif { font-family: 'Playfair Display', serif; color: var(--text-title); font-weight: normal; text-wrap: balance; }
 
-        #transition-veil { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-night); z-index: 999999; opacity: 1; transition: opacity 1.5s ease-in-out; pointer-events: none; }
-        
-        /* Des panneaux beaucoup plus doux, moins "bordures nettes" */
-        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
-        
+        #transition-veil { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-night); z-index: 999999; opacity: 1; transition: opacity 1.2s ease-in-out; pointer-events: none; }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); }
         #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #dream-veil { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, transparent 0%, rgba(5, 5, 8, 0.8) 100%); pointer-events: none; z-index: 2; }
+        #dream-veil { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, transparent 0%, rgba(11, 15, 25, 0.6) 100%); pointer-events: none; z-index: 2; }
 
-        .edge-glow { position: absolute; top: 0; width: 100px; height: 100vh; pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.8s ease; filter: blur(20px); }
-        #glow-left { left: -20px; } #glow-right { right: -20px; }
+        .edge-glow { position: absolute; top: 0; width: 80px; height: 100vh; pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.4s ease; }
+        #glow-left { left: 0; } #glow-right { right: 0; }
 
         #radar-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; box-sizing: border-box; z-index: 10; pointer-events: none; }
         
-        .info-box { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 20px; text-align: center; width: 85%; max-width: 350px; height: 320px; pointer-events: auto; box-sizing: border-box; transition: box-shadow 1.5s ease; }
+        .info-box { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 20px; text-align: center; width: 85%; max-width: 350px; height: 300px; pointer-events: auto; box-sizing: border-box; transition: box-shadow 1s ease; }
         .info-top { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100px; width: 100%; }
         .info-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; width: 100%; }
         .info-bottom { display: flex; justify-content: center; align-items: flex-end; height: 20px; width: 100%; }
 
-        .main-title { font-size: 1.8rem; letter-spacing: 4px; margin: 0 0 10px 0; line-height: 1; text-transform: lowercase; font-style: italic; }
-        #distance-display { font-size: 2.2rem; font-weight: 200; margin: 0; color: var(--text-title); line-height: 1; display: flex; align-items: center; font-family: 'Playfair Display', serif; }
-        #status-display { font-weight: 300; font-size: 0.85rem; margin: 0; line-height: 1.4; text-wrap: balance; height: 2em; display: flex; align-items: center; justify-content: center; letter-spacing: 1px;}
-        .data-stream { font-size: 0.6rem; color: var(--text-body); margin: 0; letter-spacing: 3px; text-transform: uppercase; opacity: 0.4; line-height: 1; }
+        .main-title { font-size: 1.5rem; letter-spacing: 2px; margin: 0 0 10px 0; line-height: 1; }
+        #distance-display { font-size: 2rem; font-weight: 200; margin: 0; color: var(--text-title); line-height: 1; display: flex; align-items: center; }
+        #status-display { font-weight: 200; font-size: 0.8rem; margin: 0; line-height: 1.2; text-wrap: balance; height: 2em; display: flex; align-items: center; justify-content: center; }
+        .data-stream { font-size: 0.65rem; color: var(--text-body); margin: 0; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; line-height: 1; }
 
-        button { display: flex; align-items: center; justify-content: center; text-align: center; margin: 0; height: 55px; width: 100%; box-sizing: border-box; background: transparent; color: var(--text-title); font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; cursor: pointer; transition: all 0.5s ease; line-height: 1; }
-        button:active { background: rgba(255,255,255,0.1); transform: scale(0.98); }
-        #recalc-btn { display: none; font-size: 0.6rem; border: none; opacity: 0.5; height: 40px; margin-top: 15px; }
+        button { display: flex; align-items: center; justify-content: center; text-align: center; margin: 0; height: 55px; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); color: var(--text-title); font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; border: 1px solid var(--glass-border); border-radius: 50px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.4s ease; line-height: 1; }
+        button:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
+        #recalc-btn { display: none; font-size: 0.65rem; border: none; opacity: 0.5; height: 40px; background: transparent; margin-top: 15px; }
 
         #ar-container { width: 100%; display: none; }
-        #ARButton { background: rgba(255,255,255, 0.05) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important; font-family: 'Montserrat', sans-serif !important; font-weight: 400 !important; letter-spacing: 3px !important; position: relative !important; bottom: auto !important; left: auto !important; transform: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; height: 55px !important; border-radius: 50px !important; box-shadow: 0 0 25px var(--accent-pure) !important; text-shadow: 0 0 8px var(--accent-pure) !important;}
+        #ARButton { background: rgba(255,255,255, 0.05) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important; font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important; position: relative !important; bottom: auto !important; left: auto !important; transform: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; height: 55px !important; border-radius: 50px !important; box-shadow: 0 0 15px var(--accent-pure) !important; }
 
-        #xr-ui { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none; padding: 15px 30px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 3px; font-weight: 300; transition: all 0.5s ease; backdrop-filter: blur(10px); }
+        #xr-ui { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none; padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600; transition: all 0.4s ease; }
 
-        .fade-in-seq { opacity: 0; animation: fadeInAnim 2s ease forwards; }
+        .fade-in-seq { opacity: 0; animation: fadeInAnim 1.5s ease forwards; }
         .delay-1 { animation-delay: 1s; } .delay-2 { animation-delay: 2s; } .delay-3 { animation-delay: 3s; }
-        @keyframes fadeInAnim { from { opacity: 0; transform: translateY(15px); filter: blur(5px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+        @keyframes fadeInAnim { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        #artifact-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 5, 8, 0.85); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; backdrop-filter: blur(25px); }
-        .artifact-card { padding: 50px 35px; width: 85%; max-width: 380px; text-align: center; }
-        .artifact-card h2 { margin-top: 0; letter-spacing: 4px; font-size: 1.8rem; line-height: 1.2; text-shadow: 0 0 20px var(--accent-pure); text-transform: uppercase; font-style: normal; }
-        .artifact-lore { font-size: 1.05rem; color: var(--text-body); margin-bottom: 40px; line-height: 1.8; text-wrap: balance; }
-        .artifact-stats { text-align: left; font-size: 0.7rem; border-top: 1px solid var(--glass-border); padding-top: 25px; font-weight: 300; letter-spacing: 2px; }
-        .artifact-stats p { margin: 15px 0; display: flex; justify-content: space-between; align-items: center; opacity: 0.8; }
-        .artifact-stats span { color: var(--text-title); font-weight: 400; text-align: right; opacity: 1; }
-        .mystery-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.8rem !important; text-transform: lowercase !important; color: var(--accent-pure) !important; text-shadow: 0 0 15px var(--accent-pure); }
-        .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; }
+        #artifact-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.8); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; backdrop-filter: blur(15px); }
+        .artifact-card { padding: 40px 30px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 0 40px var(--accent-pure); }
+        .artifact-card h2 { margin-top: 0; letter-spacing: 2px; font-size: 1.6rem; line-height: 1.2; text-shadow: 0 0 15px var(--accent-pure); }
+        .artifact-lore { font-size: 1rem; color: var(--text-body); margin-bottom: 35px; line-height: 1.7; text-wrap: balance; }
+        .artifact-stats { text-align: left; font-size: 0.75rem; border-top: 1px solid var(--glass-border); padding-top: 20px; font-weight: 200; letter-spacing: 1px; }
+        .artifact-stats p { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        .artifact-stats span { color: var(--text-title); font-weight: 400; text-align: right; }
+        .mystery-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.5rem !important; text-transform: lowercase !important; color: var(--accent-pure) !important; }
+        .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 35px; }
         #btn-inventory { background: transparent; color: var(--accent-pure); border-color: var(--accent-pure); }
         
-        #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top, #111522 0%, #050508 100%); z-index: 5000; display: none; flex-direction: column; padding: 60px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
-        .sanctuary-header { text-align: center; margin-bottom: 25px; flex-shrink: 0; }
-        .sanctuary-header h2 { margin: 0; letter-spacing: 8px; font-size: 2rem; font-style: italic; text-transform: lowercase; }
-        .sanctuary-header p { font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 300; letter-spacing: 3px; opacity: 0.5; margin-top: 15px; text-transform: uppercase; }
+        #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%); z-index: 5000; display: none; flex-direction: column; padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
+        .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+        .sanctuary-header h2 { margin: 0; letter-spacing: 6px; font-size: 1.8rem; }
+        .sanctuary-header p { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 200; letter-spacing: 2px; opacity: 0.6; margin-top: 10px; text-transform: uppercase; }
         
-        #memory-map { width: 100%; height: 180px; border-radius: 20px; margin-bottom: 25px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); z-index: 1; flex-shrink: 0; display: none; filter: grayscale(50%) contrast(120%); }
+        #memory-map { width: 100%; height: 180px; border-radius: 15px; margin-bottom: 20px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); z-index: 1; flex-shrink: 0; display: none; }
         .leaflet-control-attribution { display: none !important; }
         
-        .constellation { display: flex; justify-content: center; align-items: center; margin: 25px 0; }
-        .star { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); margin: 0 5px; transition: all 1.5s ease; box-shadow: 0 0 10px transparent; }
-        .star-link { height: 1px; width: 15px; background: rgba(255,255,255,0.1); transition: background 1.5s ease; }
-        .final-revelation { font-family: 'Playfair Display', serif; font-size: 1.3rem; text-align: center; margin-bottom: 30px; font-style: italic; animation: fadeInAnim 4s forwards; text-wrap: balance; color: var(--text-title); text-shadow: 0 0 20px rgba(255,255,255,0.6); letter-spacing: 2px;}
-        .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 30px; scrollbar-width: none; }
-        .fragment-slot { padding: 25px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.03); background: rgba(255,255,255,0.02); border-radius: 20px; transition: all 0.4s ease; }
-        .fragment-slot.found { background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%); }
+        .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+        .star { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin: 0 4px; transition: all 1s; }
+        .star-link { height: 1px; width: 12px; background: var(--glass-border); transition: background 1s; }
+        .final-revelation { font-family: 'Playfair Display', serif; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-style: italic; animation: fadeInAnim 3s forwards; text-wrap: balance; color: var(--text-title); text-shadow: 0 0 15px rgba(255,255,255,0.8); }
         
-        /* CSS D'INTERACTIVITÉ POUR LE CARNET */
+        .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
+        
+        /* --- DESIGN DES CARTES : LIGHT LEAK & NOISE --- */
+        .fragment-slot {
+            position: relative;
+            padding: 25px 20px;
+            display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
+            background: #12141c;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            z-index: 1;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Le grain photographique subtil en surcouche */
+        .fragment-slot::before, #review-card::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay; z-index: -1; pointer-events: none;
+        }
+
+        .fragment-slot:not(.found) {
+            background: rgba(18, 20, 28, 0.4);
+            border: 1px dashed rgba(255,255,255,0.05);
+        }
+
         .clickable-slot { cursor: pointer; }
-        .clickable-slot:hover { transform: translateY(-2px); background: rgba(255,255,255,0.05); }
         .clickable-slot:active { transform: scale(0.98); }
 
-        .fragment-slot .slot-title { font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; opacity: 0.3; }
-        .fragment-slot .slot-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; opacity: 0.2; letter-spacing: 1px; }
-        .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); }
-        .fragment-slot .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.6rem; text-align: right; opacity: 0; }
-        .sanctuary-footer { flex-shrink: 0; margin-top: 15px; padding-bottom: env(safe-area-inset-bottom, 15px); }
-        #btn-back-radar { border-color: transparent; letter-spacing: 2px;}
-        #btn-reset { border-color: transparent; opacity: 0.3; font-size: 0.6rem; margin-top: 10px; }
-        #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.8s ease-out; }
-
-        #apotheosis-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-night); z-index: 9999999; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 3s ease-in-out; }
-        .apo-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 3.5rem; letter-spacing: 6px; opacity: 0; position: absolute; text-transform: lowercase; transition: opacity 2s ease-in-out, transform 4s ease-out; transform: scale(0.85); text-align: center; }
-        .apo-word.show { opacity: 1; transform: scale(1.1); text-shadow: 0 0 40px currentColor; }
-
-        /* --- LE HALO D'AURORA DANS LA FICHE DE RÉVISION --- */
-        #review-ui { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 5, 8, 0.7); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; backdrop-filter: blur(30px); overflow: hidden; }
+        .fragment-slot .slot-title { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.4; z-index: 2;}
+        .fragment-slot .slot-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; opacity: 0.3; z-index: 2;}
+        .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .fragment-slot .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; text-align: right; opacity: 0; z-index: 2;}
         
-        .aurora-blob {
-            position: absolute;
-            width: 300px; height: 300px;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-            opacity: 0.5;
-            animation: breatheAura 6s ease-in-out infinite alternate;
+        .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding-bottom: env(safe-area-inset-bottom, 10px); }
+        #btn-back-radar { border-color: transparent; }
+        #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
+        #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-out; }
+
+        #apotheosis-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: var(--bg-night);
+            z-index: 9999999; display: none; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 2s ease-in-out;
         }
-        @keyframes breatheAura {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.4; }
-            100% { transform: scale(1.3) translate(20px, -20px); opacity: 0.7; }
+        .apo-word {
+            font-family: 'Playfair Display', serif; font-style: italic;
+            font-size: 2.8rem; letter-spacing: 4px; opacity: 0;
+            position: absolute; text-transform: lowercase;
+            transition: opacity 1.5s ease-in-out, transform 3s ease-out;
+            transform: scale(0.8); text-align: center;
         }
-        
-        #review-card { padding: 40px 30px; width: 85%; max-width: 360px; text-align: center; border: none; background: transparent; box-shadow: none;}
+        .apo-word.show {
+            opacity: 1; transform: scale(1.1); text-shadow: 0 0 30px currentColor;
+        }
+
+        /* --- Fiche de Révision du Carnet --- */
+        #review-ui {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(11, 15, 25, 0.85); z-index: 6000; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            box-sizing: border-box; backdrop-filter: blur(15px);
+        }
+        #review-card {
+            padding: 40px 30px; width: 85%; max-width: 360px; text-align: center;
+            transition: box-shadow 0.3s ease; position: relative; overflow: hidden;
+            background: #12141c; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        #review-card * { z-index: 2; position: relative; }
 
     </style>
     <script type="importmap">
@@ -149,13 +170,12 @@
     <div id="apotheosis-overlay"></div>
 
     <div id="review-ui">
-        <div class="aurora-blob" id="aurora-blob"></div>
-        <div class="artifact-card glass-panel" id="review-card">
+        <div class="artifact-card" id="review-card">
             <h2 id="review-art-name">NAME</h2>
             <p id="review-art-lore" class="artifact-lore serif">LORE</p>
             <div class="artifact-stats">
-                <p style="justify-content: center; text-align: center; letter-spacing: 4px; opacity:0.4;">RESONANCE</p>
-                <p style="justify-content: center; text-align: center; margin-top: 20px;"><span id="review-word" class="mystery-word">"WORD"</span></p>
+                <p style="justify-content: center; text-align: center;">RESONANCE</p>
+                <p style="justify-content: center; text-align: center;"><span id="review-word" class="mystery-word">"WORD"</span></p>
             </div>
             <div class="btn-group">
                 <button id="btn-close-review">Close</button>
@@ -171,12 +191,12 @@
     <div id="radar-ui">
         <div class="info-box glass-panel" id="main-panel">
             <div class="info-top">
-                <h1 class="main-title serif" id="main-title">slumber</h1>
+                <h1 class="main-title serif" id="main-title">Slumber</h1>
                 <p id="distance-display">---</p>
                 <p id="status-display">Awaiting awakening.</p>
             </div>
             <div class="info-mid">
-                <button id="start-btn">Awaken</button>
+                <button id="start-btn">Open your eye</button>
                 <div id="ar-container"></div>
                 <button id="recalc-btn">Recenter</button>
             </div>
@@ -206,7 +226,7 @@
 
     <div id="sanctuary-ui">
         <div class="sanctuary-header">
-            <h2 class="serif">the journal</h2>
+            <h2 class="serif">THE JOURNAL</h2>
             <p>Reconstructed thoughts</p>
             <div id="constellation" class="constellation"></div>
             <div id="memory-map"></div>
@@ -365,7 +385,7 @@
                         latlngs.push([node.lat, node.lon]);
                         L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColor, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
                     });
-                    if (latlngs.length > 1) { L.polyline(latlngs, {color: 'rgba(255,255,255,0.2)', weight: 2, dashArray: '4'}).addTo(mapInstance); }
+                    if (latlngs.length > 1) { L.polyline(latlngs, {color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4'}).addTo(mapInstance); }
                     if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), {padding: [20, 20]}); }
                 }, 100);
             } else {
@@ -390,22 +410,25 @@
                 
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
                 if(isFound) {
-                    slot.style.borderColor = profile.cssColor.replace('1)', '0.3)');
+                    // Application du Gradient "Light Leak" façon Wallet Crypto
+                    slot.style.background = `radial-gradient(circle at 85% 15%, ${profile.cssColor.replace('1)', '0.6)')} 0%, transparent 65%), radial-gradient(circle at 10% 90%, ${profile.cssColor.replace('1)', '0.15)')} 0%, transparent 50%), #12141c`;
+                    slot.style.borderColor = `rgba(255, 255, 255, 0.1)`;
                     
                     slot.addEventListener('click', () => {
                         playUISound('click');
                         document.getElementById('review-art-name').innerText = profile.name;
-                        document.getElementById('review-art-name').style.textShadow = `0 0 20px ${profile.cssColor.replace('1)', '0.6)')}`;
+                        document.getElementById('review-art-name').style.textShadow = `0 0 15px ${profile.cssColor.replace('1)', '0.5)')}`;
                         document.getElementById('review-art-lore').innerHTML = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
                         document.getElementById('review-word').style.color = profile.cssColor;
-                        document.getElementById('review-word').style.textShadow = `0 0 20px ${profile.cssColor}`;
+                        
+                        // Application du Gradient sur la fiche ouverte
+                        document.getElementById('review-card').style.background = `radial-gradient(circle at 50% 0%, ${profile.cssColor.replace('1)', '0.5)')} 0%, transparent 70%), #12141c`;
+                        document.getElementById('review-card').style.boxShadow = `0 10px 40px ${profile.cssColor.replace('1)', '0.2)')}`;
                         
                         document.getElementById('btn-close-review').style.color = profile.cssColor;
                         document.getElementById('btn-close-review').style.borderColor = profile.cssColor;
-                        
-                        // L'Aurora Gradient dynamique en arrière plan
-                        document.getElementById('aurora-blob').style.backgroundColor = profile.cssColor;
+                        document.getElementById('btn-close-review').style.background = profile.cssColor.replace('1)', '0.1)');
 
                         document.getElementById('review-ui').style.display = 'flex';
                     });
@@ -415,7 +438,7 @@
                 slot.innerHTML = `
                     <div class="slot-title">REFLECTION ${index + 1}</div>
                     <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
-                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'}; text-shadow: 0 0 10px ${wordColor};">${isFound ? profile.word : ''}</div>
+                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'};">${isFound ? profile.word : ''}</div>
                 `;
                 listContainer.appendChild(slot);
             });
@@ -466,27 +489,22 @@
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
-            let coreMesh, wireMesh, innerMesh;
+            let coreMesh, wireMesh;
 
             function setActiveProfile(profile) {
                 if(!profile) return;
                 document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
-                document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.3)')}, transparent)`;
-                document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.3)')}, transparent)`;
+                document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
+                document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 
                 if (shaderMaterial) updateRadarShader(profile);
 
-                // --- LE NOUVEAU RENDU 3D "AURA LUMINEUSE" ---
-                if (coreMesh && wireMesh && innerMesh) {
-                    coreMesh.geometry.dispose(); wireMesh.geometry.dispose(); innerMesh.geometry.dispose();
-                    
-                    let geo = getGeometry(profile.shape);
-                    coreMesh.geometry = geo; wireMesh.geometry = geo; innerMesh.geometry = geo;
-                    
-                    // On utilise de l'Additive Blending pour faire de la lumière pure
+                if (coreMesh && wireMesh) {
+                    coreMesh.geometry.dispose(); wireMesh.geometry.dispose();
+                    coreMesh.geometry = getGeometry(profile.shape);
                     coreMesh.material.color.setHex(profile.colorHex);
-                    wireMesh.material.color.setHex(profile.colorHex);
-                    innerMesh.material.color.setHex(profile.colorHex);
+                    coreMesh.material.emissive.setHex(profile.colorHex);
+                    wireMesh.geometry = getGeometry(profile.shape, true);
                 }
             }
 
@@ -560,7 +578,7 @@
                     }
                 } else {
                     statusDisplay.innerText = "Follow the thread..."; statusDisplay.style.color = "var(--text-body)";
-                    document.getElementById('main-panel').style.boxShadow = `0 10px 40px rgba(0, 0, 0, 0.5)`;
+                    document.getElementById('main-panel').style.boxShadow = `0 8px 32px 0 rgba(0, 0, 0, 0.4)`;
                     arContainer.style.display = 'none'; recalcBtn.style.display = 'block';
                 }
             }
@@ -606,10 +624,6 @@
                     vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
                     fragmentShader: `
                         uniform sampler2D tDiffuse; uniform float intensity; uniform float time; varying vec2 vUv;
-                        
-                        // Fonction de bruit pour le rendu granuleux de la caméra
-                        float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
-
                         void main() {
                             vec2 uv = vUv;
                             ${uvMod}
@@ -623,11 +637,6 @@
                             vec3 finalColor = mix(color, dreamTint * lum * 2.0, intensity * 0.8);
                             float dist = distance(vUv, vec2(0.5));
                             finalColor += dreamTint * smoothstep(0.4, 0.0, dist) * intensity * 0.6;
-                            
-                            // Ajout de grain dynamique sur la caméra 
-                            float noise = (random(uv + time) - 0.5) * 0.2 * intensity;
-                            finalColor += vec3(noise);
-
                             ${isBloom ? 'finalColor *= 1.0 + (intensity * 2.0);' : ''}
                             gl_FragColor = vec4(finalColor, 1.0);
                         }
@@ -644,15 +653,16 @@
             let xrState = 'search'; let spawnedArtifactMesh = null;
             const raycaster = new THREE.Raycaster();
 
-            function getGeometry(shapeName) {
+            function getGeometry(shapeName, isWire=false) {
+                const s = isWire ? 1.2 : 1;
                 switch(shapeName) {
-                    case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06, 0);
-                    case 'box': return new THREE.BoxGeometry(0.08, 0.08, 0.08);
-                    case 'cone': return new THREE.ConeGeometry(0.05, 0.1, 16);
-                    case 'icosahedron': return new THREE.IcosahedronGeometry(0.06, 0);
-                    case 'cylinder': return new THREE.CylinderGeometry(0.04, 0.04, 0.1, 16);
-                    case 'sphere': return new THREE.SphereGeometry(0.05, 32, 32);
-                    case 'octahedron': default: return new THREE.OctahedronGeometry(0.06, 0);
+                    case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
+                    case 'box': return new THREE.BoxGeometry(0.08*s, 0.08*s, 0.08*s);
+                    case 'cone': return new THREE.ConeGeometry(0.05*s, 0.1*s, 16);
+                    case 'icosahedron': return new THREE.IcosahedronGeometry(0.06*s, 0);
+                    case 'cylinder': return new THREE.CylinderGeometry(0.04*s, 0.04*s, 0.1*s, 16);
+                    case 'sphere': return new THREE.SphereGeometry(0.05*s, 32, 32);
+                    case 'octahedron': default: return new THREE.OctahedronGeometry(0.06*s, 0);
                 }
             }
 
@@ -679,21 +689,12 @@
                 });
 
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
+                const coreMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissiveIntensity: 0.4, transparent: true });
+                coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
+                const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 });
+                wireMesh = new THREE.Mesh(getGeometry('octahedron', true), wireMat);
                 
-                // --- Création de l'Aura en 3 couches d'Additive Blending ---
-                const matCore = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false });
-                coreMesh = new THREE.Mesh(getGeometry('octahedron'), matCore);
-                coreMesh.scale.set(0.8, 0.8, 0.8);
-
-                const matMid = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false });
-                wireMesh = new THREE.Mesh(getGeometry('octahedron'), matMid);
-                wireMesh.scale.set(1.2, 1.2, 1.2);
-
-                const matOuter = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false });
-                innerMesh = new THREE.Mesh(getGeometry('octahedron'), matOuter);
-                innerMesh.scale.set(1.6, 1.6, 1.6);
-                
-                artifactGroup.add(coreMesh, wireMesh, innerMesh);
+                artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
                 controller = renderer.xr.getController(0);
                 controller.addEventListener('select', () => {
@@ -814,16 +815,7 @@
                         }
                     }
                 }
-                
-                // Animation de l'Aura : chaque couche tourne à son propre rythme
-                scene.traverse((obj) => {
-                    if (obj.name === 'artifact') {
-                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
-                        if(obj.children[0]) { obj.children[0].rotation.x += 0.01; obj.children[0].rotation.y += 0.015; }
-                        if(obj.children[1]) { obj.children[1].rotation.x -= 0.008; obj.children[1].rotation.z += 0.01; }
-                        if(obj.children[2]) { obj.children[2].rotation.y -= 0.005; obj.children[2].rotation.z -= 0.005; }
-                    }
-                });
+                scene.traverse((obj) => { if (obj.name === 'artifact') { obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; obj.children[0].rotation.y += 0.01; obj.children[0].rotation.x += 0.005; obj.children[1].rotation.y -= 0.015; obj.children[1].rotation.x -= 0.008; obj.children[1].rotation.z += 0.005; } });
                 renderer.render(scene, camera);
             }
 
