@@ -73,12 +73,22 @@
         .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 35px; }
         #btn-inventory { background: transparent; color: var(--accent-pure); border-color: var(--accent-pure); }
         
-        #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%); z-index: 5000; display: none; flex-direction: column; padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
+        #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #080a11; z-index: 5000; display: none; flex-direction: column; padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
+        
+        /* --- NOUVEAU : AMBIENT BLOBS DE FOND --- */
+        .ambient-blobs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; pointer-events: none; opacity: 0.8; }
+        .amb-blob { position: absolute; filter: blur(80px); opacity: 0.5; animation: morphBlob 15s ease-in-out infinite; mix-blend-mode: screen; }
+        .amb-blob.b1 { width: 350px; height: 350px; background: #0f2042; top: -10%; left: -20%; animation-duration: 25s; }
+        .amb-blob.b2 { width: 400px; height: 400px; background: #1c0a3b; bottom: -20%; right: -20%; animation-duration: 30s; animation-direction: reverse; }
+        
+        /* Le contenu du carnet passe au-dessus des blobs ambiants */
+        #sanctuary-ui > * { z-index: 1; position: relative; }
+        
         .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
         .sanctuary-header h2 { margin: 0; letter-spacing: 6px; font-size: 1.8rem; }
         .sanctuary-header p { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 200; letter-spacing: 2px; opacity: 0.6; margin-top: 10px; text-transform: uppercase; }
         
-        #memory-map { width: 100%; height: 180px; border-radius: 15px; margin-bottom: 20px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); z-index: 1; flex-shrink: 0; display: none; }
+        #memory-map { width: 100%; height: 180px; border-radius: 15px; margin-bottom: 20px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); flex-shrink: 0; display: none; }
         .leaflet-control-attribution { display: none !important; }
         
         .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
@@ -88,26 +98,51 @@
         
         .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
         
-        /* --- DESIGN DES CARTES : BOTTOM LIGHT LEAK & NOISE --- */
+        /* --- DESIGN DES CARTES : BLOB ANIMÉ EN CSS --- */
         .fragment-slot {
             position: relative;
-            padding: 25px 20px;
-            display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
-            background: rgba(18, 20, 28, 0.6);
+            display: flex; flex-direction: column; flex-shrink: 0;
+            background: rgba(18, 20, 28, 0.65);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 20px;
-            overflow: hidden;
-            z-index: 1;
+            overflow: hidden; /* Crucial pour couper le blob qui déborde */
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
         }
 
-        /* Le grain photographique subtil à l'intérieur des cartes */
+        /* Le grain photographique à l'intérieur de la carte */
         .fragment-slot::before, #review-card::before {
             content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay; z-index: -1; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay; z-index: 1; pointer-events: none;
+        }
+        
+        /* Conteneur pour le texte afin qu'il passe par-dessus le blob */
+        .slot-content {
+            position: relative; z-index: 2; padding: 25px 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+
+        /* La forme liquide animée (Le Blob) */
+        .blob-glow {
+            position: absolute;
+            bottom: -50px;
+            right: -20px;
+            width: 180px;
+            height: 180px;
+            filter: blur(40px); /* Flou extrême pour l'effet Light Leak */
+            opacity: 0.7;
+            z-index: 0;
+            animation: morphBlob 10s linear infinite;
+            mix-blend-mode: screen;
+        }
+
+        /* L'animation experte de Border-Radius pour l'effet liquide */
+        @keyframes morphBlob {
+            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1); }
+            34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(120deg) scale(1.1); }
+            67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(240deg) scale(0.9); }
+            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(360deg) scale(1); }
         }
 
         .fragment-slot:not(.found) {
@@ -118,10 +153,10 @@
         .clickable-slot { cursor: pointer; }
         .clickable-slot:active { transform: scale(0.98); }
 
-        .fragment-slot .slot-title { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; z-index: 2; }
-        .fragment-slot .slot-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; opacity: 0.3; z-index: 2; }
-        .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .fragment-slot .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; text-align: right; opacity: 0; z-index: 2; }
+        .slot-content .slot-title { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
+        .slot-content .slot-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; opacity: 0.3; }
+        .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .slot-content .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; text-align: right; opacity: 0; }
         
         .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding-bottom: env(safe-area-inset-bottom, 10px); }
         #btn-back-radar { border-color: transparent; }
@@ -148,17 +183,28 @@
         /* --- Fiche de Révision du Carnet --- */
         #review-ui {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(11, 15, 25, 0.85); z-index: 6000; display: none;
+            background: rgba(8, 10, 17, 0.85); z-index: 6000; display: none;
             flex-direction: column; align-items: center; justify-content: center;
             box-sizing: border-box; backdrop-filter: blur(15px);
         }
         #review-card {
-            padding: 40px 30px; width: 85%; max-width: 360px; text-align: center;
+            padding: 0; width: 85%; max-width: 360px; text-align: center;
             transition: box-shadow 0.3s ease; position: relative; overflow: hidden;
-            background: rgba(18, 20, 28, 0.9); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            background: rgba(18, 20, 28, 0.8); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
         }
-        #review-card * { z-index: 2; position: relative; }
+        
+        .review-content {
+            padding: 40px 30px; position: relative; z-index: 2; display: flex; flex-direction: column;
+        }
+
+        /* Le grand blob de la fiche de révision */
+        #review-blob {
+            position: absolute;
+            top: -60px; left: -30px;
+            width: 250px; height: 250px;
+            filter: blur(50px); opacity: 0.5;
+            z-index: 0; animation: morphBlob 12s linear infinite reverse; mix-blend-mode: screen;
+        }
 
     </style>
     <script type="importmap">
@@ -174,14 +220,17 @@
 
     <div id="review-ui">
         <div class="artifact-card" id="review-card">
-            <h2 id="review-art-name">NAME</h2>
-            <p id="review-art-lore" class="artifact-lore serif">LORE</p>
-            <div class="artifact-stats">
-                <p style="justify-content: center; text-align: center;">RESONANCE</p>
-                <p style="justify-content: center; text-align: center;"><span id="review-word" class="mystery-word">"WORD"</span></p>
-            </div>
-            <div class="btn-group">
-                <button id="btn-close-review">Close</button>
+            <div class="blob-glow" id="review-blob"></div>
+            <div class="review-content">
+                <h2 id="review-art-name">NAME</h2>
+                <p id="review-art-lore" class="artifact-lore serif">LORE</p>
+                <div class="artifact-stats">
+                    <p style="justify-content: center; text-align: center;">RESONANCE</p>
+                    <p style="justify-content: center; text-align: center;"><span id="review-word" class="mystery-word">"WORD"</span></p>
+                </div>
+                <div class="btn-group">
+                    <button id="btn-close-review">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -228,6 +277,10 @@
     </div>
 
     <div id="sanctuary-ui">
+        <div class="ambient-blobs">
+            <div class="amb-blob b1"></div>
+            <div class="amb-blob b2"></div>
+        </div>
         <div class="sanctuary-header">
             <h2 class="serif">THE JOURNAL</h2>
             <p>Reconstructed thoughts</p>
@@ -412,14 +465,13 @@
                 const slot = document.createElement('div');
                 
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
+                
+                let blobHtml = '';
                 if(isFound) {
-                    // --- NOUVEAU STYLE : BOTTOM LIGHT LEAK ---
-                    let baseColor = profile.cssColor.replace('1)', '0.4)');
-                    let edgeColor = profile.cssColor.replace('1)', '0.8)');
+                    // Ajout du Blob animé dynamique
+                    blobHtml = `<div class="blob-glow" style="background: ${profile.cssColor};"></div>`;
                     
-                    slot.style.background = `radial-gradient(ellipse 150% 100% at 50% 120%, ${baseColor} 0%, transparent 70%), rgba(18, 20, 28, 0.8)`;
-                    slot.style.boxShadow = `inset 0 -3px 15px -2px ${edgeColor}, 0 8px 25px rgba(0,0,0,0.5)`;
-                    slot.style.borderColor = `rgba(255, 255, 255, 0.1)`;
+                    slot.style.boxShadow = `0 8px 25px rgba(0,0,0,0.5)`;
                     
                     slot.addEventListener('click', () => {
                         playUISound('click');
@@ -428,12 +480,11 @@
                         document.getElementById('review-art-lore').innerHTML = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
                         document.getElementById('review-word').style.color = profile.cssColor;
-                        document.getElementById('review-word').style.textShadow = `0 0 15px ${profile.cssColor.replace('1)', '0.5)')}`;
+                        document.getElementById('review-word').style.textShadow = `0 0 15px ${profile.cssColor.replace('1)', '0.3)')}`;
                         
-                        // Fiche de Révision : Même style Light Leak
-                        document.getElementById('review-card').style.background = `radial-gradient(ellipse 150% 100% at 50% 120%, ${baseColor} 0%, transparent 70%), rgba(18, 20, 28, 0.95)`;
-                        document.getElementById('review-card').style.boxShadow = `inset 0 -4px 25px -2px ${edgeColor}, 0 15px 40px rgba(0,0,0,0.6)`;
-                        document.getElementById('review-card').style.borderColor = `rgba(255, 255, 255, 0.1)`;
+                        // Maj du blob dans la fiche
+                        document.getElementById('review-blob').style.background = profile.cssColor;
+                        document.getElementById('review-card').style.boxShadow = `0 15px 40px rgba(0,0,0,0.6)`;
                         
                         document.getElementById('btn-close-review').style.color = profile.cssColor;
                         document.getElementById('btn-close-review').style.borderColor = profile.cssColor;
@@ -442,13 +493,15 @@
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
-                // ------------------------------------------
                 
                 let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
-                    <div class="slot-title">REFLECTION ${index + 1}</div>
-                    <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
-                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.5)')};">${isFound ? profile.word : ''}</div>
+                    ${blobHtml}
+                    <div class="slot-content">
+                        <div class="slot-title">REFLECTION ${index + 1}</div>
+                        <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
+                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.4)')};">${isFound ? profile.word : ''}</div>
+                    </div>
                 `;
                 listContainer.appendChild(slot);
             });
@@ -702,7 +755,7 @@
                 const coreMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissiveIntensity: 0.4, transparent: true });
                 coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
                 const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 });
-                wireMesh = new THREE.Mesh(getGeometry('octahedron', true), wireMat);
+                wireMesh = new Mesh(getGeometry('octahedron', true), wireMat);
                 
                 artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
