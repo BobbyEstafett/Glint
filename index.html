@@ -75,7 +75,7 @@
         
         #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #080a11; z-index: 5000; display: none; flex-direction: column; padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
         
-        /* --- NOUVEAU : AMBIENT BLOBS DE FOND --- */
+        /* --- AMBIENT BLOBS DE FOND --- */
         .ambient-blobs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; pointer-events: none; opacity: 0.8; }
         .amb-blob { position: absolute; filter: blur(80px); opacity: 0.5; animation: morphBlob 15s ease-in-out infinite; mix-blend-mode: screen; }
         .amb-blob.b1 { width: 350px; height: 350px; background: #0f2042; top: -10%; left: -20%; animation-duration: 25s; }
@@ -98,51 +98,47 @@
         
         .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
         
-        /* --- DESIGN DES CARTES : BLOB ANIMÉ EN CSS --- */
+        /* --- DESIGN DES CARTES : BLOB ANIMÉ ALÉATOIRE --- */
         .fragment-slot {
             position: relative;
             display: flex; flex-direction: column; flex-shrink: 0;
             background: rgba(18, 20, 28, 0.65);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 20px;
-            overflow: hidden; /* Crucial pour couper le blob qui déborde */
+            overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
         }
 
-        /* Le grain photographique à l'intérieur de la carte */
         .fragment-slot::before, #review-card::before {
             content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
             mix-blend-mode: overlay; z-index: 1; pointer-events: none;
         }
         
-        /* Conteneur pour le texte afin qu'il passe par-dessus le blob */
         .slot-content {
             position: relative; z-index: 2; padding: 25px 20px; display: flex; flex-direction: column; gap: 10px;
         }
 
-        /* La forme liquide animée (Le Blob) */
+        /* Le Blob est maintenant beaucoup plus gros pour inonder la carte */
         .blob-glow {
             position: absolute;
-            bottom: -50px;
-            right: -20px;
-            width: 180px;
-            height: 180px;
-            filter: blur(40px); /* Flou extrême pour l'effet Light Leak */
-            opacity: 0.7;
+            width: 280px;
+            height: 280px;
+            filter: blur(45px);
+            opacity: 0.8;
             z-index: 0;
-            animation: morphBlob 10s linear infinite;
+            animation: morphBlob 8s linear infinite; /* Animation accélérée et plus ample */
             mix-blend-mode: screen;
         }
 
-        /* L'animation experte de Border-Radius pour l'effet liquide */
+        /* Animation avec translation et scale importants */
         @keyframes morphBlob {
-            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1); }
-            34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(120deg) scale(1.1); }
-            67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(240deg) scale(0.9); }
-            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(360deg) scale(1); }
+            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(120deg) scale(1.35) translate(15%, -10%); }
+            67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(240deg) scale(0.75) translate(-15%, 15%); }
+            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(360deg) scale(1) translate(0, 0); }
         }
 
         .fragment-slot:not(.found) {
@@ -197,13 +193,12 @@
             padding: 40px 30px; position: relative; z-index: 2; display: flex; flex-direction: column;
         }
 
-        /* Le grand blob de la fiche de révision */
         #review-blob {
             position: absolute;
             top: -60px; left: -30px;
-            width: 250px; height: 250px;
-            filter: blur(50px); opacity: 0.5;
-            z-index: 0; animation: morphBlob 12s linear infinite reverse; mix-blend-mode: screen;
+            width: 350px; height: 350px; /* Plus gros sur la grande fiche */
+            filter: blur(60px); opacity: 0.6;
+            z-index: 0; animation: morphBlob 10s linear infinite reverse; mix-blend-mode: screen;
         }
 
     </style>
@@ -468,8 +463,11 @@
                 
                 let blobHtml = '';
                 if(isFound) {
-                    // Ajout du Blob animé dynamique
-                    blobHtml = `<div class="blob-glow" style="background: ${profile.cssColor};"></div>`;
+                    // --- POSITION ALÉATOIRE DU BLOB POUR CHAQUE CARTE ---
+                    let blobTop = Math.floor(Math.random() * 60) - 30; // Entre -30% et 30%
+                    let blobLeft = Math.floor(Math.random() * 80) - 20; // Entre -20% et 60%
+                    
+                    blobHtml = `<div class="blob-glow" style="background: ${profile.cssColor}; top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
                     
                     slot.style.boxShadow = `0 8px 25px rgba(0,0,0,0.5)`;
                     
@@ -482,7 +480,7 @@
                         document.getElementById('review-word').style.color = profile.cssColor;
                         document.getElementById('review-word').style.textShadow = `0 0 15px ${profile.cssColor.replace('1)', '0.3)')}`;
                         
-                        // Maj du blob dans la fiche
+                        // Maj du blob dans la fiche de révision
                         document.getElementById('review-blob').style.background = profile.cssColor;
                         document.getElementById('review-card').style.boxShadow = `0 15px 40px rgba(0,0,0,0.6)`;
                         
@@ -755,7 +753,7 @@
                 const coreMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissiveIntensity: 0.4, transparent: true });
                 coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
                 const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 });
-                wireMesh = new Mesh(getGeometry('octahedron', true), wireMat);
+                wireMesh = new THREE.Mesh(getGeometry('octahedron', true), wireMat);
                 
                 artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
 
