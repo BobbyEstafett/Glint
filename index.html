@@ -88,38 +88,40 @@
         
         .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
         
-        /* --- DESIGN DES CARTES : LIGHT LEAK & NOISE --- */
+        /* --- DESIGN DES CARTES : BOTTOM LIGHT LEAK & NOISE --- */
         .fragment-slot {
             position: relative;
             padding: 25px 20px;
             display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
-            background: #12141c;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(18, 20, 28, 0.6);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 20px;
             overflow: hidden;
             z-index: 1;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
         }
 
-        /* Le grain photographique subtil en surcouche */
+        /* Le grain photographique subtil à l'intérieur des cartes */
         .fragment-slot::before, #review-card::before {
             content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
             mix-blend-mode: overlay; z-index: -1; pointer-events: none;
         }
 
         .fragment-slot:not(.found) {
-            background: rgba(18, 20, 28, 0.4);
+            background: rgba(18, 20, 28, 0.3);
             border: 1px dashed rgba(255,255,255,0.05);
         }
 
         .clickable-slot { cursor: pointer; }
         .clickable-slot:active { transform: scale(0.98); }
 
-        .fragment-slot .slot-title { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.4; z-index: 2;}
-        .fragment-slot .slot-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; opacity: 0.3; z-index: 2;}
+        .fragment-slot .slot-title { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; z-index: 2; }
+        .fragment-slot .slot-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; opacity: 0.3; z-index: 2; }
         .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .fragment-slot .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; text-align: right; opacity: 0; z-index: 2;}
+        .fragment-slot .slot-word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; text-align: right; opacity: 0; z-index: 2; }
         
         .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding-bottom: env(safe-area-inset-bottom, 10px); }
         #btn-back-radar { border-color: transparent; }
@@ -153,7 +155,8 @@
         #review-card {
             padding: 40px 30px; width: 85%; max-width: 360px; text-align: center;
             transition: box-shadow 0.3s ease; position: relative; overflow: hidden;
-            background: #12141c; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(18, 20, 28, 0.9); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
         }
         #review-card * { z-index: 2; position: relative; }
 
@@ -410,21 +413,27 @@
                 
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
                 if(isFound) {
-                    // Application du Gradient "Light Leak" façon Wallet Crypto
-                    slot.style.background = `radial-gradient(circle at 85% 15%, ${profile.cssColor.replace('1)', '0.6)')} 0%, transparent 65%), radial-gradient(circle at 10% 90%, ${profile.cssColor.replace('1)', '0.15)')} 0%, transparent 50%), #12141c`;
+                    // --- NOUVEAU STYLE : BOTTOM LIGHT LEAK ---
+                    let baseColor = profile.cssColor.replace('1)', '0.4)');
+                    let edgeColor = profile.cssColor.replace('1)', '0.8)');
+                    
+                    slot.style.background = `radial-gradient(ellipse 150% 100% at 50% 120%, ${baseColor} 0%, transparent 70%), rgba(18, 20, 28, 0.8)`;
+                    slot.style.boxShadow = `inset 0 -3px 15px -2px ${edgeColor}, 0 8px 25px rgba(0,0,0,0.5)`;
                     slot.style.borderColor = `rgba(255, 255, 255, 0.1)`;
                     
                     slot.addEventListener('click', () => {
                         playUISound('click');
                         document.getElementById('review-art-name').innerText = profile.name;
-                        document.getElementById('review-art-name').style.textShadow = `0 0 15px ${profile.cssColor.replace('1)', '0.5)')}`;
+                        document.getElementById('review-art-name').style.textShadow = `none`;
                         document.getElementById('review-art-lore').innerHTML = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
                         document.getElementById('review-word').style.color = profile.cssColor;
+                        document.getElementById('review-word').style.textShadow = `0 0 15px ${profile.cssColor.replace('1)', '0.5)')}`;
                         
-                        // Application du Gradient sur la fiche ouverte
-                        document.getElementById('review-card').style.background = `radial-gradient(circle at 50% 0%, ${profile.cssColor.replace('1)', '0.5)')} 0%, transparent 70%), #12141c`;
-                        document.getElementById('review-card').style.boxShadow = `0 10px 40px ${profile.cssColor.replace('1)', '0.2)')}`;
+                        // Fiche de Révision : Même style Light Leak
+                        document.getElementById('review-card').style.background = `radial-gradient(ellipse 150% 100% at 50% 120%, ${baseColor} 0%, transparent 70%), rgba(18, 20, 28, 0.95)`;
+                        document.getElementById('review-card').style.boxShadow = `inset 0 -4px 25px -2px ${edgeColor}, 0 15px 40px rgba(0,0,0,0.6)`;
+                        document.getElementById('review-card').style.borderColor = `rgba(255, 255, 255, 0.1)`;
                         
                         document.getElementById('btn-close-review').style.color = profile.cssColor;
                         document.getElementById('btn-close-review').style.borderColor = profile.cssColor;
@@ -433,12 +442,13 @@
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
+                // ------------------------------------------
                 
                 let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
                     <div class="slot-title">REFLECTION ${index + 1}</div>
                     <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
-                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'};">${isFound ? profile.word : ''}</div>
+                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.5)')};">${isFound ? profile.word : ''}</div>
                 `;
                 listContainer.appendChild(slot);
             });
