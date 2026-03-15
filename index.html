@@ -512,6 +512,16 @@
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
         }
 
+        /* CSS D'INTERACTIVITÉ POUR LE CARNET */
+        .clickable-slot {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .clickable-slot:active {
+            transform: scale(0.98);
+        }
+
         .fragment-slot .slot-title {
             font-size: 0.65rem;
             letter-spacing: 2px;
@@ -602,6 +612,31 @@
             transform: scale(1.1);
             text-shadow: 0 0 30px currentColor;
         }
+
+        /* --- NOUVEAU BLOC CSS : FICHE DE RÉVISION DU CARNET --- */
+        #review-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(11, 15, 25, 0.85);
+            z-index: 6000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            backdrop-filter: blur(15px);
+        }
+
+        #review-card {
+            padding: 40px 30px;
+            width: 85%;
+            max-width: 360px;
+            text-align: center;
+            transition: box-shadow 0.3s ease;
+        }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -614,6 +649,21 @@
     <div id="flash-overlay"></div>
 
     <div id="apotheosis-overlay"></div>
+
+    <div id="review-ui">
+        <div class="artifact-card glass-panel" id="review-card">
+            <h2 id="review-art-name">NAME</h2>
+            <p id="review-art-lore" class="artifact-lore serif">LORE</p>
+            <div class="artifact-stats">
+                <p style="justify-content: center; text-align: center;">RESONANCE</p>
+                <p style="justify-content: center; text-align: center;"><span id="review-word"
+                        class="mystery-word">"WORD"</span></p>
+            </div>
+            <div class="btn-group">
+                <button id="btn-close-review">Close</button>
+            </div>
+        </div>
+    </div>
 
     <div id="threejs-radar-container"></div>
     <div id="dream-veil"></div>
@@ -839,8 +889,29 @@
             ARTIFACTS_DATA.forEach((profile, index) => {
                 const isFound = gameState.foundNodes.find(n => n.id === index) !== undefined;
                 const slot = document.createElement('div');
-                slot.className = `fragment-slot ${isFound ? 'found' : ''}`;
-                if (isFound) slot.style.borderColor = profile.cssColor.replace('1)', '0.4)');
+
+                // --- AJOUT DE LA LOGIQUE DE CLIC POUR LA FICHE DE RÉVISION ---
+                slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
+                if (isFound) {
+                    slot.style.borderColor = profile.cssColor.replace('1)', '0.4)');
+
+                    slot.addEventListener('click', () => {
+                        playUISound('click');
+                        document.getElementById('review-art-name').innerText = profile.name;
+                        document.getElementById('review-art-name').style.textShadow = `0 0 15px ${profile.cssColor.replace('1)', '0.5)')}`;
+                        document.getElementById('review-art-lore').innerHTML = profile.lore;
+                        document.getElementById('review-word').innerText = `"${profile.word}"`;
+                        document.getElementById('review-word').style.color = profile.cssColor;
+                        document.getElementById('review-card').style.boxShadow = `0 0 40px ${profile.cssColor}`;
+
+                        document.getElementById('btn-close-review').style.color = profile.cssColor;
+                        document.getElementById('btn-close-review').style.borderColor = profile.cssColor;
+                        document.getElementById('btn-close-review').style.background = profile.cssColor.replace('1)', '0.1)');
+
+                        document.getElementById('review-ui').style.display = 'flex';
+                    });
+                }
+                // -----------------------------------------------------------
 
                 let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
@@ -851,6 +922,12 @@
                 listContainer.appendChild(slot);
             });
         }
+
+        // --- GESTION DE LA FERMETURE DE LA FICHE ---
+        document.getElementById('btn-close-review').addEventListener('click', () => {
+            playUISound('transition');
+            document.getElementById('review-ui').style.display = 'none';
+        });
 
         if (isSanctuaryView) {
             document.getElementById('radar-ui').style.display = 'none';
