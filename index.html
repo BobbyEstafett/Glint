@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -19,11 +19,11 @@
 
     <style>
         :root {
-            --bg-night: #080a11;
+            --bg-night: #0b0d14;
             --glass-bg: rgba(20, 25, 40, 0.45);
             --glass-border: rgba(255, 255, 255, 0.15);
-            --text-title: #f0e6d2;
-            --text-body: #a8b2c1;
+            --text-title: #ffffff;
+            --text-body: rgba(255, 255, 255, 0.8);
             --accent-pure: #8be9fd;
         }
 
@@ -36,6 +36,21 @@
             overflow: hidden;
             height: 100vh;
             width: 100vw;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* GRAIN GLOBAL DE FOND */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+            z-index: 9999;
+            pointer-events: none;
         }
 
         h1,
@@ -85,7 +100,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: radial-gradient(circle at center, transparent 0%, rgba(8, 10, 17, 0.7) 100%);
+            background: radial-gradient(circle at center, transparent 0%, rgba(11, 13, 20, 0.8) 100%);
             pointer-events: none;
             z-index: 2;
         }
@@ -292,21 +307,21 @@
         }
 
         .delay-1 {
-            animation-delay: 0.5s;
+            animation-delay: 0.3s;
         }
 
         .delay-2 {
-            animation-delay: 1s;
+            animation-delay: 0.6s;
         }
 
         .delay-3 {
-            animation-delay: 1.5s;
+            animation-delay: 0.9s;
         }
 
         @keyframes fadeInAnim {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(15px);
             }
 
             to {
@@ -315,16 +330,14 @@
             }
         }
 
-        /* --- LE NOUVEAU DESIGN ÉTHÉRÉ DES FICHES --- */
-        .ethereal-screen {
-            position: fixed;
+        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT (AR ET CARNET) --- */
+        .fs-fiche {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             background-color: var(--bg-night);
-            background-size: 200% 200%;
-            animation: bgDrift 15s ease infinite alternate;
             z-index: 3000;
             display: none;
             flex-direction: column;
@@ -334,146 +347,135 @@
             overflow: hidden;
         }
 
-        @keyframes bgDrift {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            100% {
-                background-position: 100% 50%;
-            }
-        }
-
-        /* Grain photographique global sur la fiche */
-        .ethereal-screen::before {
-            content: "";
+        /* L'arrière plan "Noisy Moving Gradient" de la fiche */
+        .fs-blobs-container {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.18'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
-            z-index: -1;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
             pointer-events: none;
         }
 
-        #review-ui {
-            z-index: 6000;
+        .fs-blob {
+            position: absolute;
+            filter: blur(90px);
+            border-radius: 50%;
+            opacity: 0.6;
+            mix-blend-mode: screen;
+            animation: slowDrift 15s ease-in-out infinite alternate;
         }
 
-        .artifact-content {
+        @keyframes slowDrift {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(15vw, -10vh) scale(1.2);
+            }
+        }
+
+        .fs-content {
             position: relative;
             z-index: 2;
             width: 85%;
             max-width: 380px;
-            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* L'Artefact Éthéré (Blob 3D) */
-        .ethereal-blob {
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 40px auto;
+        /* L'artefact mouvant au centre de la fiche */
+        .fiche-ethereal-blob {
+            width: 170px;
+            height: 170px;
+            margin: 0 auto 35px auto;
             border-radius: 45% 55% 65% 35% / 45% 45% 55% 55%;
-            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 1) 0%, var(--accent-pure) 50%, rgba(0, 0, 0, 0.5) 95%);
-            box-shadow:
-                inset 15px 15px 30px rgba(255, 255, 255, 0.7),
-                inset -15px -15px 30px rgba(0, 0, 0, 0.6),
-                0 0 50px var(--accent-pure);
-            animation: morphEthereal 7s ease-in-out infinite alternate, floatEthereal 5s ease-in-out infinite alternate;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, var(--accent-pure) 50%, rgba(0, 0, 0, 0.2) 100%);
+            box-shadow: inset 10px 10px 20px rgba(255, 255, 255, 0.6), inset -10px -10px 20px rgba(0, 0, 0, 0.4);
+            animation: morphEthereal 8s linear infinite;
         }
 
         @keyframes morphEthereal {
             0% {
                 border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: rotate(0deg);
             }
 
-            100% {
+            50% {
                 border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
             }
-        }
-
-        @keyframes floatEthereal {
-            0% {
-                transform: translateY(0);
-            }
 
             100% {
-                transform: translateY(-12px);
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: rotate(360deg);
             }
         }
 
-        /* Typographie de la Fiche */
-        .artifact-content h2 {
-            margin-top: 0;
-            letter-spacing: 4px;
-            font-size: 1.8rem;
-            line-height: 1.2;
+        /* Typographie Minimaliste */
+        .fs-content h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            color: #ffffff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            margin: 0 0 15px 0;
+            color: #fff;
+            text-align: center;
         }
 
-        .artifact-lore {
-            font-size: 1.05rem;
-            color: #ffffff;
-            margin-bottom: 25px;
-            line-height: 1.8;
-            text-wrap: balance;
+        .fs-content .artifact-lore {
             font-family: 'Montserrat', sans-serif;
             font-weight: 300;
-            opacity: 0.9;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-wrap: balance;
         }
 
-        .neon-divider {
-            width: 100%;
+        .clean-divider {
             border: none;
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            margin: 25px 0;
-        }
-
-        .artifact-stats {
-            text-align: left;
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
             width: 100%;
+            margin: 0 0 20px 0;
         }
 
-        .artifact-stats p {
-            margin: 15px 0;
+        .clean-stats {
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .clean-stats p {
+            margin: 12px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .stat-label {
-            color: var(--accent-pure);
-            text-shadow: 0 0 10px var(--accent-pure);
-            font-weight: 600;
-            letter-spacing: 2px;
+        .clean-stats .lbl {
+            opacity: 0.8;
             text-transform: uppercase;
-            font-size: 0.8rem;
-        }
-
-        .stat-val {
-            color: #fff;
             font-weight: 400;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
         }
 
-        .stat-val.mystery-word {
+        .clean-stats .val {
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .clean-stats .val.resonance {
+            font-style: italic;
             color: var(--accent-pure);
-            text-shadow: 0 0 10px var(--accent-pure);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 2px;
         }
 
-        /* Boutons de la fiche */
-        .btn-group {
+        .clean-btn-group {
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -481,26 +483,33 @@
             width: 100%;
         }
 
-        .neon-btn {
-            background: rgba(0, 0, 0, 0.2) !important;
-            border: 2px solid rgba(255, 255, 255, 0.4) !important;
-            box-shadow: 0 0 20px var(--accent-pure), inset 0 0 15px var(--accent-pure) !important;
-            border-radius: 50px;
-            color: #fff !important;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        .clean-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            color: #fff;
+            height: 50px;
             font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
             font-weight: 400;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.3s;
         }
 
-        /* --- Carnet et Liste (Inchangé structurellement) --- */
+        .clean-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- CARNET (SANCTUARY) --- */
         #sanctuary-ui {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at top, #1a2035 0%, #0b0f19 100%);
+            background: #080a11;
             z-index: 5000;
             display: none;
             flex-direction: column;
@@ -593,14 +602,13 @@
             scrollbar-width: none;
         }
 
+        /* Les cartes du carnet gardent leurs HTML Blobs internes */
         .fragment-slot {
             position: relative;
-            padding: 25px 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
             flex-shrink: 0;
-            background: rgba(18, 20, 28, 0.6);
+            background: rgba(18, 20, 28, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
             overflow: hidden;
@@ -608,17 +616,24 @@
             backdrop-filter: blur(15px);
         }
 
-        .fragment-slot::before {
-            content: "";
+        .slot-content {
+            position: relative;
+            z-index: 2;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card-blob {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
-            z-index: -1;
-            pointer-events: none;
+            width: 280px;
+            height: 280px;
+            filter: blur(45px);
+            opacity: 0.8;
+            z-index: 0;
+            animation: morphBlob 8s linear infinite;
+            mix-blend-mode: screen;
         }
 
         .fragment-slot:not(.found) {
@@ -634,34 +649,31 @@
             transform: scale(0.98);
         }
 
-        .fragment-slot .slot-title {
+        .slot-content .slot-title {
             font-size: 0.65rem;
             letter-spacing: 2px;
             text-transform: uppercase;
             opacity: 0.5;
-            z-index: 2;
         }
 
-        .fragment-slot .slot-name {
+        .slot-content .slot-name {
             font-family: 'Playfair Display', serif;
             font-size: 1.3rem;
             opacity: 0.3;
-            z-index: 2;
         }
 
         .fragment-slot.found .slot-name {
             opacity: 1;
             color: var(--text-title);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .fragment-slot .slot-word {
+        .slot-content .slot-word {
             font-family: 'Playfair Display', serif;
             font-style: italic;
             font-size: 1.4rem;
             text-align: right;
             opacity: 0;
-            z-index: 2;
         }
 
         .sanctuary-footer {
@@ -728,6 +740,11 @@
             transform: scale(1.1);
             text-shadow: 0 0 30px currentColor;
         }
+
+        /* Review UI = Même design que Artifact UI */
+        #review-ui {
+            z-index: 6000;
+        }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -741,20 +758,47 @@
 
     <div id="apotheosis-overlay"></div>
 
-    <div id="review-ui" class="ethereal-screen">
-        <div class="artifact-content" id="review-card">
-            <div id="review-ethereal-blob" class="ethereal-blob"></div>
+    <div id="review-ui" class="fs-fiche">
+        <div class="fs-blobs-container">
+            <div id="review-bg-blob1" class="fs-blob" style="width: 120vw; height: 120vw; top: -30%; left: -20%;"></div>
+            <div id="review-bg-blob2" class="fs-blob"
+                style="width: 100vw; height: 100vw; bottom: -20%; right: -20%; animation-direction: reverse;"></div>
+        </div>
+        <div class="fs-content">
+            <div class="fiche-ethereal-blob" id="review-artefact-blob"></div>
             <h2 id="review-art-name">NAME</h2>
             <p id="review-art-lore" class="artifact-lore">LORE</p>
-            <hr class="neon-divider">
-            <div class="artifact-stats">
-                <p><span class="stat-label">ESSENCE</span> <span class="stat-val" id="review-progress"></span></p>
-                <p><span class="stat-label">ANCHOR POINT</span> <span class="stat-val" id="review-gps"></span></p>
-                <p><span class="stat-label">RESONANCE</span> <span class="stat-val mystery-word"
-                        id="review-word">"WORD"</span></p>
+            <hr class="clean-divider">
+            <div class="clean-stats">
+                <p><span class="lbl">ESSENCE</span> <span class="val" id="review-progress"></span></p>
+                <p><span class="lbl">ANCHOR POINT</span> <span class="val" id="review-gps"></span></p>
+                <p><span class="lbl">RESONANCE</span> <span class="val resonance" id="review-word">"WORD"</span></p>
             </div>
-            <div class="btn-group">
-                <button id="btn-close-review" class="neon-btn">CLOSE</button>
+            <div class="clean-btn-group">
+                <button id="btn-close-review" class="clean-btn">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="artifact-ui" class="fs-fiche">
+        <div class="fs-blobs-container">
+            <div id="ui-bg-blob1" class="fs-blob" style="width: 120vw; height: 120vw; top: -30%; left: -20%;"></div>
+            <div id="ui-bg-blob2" class="fs-blob"
+                style="width: 100vw; height: 100vw; bottom: -20%; right: -20%; animation-direction: reverse;"></div>
+        </div>
+        <div class="fs-content">
+            <div class="fiche-ethereal-blob fade-in-seq" id="ui-artefact-blob"></div>
+            <h2 id="ui-art-name" class="fade-in-seq">MNEMONIC SHARD</h2>
+            <p id="ui-art-lore" class="artifact-lore fade-in-seq delay-1"></p>
+            <hr class="clean-divider fade-in-seq delay-2">
+            <div class="clean-stats fade-in-seq delay-2">
+                <p><span class="lbl">ESSENCE</span> <span class="val" id="ui-progress">1 / 7</span></p>
+                <p><span class="lbl">ANCHOR POINT</span> <span class="val" id="ui-gps">0.000, 0.000</span></p>
+                <p><span class="lbl">RESONANCE</span> <span class="val resonance" id="ui-word">"---"</span></p>
+            </div>
+            <div class="clean-btn-group fade-in-seq delay-3">
+                <button id="btn-inventory" class="clean-btn">OPEN THE JOURNAL</button>
+                <button id="btn-continue" class="clean-btn">CONTINUE WANDERING</button>
             </div>
         </div>
     </div>
@@ -784,26 +828,6 @@
 
     <div id="xr-ui" class="glass-panel">Let your gaze wander...</div>
 
-    <div id="artifact-ui" class="ethereal-screen">
-        <div class="artifact-content" id="art-card">
-            <div id="ui-ethereal-blob" class="ethereal-blob fade-in-seq"></div>
-            <h2 id="ui-art-name" class="fade-in-seq">MNEMONIC SHARD</h2>
-            <p id="ui-art-lore" class="artifact-lore fade-in-seq delay-1"></p>
-            <hr class="neon-divider fade-in-seq delay-2">
-            <div class="artifact-stats fade-in-seq delay-2">
-                <p><span class="stat-label">ESSENCE</span> <span class="stat-val" id="ui-progress">1 / 7</span></p>
-                <p><span class="stat-label">ANCHOR POINT</span> <span class="stat-val" id="ui-gps">0.000, 0.000</span>
-                </p>
-                <p><span class="stat-label">RESONANCE</span> <span class="stat-val mystery-word"
-                        id="ui-word">"---"</span></p>
-            </div>
-            <div class="btn-group fade-in-seq delay-3">
-                <button id="btn-inventory" class="neon-btn">OPEN THE JOURNAL</button>
-                <button id="btn-continue" class="neon-btn">CONTINUE WANDERING</button>
-            </div>
-        </div>
-    </div>
-
     <div id="sanctuary-ui">
         <div class="sanctuary-header">
             <h2 class="serif">THE JOURNAL</h2>
@@ -813,8 +837,11 @@
         </div>
         <div class="sanctuary-list" id="sanctuary-list"></div>
         <div class="sanctuary-footer">
-            <button id="btn-back-radar">Close your eyes (Return)</button>
-            <button id="btn-reset" style="display:none;">Restart the Wandering</button>
+            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">Close your eyes
+                (Return)</button>
+            <button id="btn-reset" class="clean-btn"
+                style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">Restart the
+                Wandering</button>
         </div>
     </div>
 
@@ -989,31 +1016,37 @@
                 const slot = document.createElement('div');
 
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
-                if (isFound) {
-                    let baseColor = profile.cssColor.replace('1)', '0.4)');
-                    let edgeColor = profile.cssColor.replace('1)', '0.8)');
 
-                    slot.style.background = `radial-gradient(ellipse 150% 100% at 50% 120%, ${baseColor} 0%, transparent 70%), rgba(18, 20, 28, 0.8)`;
-                    slot.style.boxShadow = `inset 0 -3px 15px -2px ${edgeColor}, 0 8px 25px rgba(0,0,0,0.5)`;
-                    slot.style.borderColor = `rgba(255, 255, 255, 0.1)`;
+                let blobHtml = '';
+                if (isFound) {
+                    // Blob interne de la carte (carnet)
+                    let blobTop = Math.floor(Math.random() * 60) - 30;
+                    let blobLeft = Math.floor(Math.random() * 80) - 20;
+                    blobHtml = `<div class="card-blob" style="background: ${profile.cssColor}; top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
+
+                    slot.style.boxShadow = `0 8px 25px rgba(0,0,0,0.5)`;
 
                     slot.addEventListener('click', () => {
                         playUISound('click');
                         document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
 
                         document.getElementById('review-art-name').innerText = profile.name;
-                        document.getElementById('review-art-lore').innerHTML = profile.lore;
+                        document.getElementById('review-art-lore').innerText = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
+                        document.getElementById('review-word').style.color = profile.cssColor;
 
-                        // Injection des stats
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
                         if (nodeData) {
                             document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
                         }
 
-                        // Le fond plein écran du Review UI avec le gradient
-                        document.getElementById('review-ui').style.background = `radial-gradient(circle at 50% 40%, ${profile.cssColor.replace('1)', '0.3)')} 0%, #050508 80%)`;
+                        // Maj des Blobs de Fond Full Screen
+                        document.getElementById('review-bg-blob1').style.background = profile.cssColor;
+                        document.getElementById('review-bg-blob2').style.background = `rgba(30, 40, 80, 0.8)`; // Contraste sombre
+
+                        // Maj du Blob Ethereal
+                        document.getElementById('review-artefact-blob').style.background = `linear-gradient(135deg, rgba(255,255,255,0.8) 0%, ${profile.cssColor} 50%, rgba(0,0,0,0.4) 100%)`;
 
                         document.getElementById('review-ui').style.display = 'flex';
                     });
@@ -1021,9 +1054,12 @@
 
                 let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
-                    <div class="slot-title">REFLECTION ${index + 1}</div>
-                    <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
-                    <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.5)')};">${isFound ? profile.word : ''}</div>
+                    ${blobHtml}
+                    <div class="slot-content">
+                        <div class="slot-title">REFLECTION ${index + 1}</div>
+                        <div class="slot-name" style="${isFound ? 'opacity:1; color:var(--text-title);' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
+                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.4)')};">${isFound ? profile.word : ''}</div>
+                    </div>
                 `;
                 listContainer.appendChild(slot);
             });
@@ -1308,17 +1344,22 @@
                                 localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
                             }
 
-                            // Injection des données pour l'UI d'Extraction Ethereal
                             document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
-                            document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
+                            document.getElementById('ui-art-lore').innerText = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
+                            document.getElementById('ui-word').style.color = activeProfile.cssColor;
 
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(3)}, ${startLon.toFixed(3)}`;
 
-                            document.getElementById('artifact-ui').style.background = `radial-gradient(circle at 50% 40%, ${activeProfile.cssColor.replace('1)', '0.3)')} 0%, #050508 80%)`;
+                            // Maj des Blobs de Fond Full Screen pour l'AR Extraction
+                            document.getElementById('ui-bg-blob1').style.background = activeProfile.cssColor;
+                            document.getElementById('ui-bg-blob2').style.background = `rgba(30, 40, 80, 0.8)`;
+
+                            // Maj du Blob Ethereal
+                            document.getElementById('ui-artefact-blob').style.background = `linear-gradient(135deg, rgba(255,255,255,0.8) 0%, ${activeProfile.cssColor} 50%, rgba(0,0,0,0.4) 100%)`;
 
                             document.getElementById('artifact-ui').style.display = 'flex';
                             if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
