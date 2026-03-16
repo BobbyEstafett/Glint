@@ -39,7 +39,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* GRAIN GLOBAL DE FOND */
         body::before {
             content: "";
             position: fixed;
@@ -337,7 +336,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            /* FOND IMPERATIF 100% OPAQUE pour ne rien laisser transparaître */
             background-color: var(--bg-night) !important;
             z-index: 3000;
             display: none;
@@ -428,37 +426,18 @@
             align-items: center;
         }
 
-        .fiche-ethereal-blob {
-            width: 170px;
-            height: 170px;
-            margin: 0 auto 35px auto;
-            border-radius: 45% 55% 65% 35% / 45% 45% 55% 55%;
-            box-shadow: inset 15px 15px 30px rgba(255, 255, 255, 0.6), inset -15px -15px 30px rgba(0, 0, 0, 0.4);
-            animation: morphEthereal 10s linear infinite;
+        /* Le conteneur du Canvas 3D de l'interface */
+        .artifact-3d-canvas {
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
         }
 
-        @keyframes morphEthereal {
-            0% {
-                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-                transform: rotate(0deg) scale(1);
-            }
-
-            33% {
-                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
-                transform: rotate(120deg) scale(1.05);
-            }
-
-            66% {
-                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
-                transform: rotate(240deg) scale(0.95);
-            }
-
-            100% {
-                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-                transform: rotate(360deg) scale(1);
-            }
-        }
-
+        /* Typographie Minimaliste & Éditoriale */
         .fs-content h2 {
             font-family: 'Playfair Display', serif;
             font-weight: 400;
@@ -628,7 +607,6 @@
             transition: background 1s;
         }
 
-        /* PHRASE FINALE DU CARNET HARMONISÉE */
         .final-revelation {
             font-family: 'Montserrat', sans-serif;
             font-weight: 400;
@@ -732,7 +710,6 @@
             opacity: 0.5;
         }
 
-        /* TITRES DU CARNET HARMONISÉS EN MAJUSCULES */
         .slot-content .slot-name {
             font-family: 'Playfair Display', serif;
             font-size: 1.4rem;
@@ -803,7 +780,6 @@
             transition: opacity 2s ease-in-out;
         }
 
-        /* MOTS DE L'APOTHÉOSE HARMONISÉS */
         .apo-word {
             font-family: 'Montserrat', sans-serif;
             font-weight: 400;
@@ -848,7 +824,8 @@
                 style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
         </div>
         <div class="fs-content">
-            <div class="fiche-ethereal-blob" id="review-artefact-blob"></div>
+            <div id="review-3d-container" class="artifact-3d-canvas"></div>
+
             <h2 id="review-art-name">NAME</h2>
             <p id="review-art-lore" class="artifact-lore">LORE</p>
             <hr class="clean-divider">
@@ -870,7 +847,8 @@
             </div>
         </div>
         <div class="fs-content">
-            <div class="fiche-ethereal-blob fade-in-seq" id="ui-artefact-blob"></div>
+            <div id="ui-3d-container" class="artifact-3d-canvas fade-in-seq"></div>
+
             <h2 id="ui-art-name" class="fade-in-seq">MNEMONIC SHARD</h2>
             <p id="ui-art-lore" class="artifact-lore fade-in-seq delay-1"></p>
             <hr class="clean-divider fade-in-seq delay-2">
@@ -1014,6 +992,78 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
+        /* --- NOUVEAU : LE MOTEUR 3D POUR LES FICHES D'INTERFACE --- */
+        let uiScene, uiCamera, uiRenderer, uiMesh, uiLight1, uiLight2;
+
+        function getGeometry(shapeName, isWire = false) {
+            const s = 1; // On n'utilise pas isWire pour l'UI, donc taille standard
+            switch (shapeName) {
+                case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
+                case 'box': return new THREE.BoxGeometry(0.08 * s, 0.08 * s, 0.08 * s);
+                case 'cone': return new THREE.ConeGeometry(0.05 * s, 0.1 * s, 16);
+                case 'icosahedron': return new THREE.IcosahedronGeometry(0.06 * s, 0);
+                case 'cylinder': return new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 0.1 * s, 16);
+                case 'sphere': return new THREE.SphereGeometry(0.05 * s, 32, 32);
+                case 'octahedron': default: return new THREE.OctahedronGeometry(0.06 * s, 0);
+            }
+        }
+
+        function initUI3D() {
+            const containerSize = 220;
+            uiScene = new THREE.Scene();
+            uiCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 10);
+            uiCamera.position.z = 0.25;
+
+            uiRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            uiRenderer.setSize(containerSize, containerSize);
+            uiRenderer.setPixelRatio(window.devicePixelRatio);
+
+            // Matériau Glassmorphism & Iridescence
+            const uiMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                metalness: 0.3,
+                roughness: 0.15,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.1,
+                iridescence: 1.0,
+                iridescenceIOR: 1.5,
+                transparent: true,
+                opacity: 0.95
+            });
+
+            uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
+            uiScene.add(uiMesh);
+
+            uiLight1 = new THREE.PointLight(0xffffff, 5, 10);
+            uiLight1.position.set(0.1, 0.1, 0.1);
+            uiScene.add(uiLight1);
+
+            uiLight2 = new THREE.PointLight(0xffffff, 5, 10);
+            uiLight2.position.set(-0.1, -0.1, 0.1);
+            uiScene.add(uiLight2);
+
+            // Animation loop indépendante de l'AR
+            uiRenderer.setAnimationLoop(() => {
+                uiMesh.rotation.y += 0.005;
+                uiMesh.rotation.x += 0.003;
+                uiRenderer.render(uiScene, uiCamera);
+            });
+        }
+
+        // Fonction pour attacher le canvas 3D au bon endroit
+        function attachUI3D(containerId, profile) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            container.appendChild(uiRenderer.domElement);
+
+            uiMesh.geometry.dispose();
+            uiMesh.geometry = getGeometry(profile.shape);
+            uiMesh.scale.set(1.3, 1.3, 1.3); // Grossit l'objet pour la fiche
+
+            uiLight1.color.setStyle(profile.color1);
+            uiLight2.color.setStyle(profile.color2);
+        }
+
         if (gameState.foundNodes.length >= 7 && !isSanctuaryView) {
             navigateTo(window.location.pathname + '?view=sanctuary');
         }
@@ -1028,7 +1078,6 @@
 
             await new Promise(r => setTimeout(r, 2000));
 
-            // Les mots de l'apothéose utilisent à nouveau la couleur éclatante cssColor
             const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
 
             for (let i = 0; i < words.length; i++) {
@@ -1122,23 +1171,24 @@
                             document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
                         }
 
+                        document.getElementById('review-ui').style.backgroundColor = profile.cssColor.replace('1)', '0.15)');
                         document.getElementById('review-bg-blob1').style.background = profile.color1;
                         document.getElementById('review-bg-blob2').style.background = profile.color2;
 
-                        document.getElementById('review-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${profile.color2} 0%, ${profile.color1} 60%, #000 100%)`;
+                        // Attache et met à jour l'objet 3D dans la vue Carnet
+                        attachUI3D('review-3d-container', profile);
 
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
 
-                // Mots de passe du carnet à nouveau sur la couleur éclatante
                 let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
                         <div class="slot-title">REFLECTION ${index + 1}</div>
                         <div class="slot-name" style="${isFound ? 'opacity:1;' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
-                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.5)')};">${isFound ? profile.word : ''}</div>
+                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'};">${isFound ? profile.word : ''}</div>
                     </div>
                 `;
                 listContainer.appendChild(slot);
@@ -1190,6 +1240,7 @@
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
+            // Ne pas confondre la scène AR (coreMesh, wireMesh) avec la scène UI (uiMesh)
             let coreMesh, wireMesh;
 
             function setActiveProfile(profile) {
@@ -1354,19 +1405,6 @@
             let xrState = 'search'; let spawnedArtifactMesh = null;
             const raycaster = new THREE.Raycaster();
 
-            function getGeometry(shapeName, isWire = false) {
-                const s = isWire ? 1.2 : 1;
-                switch (shapeName) {
-                    case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
-                    case 'box': return new THREE.BoxGeometry(0.08 * s, 0.08 * s, 0.08 * s);
-                    case 'cone': return new THREE.ConeGeometry(0.05 * s, 0.1 * s, 16);
-                    case 'icosahedron': return new THREE.IcosahedronGeometry(0.06 * s, 0);
-                    case 'cylinder': return new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 0.1 * s, 16);
-                    case 'sphere': return new THREE.SphereGeometry(0.05 * s, 32, 32);
-                    case 'octahedron': default: return new THREE.OctahedronGeometry(0.06 * s, 0);
-                }
-            }
-
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
                 scene.add(new THREE.HemisphereLight(0xffffff, 0x444466, 2));
@@ -1436,7 +1474,9 @@
 
                             document.getElementById('ui-bg-blob1').style.background = activeProfile.color1;
                             document.getElementById('ui-bg-blob2').style.background = activeProfile.color2;
-                            document.getElementById('ui-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${activeProfile.color2} 0%, ${activeProfile.color1} 60%, #000 100%)`;
+
+                            // Attache et met à jour l'objet 3D dans la vue AR Extraction
+                            attachUI3D('ui-3d-container', activeProfile);
 
                             document.getElementById('artifact-ui').style.display = 'flex';
                             if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
@@ -1547,7 +1587,11 @@
             document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
 
             initXR();
+            initUI3D(); // Initialisation du moteur 3D d'Interface
         }
+
+        // Initialiser la 3D même si on est directement dans la vue Sanctuaire (pour les rechargements de page)
+        if (isSanctuaryView) { initUI3D(); }
     </script>
 </body>
 
