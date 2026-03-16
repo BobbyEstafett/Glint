@@ -20,7 +20,6 @@
     <style>
         :root {
             --bg-night: #0b0d14;
-            /* Fond opaque très profond */
             --glass-bg: rgba(20, 25, 40, 0.45);
             --glass-border: rgba(255, 255, 255, 0.15);
             --text-title: #ffffff;
@@ -338,7 +337,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            /* FOND 100% OPAQUE pour cacher le radar ou le carnet derrière */
             background-color: var(--bg-night);
             z-index: 3000;
             display: none;
@@ -349,7 +347,6 @@
             overflow: hidden;
         }
 
-        /* L'arrière plan "Noisy Moving Gradient" de la fiche */
         .fs-blobs-container {
             position: absolute;
             top: 0;
@@ -361,7 +358,6 @@
             pointer-events: none;
         }
 
-        /* Animation experte des blobs d'arrière-plan */
         .fs-blob {
             position: absolute;
             filter: blur(70px);
@@ -431,13 +427,11 @@
             align-items: center;
         }
 
-        /* L'artefact mouvant au centre de la fiche */
         .fiche-ethereal-blob {
             width: 170px;
             height: 170px;
             margin: 0 auto 35px auto;
             border-radius: 45% 55% 65% 35% / 45% 45% 55% 55%;
-            /* Le gradient sera injecté en JS pour correspondre à l'artefact */
             box-shadow: inset 15px 15px 30px rgba(255, 255, 255, 0.6), inset -15px -15px 30px rgba(0, 0, 0, 0.4);
             animation: morphEthereal 10s linear infinite;
         }
@@ -464,7 +458,6 @@
             }
         }
 
-        /* Typographie Minimaliste & Éditoriale */
         .fs-content h2 {
             font-family: 'Playfair Display', serif;
             font-weight: 400;
@@ -525,6 +518,7 @@
             font-weight: 400;
             letter-spacing: 4px;
             color: var(--accent-pure);
+            text-transform: uppercase;
         }
 
         .clean-btn-group {
@@ -633,16 +627,20 @@
             transition: background 1s;
         }
 
+        /* PHRASE FINALE DU CARNET HARMONISÉE */
         .final-revelation {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.1rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
             text-align: center;
-            margin-bottom: 20px;
-            font-style: italic;
+            margin-bottom: 30px;
+            font-style: normal;
             animation: fadeInAnim 3s forwards;
             text-wrap: balance;
             color: var(--text-title);
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
         .sanctuary-list {
@@ -678,7 +676,6 @@
             gap: 6px;
         }
 
-        /* L'animation organique pour les petits blobs des cartes */
         @keyframes morphCardBlob {
             0% {
                 border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
@@ -725,7 +722,6 @@
             transform: scale(0.98);
         }
 
-        /* Typographie du carnet harmonisée */
         .slot-content .slot-title {
             font-family: 'Montserrat', sans-serif;
             font-weight: 300;
@@ -735,11 +731,13 @@
             opacity: 0.5;
         }
 
+        /* TITRES DU CARNET HARMONISÉS EN MAJUSCULES */
         .slot-content .slot-name {
             font-family: 'Playfair Display', serif;
             font-size: 1.4rem;
             font-weight: 400;
             opacity: 0.3;
+            text-transform: uppercase;
         }
 
         .fragment-slot.found .slot-name {
@@ -752,6 +750,7 @@
             font-weight: 400;
             font-size: 1rem;
             letter-spacing: 4px;
+            text-transform: uppercase;
             text-align: right;
             opacity: 0;
             margin-top: 5px;
@@ -803,14 +802,16 @@
             transition: opacity 2s ease-in-out;
         }
 
+        /* MOTS DE L'APOTHÉOSE HARMONISÉS */
         .apo-word {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 2.8rem;
-            letter-spacing: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 2.5rem;
+            letter-spacing: 8px;
             opacity: 0;
             position: absolute;
-            text-transform: lowercase;
+            text-transform: uppercase;
             transition: opacity 1.5s ease-in-out, transform 3s ease-out;
             transform: scale(0.8);
             text-align: center;
@@ -979,7 +980,6 @@
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
-        // AJOUT : color1 et color2 pour les dégradés harmonieux et opaques
         const ARTIFACTS_DATA = [
             { id: 0, colorHex: 0x8be9fd, color1: "rgba(10, 60, 150, 0.8)", color2: "rgba(139, 233, 253, 0.8)", cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "The First Drop", word: "WE", lore: "«\u00A0A crystallized resonance of a forgotten future. The data still pulses with a phantom warmth.\u00A0»" },
             { id: 1, colorHex: 0xffb86c, color1: "rgba(150, 20, 50, 0.8)", color2: "rgba(255, 184, 108, 0.8)", cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Liquid Memory", word: "HAVE", lore: "«\u00A0A digital tear frozen in the stream. It holds the echo of a faceless laugh.\u00A0»" },
@@ -1027,7 +1027,7 @@
 
             await new Promise(r => setTimeout(r, 2000));
 
-            const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
+            const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColorLight }));
 
             for (let i = 0; i < words.length; i++) {
                 const el = document.createElement('div');
@@ -1072,7 +1072,7 @@
                     gameState.foundNodes.forEach((node) => {
                         const profile = ARTIFACTS_DATA.find(p => p.id === node.id);
                         latlngs.push([node.lat, node.lon]);
-                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColor, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
+                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColorLight, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
                     });
                     if (latlngs.length > 1) { L.polyline(latlngs, { color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4' }).addTo(mapInstance); }
                     if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), { padding: [20, 20] }); }
@@ -1103,7 +1103,6 @@
                 if (isFound) {
                     let blobTop = Math.floor(Math.random() * 60) - 30;
                     let blobLeft = Math.floor(Math.random() * 80) - 20;
-                    // Dégradé pour le blob de la carte
                     blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, ${profile.color2} 0%, ${profile.color1} 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
 
                     slot.addEventListener('click', () => {
@@ -1113,7 +1112,7 @@
                         document.getElementById('review-art-name').innerText = profile.name;
                         document.getElementById('review-art-lore').innerText = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
-                        document.getElementById('review-word').style.color = profile.cssColor;
+                        document.getElementById('review-word').style.color = profile.cssColorLight;
 
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
@@ -1121,18 +1120,16 @@
                             document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
                         }
 
-                        // Les deux blobs massifs utilisent les deux teintes opaques
+                        document.getElementById('review-ui').style.backgroundColor = profile.cssColor.replace('1)', '0.15)');
                         document.getElementById('review-bg-blob1').style.background = profile.color1;
                         document.getElementById('review-bg-blob2').style.background = profile.color2;
-
-                        // L'Artefact central bénéficie du dégradé bicolore
                         document.getElementById('review-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${profile.color2} 0%, ${profile.color1} 60%, #000 100%)`;
 
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
 
-                let wordColor = isFound ? profile.cssColor : '';
+                let wordColor = isFound ? profile.cssColorLight : '';
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
@@ -1194,7 +1191,7 @@
 
             function setActiveProfile(profile) {
                 if (!profile) return;
-                document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
+                document.documentElement.style.setProperty('--accent-pure', profile.cssColorLight);
                 document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
 
@@ -1262,15 +1259,15 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
+                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColorLight;
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
 
                     if (arBtn) {
                         arBtn.innerText = "Grasp the dream";
                         arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
-                        arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
-                        arBtn.style.color = activeProfile.cssColor;
+                        arBtn.style.border = `1px solid ${activeProfile.cssColorLight}`;
+                        arBtn.style.color = activeProfile.cssColorLight;
 
                         if (!isFlashTriggered) {
                             arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([100, 50, 100]); }, { once: true });
@@ -1424,19 +1421,19 @@
                                 localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
                             }
 
-                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
+                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColorLight);
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
                             document.getElementById('ui-art-lore').innerText = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
-                            document.getElementById('ui-word').style.color = activeProfile.cssColor;
+                            document.getElementById('ui-word').style.color = activeProfile.cssColorLight;
 
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(3)}, ${startLon.toFixed(3)}`;
 
+                            document.getElementById('artifact-ui').style.backgroundColor = activeProfile.cssColor.replace('1)', '0.15)');
                             document.getElementById('ui-bg-blob1').style.background = activeProfile.color1;
                             document.getElementById('ui-bg-blob2').style.background = activeProfile.color2;
-
                             document.getElementById('ui-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${activeProfile.color2} 0%, ${activeProfile.color1} 60%, #000 100%)`;
 
                             document.getElementById('artifact-ui').style.display = 'flex';
@@ -1490,7 +1487,7 @@
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
                                     reticle.material.color.setHex(activeProfile.colorHex);
                                     reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
+                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColorLight;
                                     canExtract = true;
                                 }
                                 else if (dist < 1.2) {
