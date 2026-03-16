@@ -337,7 +337,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: var(--bg-night);
+            /* FOND IMPERATIF 100% OPAQUE pour ne rien laisser transparaître */
+            background-color: var(--bg-night) !important;
             z-index: 3000;
             display: none;
             flex-direction: column;
@@ -1027,7 +1028,8 @@
 
             await new Promise(r => setTimeout(r, 2000));
 
-            const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColorLight }));
+            // Les mots de l'apothéose utilisent à nouveau la couleur éclatante cssColor
+            const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
 
             for (let i = 0; i < words.length; i++) {
                 const el = document.createElement('div');
@@ -1072,7 +1074,7 @@
                     gameState.foundNodes.forEach((node) => {
                         const profile = ARTIFACTS_DATA.find(p => p.id === node.id);
                         latlngs.push([node.lat, node.lon]);
-                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColorLight, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
+                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColor, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
                     });
                     if (latlngs.length > 1) { L.polyline(latlngs, { color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4' }).addTo(mapInstance); }
                     if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), { padding: [20, 20] }); }
@@ -1112,7 +1114,7 @@
                         document.getElementById('review-art-name').innerText = profile.name;
                         document.getElementById('review-art-lore').innerText = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
-                        document.getElementById('review-word').style.color = profile.cssColorLight;
+                        document.getElementById('review-word').style.color = profile.cssColor;
 
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
@@ -1120,22 +1122,23 @@
                             document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
                         }
 
-                        document.getElementById('review-ui').style.backgroundColor = profile.cssColor.replace('1)', '0.15)');
                         document.getElementById('review-bg-blob1').style.background = profile.color1;
                         document.getElementById('review-bg-blob2').style.background = profile.color2;
+
                         document.getElementById('review-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${profile.color2} 0%, ${profile.color1} 60%, #000 100%)`;
 
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
 
-                let wordColor = isFound ? profile.cssColorLight : '';
+                // Mots de passe du carnet à nouveau sur la couleur éclatante
+                let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
                         <div class="slot-title">REFLECTION ${index + 1}</div>
                         <div class="slot-name" style="${isFound ? 'opacity:1;' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
-                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'};">${isFound ? profile.word : ''}</div>
+                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.5)')};">${isFound ? profile.word : ''}</div>
                     </div>
                 `;
                 listContainer.appendChild(slot);
@@ -1191,7 +1194,7 @@
 
             function setActiveProfile(profile) {
                 if (!profile) return;
-                document.documentElement.style.setProperty('--accent-pure', profile.cssColorLight);
+                document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
                 document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
 
@@ -1259,15 +1262,15 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColorLight;
+                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
 
                     if (arBtn) {
                         arBtn.innerText = "Grasp the dream";
                         arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
-                        arBtn.style.border = `1px solid ${activeProfile.cssColorLight}`;
-                        arBtn.style.color = activeProfile.cssColorLight;
+                        arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
+                        arBtn.style.color = activeProfile.cssColor;
 
                         if (!isFlashTriggered) {
                             arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([100, 50, 100]); }, { once: true });
@@ -1421,17 +1424,16 @@
                                 localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
                             }
 
-                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColorLight);
+                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
                             document.getElementById('ui-art-lore').innerText = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
-                            document.getElementById('ui-word').style.color = activeProfile.cssColorLight;
+                            document.getElementById('ui-word').style.color = activeProfile.cssColor;
 
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(3)}, ${startLon.toFixed(3)}`;
 
-                            document.getElementById('artifact-ui').style.backgroundColor = activeProfile.cssColor.replace('1)', '0.15)');
                             document.getElementById('ui-bg-blob1').style.background = activeProfile.color1;
                             document.getElementById('ui-bg-blob2').style.background = activeProfile.color2;
                             document.getElementById('ui-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${activeProfile.color2} 0%, ${activeProfile.color1} 60%, #000 100%)`;
@@ -1487,7 +1489,7 @@
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
                                     reticle.material.color.setHex(activeProfile.colorHex);
                                     reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColorLight;
+                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
                                     canExtract = true;
                                 }
                                 else if (dist < 1.2) {
