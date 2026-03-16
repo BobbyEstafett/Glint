@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Oneiric Wandering</title>
-
+    <title>GLINT - Organic Ethereal Artifacts</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
-        rel="stylesheet">
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         :root {
@@ -28,804 +23,192 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-night);
-            color: var(--text-body);
-            font-family: 'Montserrat', sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+            margin: 0; padding: 0; background-color: var(--bg-night); color: var(--text-body);
+            font-family: 'Montserrat', sans-serif; overflow: hidden; height: 100vh; width: 100vw;
             -webkit-font-smoothing: antialiased;
         }
 
         body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
-            z-index: 9999;
-            pointer-events: none;
+            mix-blend-mode: overlay; z-index: 9999; pointer-events: none;
         }
 
-        h1,
-        h2,
-        h3,
-        .serif {
-            font-family: 'Playfair Display', serif;
-            color: var(--text-title);
-            font-weight: normal;
-            text-wrap: balance;
-        }
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; color: var(--text-title); font-weight: normal; text-wrap: balance; }
 
-        #transition-veil {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: var(--bg-night);
-            z-index: 999999;
-            opacity: 1;
-            transition: opacity 1.2s ease-in-out;
-            pointer-events: none;
-        }
+        #transition-veil { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-night); z-index: 999999; opacity: 1; transition: opacity 1.2s ease-in-out; pointer-events: none; }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); }
+        #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #dream-veil { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, transparent 0%, rgba(11, 13, 20, 0.8) 100%); pointer-events: none; z-index: 2; }
 
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-        }
+        .edge-glow { position: absolute; top: 0; width: 80px; height: 100vh; pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.4s ease; }
+        #glow-left { left: 0; } #glow-right { right: 0; }
 
-        #threejs-radar-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+        #radar-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; box-sizing: border-box; z-index: 10; pointer-events: none; }
+        
+        .info-box { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 20px; text-align: center; width: 85%; max-width: 350px; height: 300px; pointer-events: auto; box-sizing: border-box; transition: box-shadow 1s ease; }
+        .info-top { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100px; width: 100%; }
+        .info-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; width: 100%; }
+        .info-bottom { display: flex; justify-content: center; align-items: flex-end; height: 20px; width: 100%; }
 
-        #dream-veil {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle at center, transparent 0%, rgba(11, 13, 20, 0.8) 100%);
-            pointer-events: none;
-            z-index: 2;
-        }
+        .main-title { font-size: 1.5rem; letter-spacing: 2px; margin: 0 0 10px 0; line-height: 1; }
+        #distance-display { font-size: 2rem; font-weight: 200; margin: 0; color: var(--text-title); line-height: 1; display: flex; align-items: center; }
+        #status-display { font-weight: 200; font-size: 0.8rem; margin: 0; line-height: 1.2; text-wrap: balance; height: 2em; display: flex; align-items: center; justify-content: center; }
+        .data-stream { font-size: 0.65rem; color: var(--text-body); margin: 0; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; line-height: 1; }
 
-        .edge-glow {
-            position: absolute;
-            top: 0;
-            width: 80px;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 90;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
+        button { display: flex; align-items: center; justify-content: center; text-align: center; margin: 0; height: 55px; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); color: var(--text-title); font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; border: 1px solid var(--glass-border); border-radius: 50px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.4s ease; line-height: 1; }
+        button:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
+        #recalc-btn { display: none; font-size: 0.65rem; border: none; opacity: 0.5; height: 40px; background: transparent; margin-top: 15px; }
 
-        #glow-left {
-            left: 0;
-        }
+        #ar-container { width: 100%; display: none; }
+        #ARButton { background: rgba(255,255,255, 0.05) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important; font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important; position: relative !important; bottom: auto !important; left: auto !important; transform: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; height: 55px !important; border-radius: 50px !important; box-shadow: 0 0 15px var(--accent-pure) !important; }
 
-        #glow-right {
-            right: 0;
-        }
+        #xr-ui { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none; padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600; transition: all 0.4s ease; }
 
-        #radar-ui {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            padding-bottom: 80px;
-            box-sizing: border-box;
-            z-index: 10;
-            pointer-events: none;
-        }
+        .fade-in-seq { opacity: 0; animation: fadeInAnim 1.5s ease forwards; }
+        .delay-1 { animation-delay: 0.3s; } .delay-2 { animation-delay: 0.6s; } .delay-3 { animation-delay: 0.9s; }
+        @keyframes fadeInAnim { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        .info-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 30px 20px;
-            text-align: center;
-            width: 85%;
-            max-width: 350px;
-            height: 300px;
-            pointer-events: auto;
-            box-sizing: border-box;
-            transition: box-shadow 1s ease;
-        }
-
-        .info-top {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            height: 100px;
-            width: 100%;
-        }
-
-        .info-mid {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            width: 100%;
-        }
-
-        .info-bottom {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            height: 20px;
-            width: 100%;
-        }
-
-        .main-title {
-            font-size: 1.5rem;
-            letter-spacing: 2px;
-            margin: 0 0 10px 0;
-            line-height: 1;
-        }
-
-        #distance-display {
-            font-size: 2rem;
-            font-weight: 200;
-            margin: 0;
-            color: var(--text-title);
-            line-height: 1;
-            display: flex;
-            align-items: center;
-        }
-
-        #status-display {
-            font-weight: 200;
-            font-size: 0.8rem;
-            margin: 0;
-            line-height: 1.2;
-            text-wrap: balance;
-            height: 2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .data-stream {
-            font-size: 0.65rem;
-            color: var(--text-body);
-            margin: 0;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: 0.6;
-            line-height: 1;
-        }
-
-        button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            margin: 0;
-            height: 55px;
-            width: 100%;
-            box-sizing: border-box;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-title);
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            font-size: 0.8rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            border: 1px solid var(--glass-border);
-            border-radius: 50px;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
-            transition: all 0.4s ease;
-            line-height: 1;
-        }
-
-        button:active {
-            background: rgba(255, 255, 255, 0.15);
-            transform: scale(0.98);
-        }
-
-        #recalc-btn {
-            display: none;
-            font-size: 0.65rem;
-            border: none;
-            opacity: 0.5;
-            height: 40px;
-            background: transparent;
-            margin-top: 15px;
-        }
-
-        #ar-container {
-            width: 100%;
-            display: none;
-        }
-
-        #ARButton {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid var(--accent-pure) !important;
-            color: var(--accent-pure) !important;
-            font-family: 'Montserrat', sans-serif !important;
-            font-weight: 600 !important;
-            letter-spacing: 2px !important;
-            position: relative !important;
-            bottom: auto !important;
-            left: auto !important;
-            transform: none !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            height: 55px !important;
-            border-radius: 50px !important;
-            box-shadow: 0 0 15px var(--accent-pure) !important;
-        }
-
-        #xr-ui {
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: fit-content;
-            z-index: 100;
-            pointer-events: none;
-            text-align: center;
-            display: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            font-weight: 600;
-            transition: all 0.4s ease;
-        }
-
-        .fade-in-seq {
-            opacity: 0;
-            animation: fadeInAnim 1.5s ease forwards;
-        }
-
-        .delay-1 {
-            animation-delay: 0.3s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.6s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.9s;
-        }
-
-        @keyframes fadeInAnim {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT (AR ET CARNET) --- */
+        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT --- */
         .fs-fiche {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: var(--bg-night) !important;
             z-index: 3000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            overflow: hidden;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            box-sizing: border-box; overflow: hidden;
         }
 
         .fs-blobs-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; overflow: hidden; pointer-events: none;
         }
-
+        
         .fs-blob {
-            position: absolute;
-            filter: blur(70px);
-            opacity: 0.7;
-            mix-blend-mode: screen;
+            position: absolute; filter: blur(70px); opacity: 0.7; mix-blend-mode: screen;
         }
-
-        .fs-blob.b1 {
-            animation: driftBlob1 25s linear infinite;
-        }
-
-        .fs-blob.b2 {
-            animation: driftBlob2 20s linear infinite reverse;
-        }
+        .fs-blob.b1 { animation: driftBlob1 25s linear infinite; }
+        .fs-blob.b2 { animation: driftBlob2 20s linear infinite reverse; }
 
         @keyframes driftBlob1 {
-            0% {
-                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-                transform: translate(-10%, -10%) rotate(0deg) scale(1);
-            }
-
-            33% {
-                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
-                transform: translate(20%, 15%) rotate(120deg) scale(1.3);
-            }
-
-            66% {
-                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
-                transform: translate(-15%, 20%) rotate(240deg) scale(0.9);
-            }
-
-            100% {
-                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-                transform: translate(-10%, -10%) rotate(360deg) scale(1);
-            }
+            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(-10%, -10%) rotate(0deg) scale(1); }
+            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: translate(20%, 15%) rotate(120deg) scale(1.3); }
+            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: translate(-15%, 20%) rotate(240deg) scale(0.9); }
+            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(-10%, -10%) rotate(360deg) scale(1); }
         }
-
         @keyframes driftBlob2 {
-            0% {
-                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
-                transform: translate(10%, 10%) rotate(0deg) scale(1);
-            }
-
-            33% {
-                border-radius: 30% 70% 70% 30% / 50% 40% 60% 50%;
-                transform: translate(-20%, -15%) rotate(120deg) scale(1.4);
-            }
-
-            66% {
-                border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%;
-                transform: translate(15%, -20%) rotate(240deg) scale(0.8);
-            }
-
-            100% {
-                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
-                transform: translate(10%, 10%) rotate(360deg) scale(1);
-            }
+            0% { border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%; transform: translate(10%, 10%) rotate(0deg) scale(1); }
+            33% { border-radius: 30% 70% 70% 30% / 50% 40% 60% 50%; transform: translate(-20%, -15%) rotate(120deg) scale(1.4); }
+            66% { border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%; transform: translate(15%, -20%) rotate(240deg) scale(0.8); }
+            100% { border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%; transform: translate(10%, 10%) rotate(360deg) scale(1); }
         }
 
         .fs-content {
-            position: relative;
-            z-index: 2;
-            width: 85%;
-            max-width: 380px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            position: relative; z-index: 2; width: 85%; max-width: 380px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Le conteneur du Canvas 3D de l'interface */
+        /* Conteneur du Canvas 3D de l'interface */
         .artifact-3d-canvas {
-            width: 220px;
-            height: 220px;
-            margin: 0 auto 20px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
+            width: 250px; height: 250px;
+            margin: 0 auto 10px auto;
+            display: flex; justify-content: center; align-items: center;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
         }
 
-        /* Typographie Minimaliste & Éditoriale */
-        .fs-content h2 {
-            font-family: 'Playfair Display', serif;
-            font-weight: 400;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin: 0 0 15px 0;
-            color: #fff;
-            text-align: center;
-        }
+        .fs-content h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 15px 0; color: #fff; text-align: center; }
+        .fs-content .artifact-lore { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.95rem; color: rgba(255,255,255,0.9); text-align: center; line-height: 1.6; margin-bottom: 25px; text-wrap: balance; }
+        
+        .clean-divider { border: none; border-top: 1px solid rgba(255,255,255,0.4); width: 100%; margin: 0 0 20px 0; }
 
-        .fs-content .artifact-lore {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 300;
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.9);
-            text-align: center;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            text-wrap: balance;
-        }
+        .clean-stats { width: 100%; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; letter-spacing: 2px; }
+        .clean-stats p { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        .clean-stats .lbl { opacity: 0.7; text-transform: uppercase; font-weight: 400;}
+        .clean-stats .val { font-weight: 300; color: #fff; letter-spacing: 1px;}
+        .clean-stats .val.resonance { font-family: 'Montserrat', sans-serif; font-weight: 400; letter-spacing: 4px; color: var(--accent-pure); text-transform: uppercase; }
 
-        .clean-divider {
-            border: none;
-            border-top: 1px solid rgba(255, 255, 255, 0.4);
-            width: 100%;
-            margin: 0 0 20px 0;
-        }
-
-        .clean-stats {
-            width: 100%;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-        }
-
-        .clean-stats p {
-            margin: 12px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .clean-stats .lbl {
-            opacity: 0.7;
-            text-transform: uppercase;
-            font-weight: 400;
-        }
-
-        .clean-stats .val {
-            font-weight: 300;
-            color: #fff;
-            letter-spacing: 1px;
-        }
-
-        .clean-stats .val.resonance {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            letter-spacing: 4px;
-            color: var(--accent-pure);
-            text-transform: uppercase;
-        }
-
-        .clean-btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 40px;
-            width: 100%;
-        }
-
-        .clean-btn {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 30px;
-            color: #fff;
-            height: 50px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .clean-btn:active {
-            background: rgba(255, 255, 255, 0.1);
-        }
+        .clean-btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; width: 100%; }
+        .clean-btn { background: transparent; border: 1px solid rgba(255,255,255,0.4); border-radius: 30px; color: #fff; height: 50px; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
+        .clean-btn:active { background: rgba(255,255,255,0.1); }
 
         /* --- CARNET (SANCTUARY) --- */
-        #sanctuary-ui {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #0b0d14;
-            z-index: 5000;
-            display: none;
-            flex-direction: column;
-            padding: 50px 20px 20px 20px;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-
-        .sanctuary-header {
-            text-align: center;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-        }
-
-        .sanctuary-header h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 300;
-            margin: 0;
-            letter-spacing: 6px;
-            font-size: 1.2rem;
-            color: #fff;
-            text-transform: uppercase;
-        }
-
-        .sanctuary-header p {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 5px;
-        }
-
-        #memory-map {
-            width: 100%;
-            height: 180px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--glass-border);
-            z-index: 1;
-            flex-shrink: 0;
-            display: none;
-        }
-
-        .leaflet-control-attribution {
-            display: none !important;
-        }
-
-        .constellation {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-
-        .star {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--glass-border);
-            margin: 0 4px;
-            transition: all 1s;
-        }
-
-        .star-link {
-            height: 1px;
-            width: 12px;
-            background: var(--glass-border);
-            transition: background 1s;
-        }
-
-        .final-revelation {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            font-size: 1rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 30px;
-            font-style: normal;
-            animation: fadeInAnim 3s forwards;
-            text-wrap: balance;
-            color: var(--text-title);
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        }
-
-        .sanctuary-list {
-            flex: 1 1 auto;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            overflow-y: auto;
-            padding-bottom: 20px;
-            scrollbar-width: none;
-        }
-
+        #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0b0d14; z-index: 5000; display: none; flex-direction: column; padding: 50px 20px 20px 20px; box-sizing: border-box; overflow: hidden; }
+        .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+        .sanctuary-header h2 { font-family: 'Montserrat', sans-serif; font-weight: 300; margin: 0; letter-spacing: 6px; font-size: 1.2rem; color: #fff; text-transform: uppercase;}
+        .sanctuary-header p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 5px; }
+        
+        #memory-map { width: 100%; height: 180px; border-radius: 15px; margin-bottom: 20px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); z-index: 1; flex-shrink: 0; display: none; }
+        .leaflet-control-attribution { display: none !important; }
+        
+        .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+        .star { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin: 0 4px; transition: all 1s; }
+        .star-link { height: 1px; width: 12px; background: var(--glass-border); transition: background 1s; }
+        
+        .final-revelation { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; text-align: center; margin-bottom: 30px; font-style: normal; animation: fadeInAnim 3s forwards; text-wrap: balance; color: var(--text-title); text-shadow: 0 0 15px rgba(255,255,255,0.4); }
+        
+        .sanctuary-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
+        
         .fragment-slot {
             position: relative;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
+            display: flex; flex-direction: column; flex-shrink: 0;
             background: rgba(18, 20, 28, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px; overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             backdrop-filter: blur(15px);
         }
-
-        .slot-content {
-            position: relative;
-            z-index: 2;
-            padding: 25px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
+        .slot-content { position: relative; z-index: 2; padding: 25px 20px; display: flex; flex-direction: column; gap: 6px; }
+        
         @keyframes morphCardBlob {
-            0% {
-                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-                transform: rotate(0deg) scale(1) translate(0, 0);
-            }
-
-            33% {
-                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
-                transform: rotate(120deg) scale(1.3) translate(10%, -10%);
-            }
-
-            66% {
-                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
-                transform: rotate(240deg) scale(0.8) translate(-10%, 15%);
-            }
-
-            100% {
-                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-                transform: rotate(360deg) scale(1) translate(0, 0);
-            }
+            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(120deg) scale(1.3) translate(10%, -10%); }
+            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(240deg) scale(0.8) translate(-10%, 15%); }
+            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(360deg) scale(1) translate(0, 0); }
         }
-
         .card-blob {
-            position: absolute;
-            width: 280px;
-            height: 280px;
-            filter: blur(45px);
-            opacity: 0.6;
-            z-index: 0;
+            position: absolute; width: 280px; height: 280px;
+            filter: blur(45px); opacity: 0.6; z-index: 0;
             animation: morphCardBlob 12s linear infinite;
             mix-blend-mode: screen;
         }
+        
+        .fragment-slot:not(.found) { background: rgba(18, 20, 28, 0.3); border: 1px dashed rgba(255,255,255,0.05); }
+        .clickable-slot { cursor: pointer; }
+        .clickable-slot:active { transform: scale(0.98); }
 
-        .fragment-slot:not(.found) {
-            background: rgba(18, 20, 28, 0.3);
-            border: 1px dashed rgba(255, 255, 255, 0.05);
-        }
+        .slot-content .slot-title { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
+        .slot-content .slot-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 400; opacity: 0.3; text-transform: uppercase; }
+        .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); }
+        .slot-content .slot-word { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; text-align: right; opacity: 0; margin-top: 5px;}
+        
+        .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding-bottom: env(safe-area-inset-bottom, 10px); }
+        #btn-back-radar { border-color: transparent; }
+        #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
+        #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-out; }
 
-        .clickable-slot {
-            cursor: pointer;
-        }
+        #apotheosis-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-night); z-index: 9999999; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 2s ease-in-out; }
+        .apo-word { font-family: 'Montserrat', sans-serif; font-weight: 400; font-style: normal; font-size: 2.5rem; letter-spacing: 8px; opacity: 0; position: absolute; text-transform: uppercase; transition: opacity 1.5s ease-in-out, transform 3s ease-out; transform: scale(0.8); text-align: center; }
+        .apo-word.show { opacity: 1; transform: scale(1.1); text-shadow: 0 0 30px currentColor; }
 
-        .clickable-slot:active {
-            transform: scale(0.98);
-        }
-
-        .slot-content .slot-title {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 300;
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: 0.5;
-        }
-
-        .slot-content .slot-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.4rem;
-            font-weight: 400;
-            opacity: 0.3;
-            text-transform: uppercase;
-        }
-
-        .fragment-slot.found .slot-name {
-            opacity: 1;
-            color: var(--text-title);
-        }
-
-        .slot-content .slot-word {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            font-size: 1rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            text-align: right;
-            opacity: 0;
-            margin-top: 5px;
-        }
-
-        .sanctuary-footer {
-            flex-shrink: 0;
-            margin-top: 10px;
-            padding-bottom: env(safe-area-inset-bottom, 10px);
-        }
-
-        #btn-back-radar {
-            border-color: transparent;
-        }
-
-        #btn-reset {
-            border-color: transparent;
-            opacity: 0.5;
-            font-size: 0.6rem;
-            margin-top: 10px;
-        }
-
-        #flash-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #fff;
-            z-index: 8000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.6s ease-out;
-        }
-
-        #apotheosis-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--bg-night);
-            z-index: 9999999;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 2s ease-in-out;
-        }
-
-        .apo-word {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            font-style: normal;
-            font-size: 2.5rem;
-            letter-spacing: 8px;
-            opacity: 0;
-            position: absolute;
-            text-transform: uppercase;
-            transition: opacity 1.5s ease-in-out, transform 3s ease-out;
-            transform: scale(0.8);
-            text-align: center;
-        }
-
-        .apo-word.show {
-            opacity: 1;
-            transform: scale(1.1);
-            text-shadow: 0 0 30px currentColor;
-        }
-
-        #review-ui {
-            z-index: 6000;
-        }
+        #review-ui { z-index: 6000; }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
     </script>
 </head>
-
 <body>
 
     <div id="transition-veil"></div>
     <div id="flash-overlay"></div>
-
+    
     <div id="apotheosis-overlay"></div>
 
     <div id="review-ui" class="fs-fiche">
         <div class="fs-blobs-container">
-            <div id="review-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;">
-            </div>
-            <div id="review-bg-blob2" class="fs-blob b2"
-                style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
+            <div id="review-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;"></div>
+            <div id="review-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
         </div>
         <div class="fs-content">
             <div id="review-3d-container" class="artifact-3d-canvas"></div>
-
             <h2 id="review-art-name">NAME</h2>
             <p id="review-art-lore" class="artifact-lore">LORE</p>
             <hr class="clean-divider">
@@ -843,12 +226,10 @@
     <div id="artifact-ui" class="fs-fiche">
         <div class="fs-blobs-container">
             <div id="ui-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;"></div>
-            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;">
-            </div>
+            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
         </div>
         <div class="fs-content">
             <div id="ui-3d-container" class="artifact-3d-canvas fade-in-seq"></div>
-
             <h2 id="ui-art-name" class="fade-in-seq">MNEMONIC SHARD</h2>
             <p id="ui-art-lore" class="artifact-lore fade-in-seq delay-1"></p>
             <hr class="clean-divider fade-in-seq delay-2">
@@ -898,11 +279,8 @@
         </div>
         <div class="sanctuary-list" id="sanctuary-list"></div>
         <div class="sanctuary-footer">
-            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">Close your eyes
-                (Return)</button>
-            <button id="btn-reset" class="clean-btn"
-                style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">Restart the
-                Wandering</button>
+            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">Close your eyes (Return)</button>
+            <button id="btn-reset" class="clean-btn" style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">Restart the Wandering</button>
         </div>
     </div>
 
@@ -943,13 +321,13 @@
                 gainDrone.gain.linearRampToValueAtTime(0.3, t + 5);
                 gainDrone.gain.exponentialRampToValueAtTime(0.001, t + 18);
                 oscDrone.start(t); oscDrone.stop(t + 18);
-
+                
                 [440, 554.37, 659.25, 880].forEach((f, i) => {
                     const osc = ctx.createOscillator(); const g = ctx.createGain();
                     osc.type = 'triangle'; osc.frequency.value = f;
                     osc.connect(g); g.connect(ctx.destination);
                     g.gain.setValueAtTime(0, t);
-                    g.gain.linearRampToValueAtTime(0.05, t + 3 + (i * 1.5));
+                    g.gain.linearRampToValueAtTime(0.05, t + 3 + (i*1.5));
                     g.gain.exponentialRampToValueAtTime(0.001, t + 18);
                     osc.start(t); osc.stop(t + 18);
                 });
@@ -992,65 +370,127 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
-        /* --- NOUVEAU : LE MOTEUR 3D POUR LES FICHES D'INTERFACE --- */
-        let uiScene, uiCamera, uiRenderer, uiMesh, uiLight1, uiLight2;
+        /* --- LE NOUVEAU MOTEUR 3D "GLASSMORPHISM ORGANIQUE" --- */
+        let uiScene, uiCamera, uiRenderer, uiMesh, uiHemiLight;
+        
+        // Objet global pour passer le temps au Shader (GPU)
+        const customUniforms = { uTime: { value: 0 } };
+        
+        // Fonction mathématique glsl (Simplex Noise) injectée dans la puce graphique
+        const noiseGLSL = `
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+            vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+            float snoise(vec3 v) { 
+                const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+                const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+                vec3 i  = floor(v + dot(v, C.yyy) );
+                vec3 x0 = v - i + dot(i, C.xxx) ;
+                vec3 g = step(x0.yzx, x0.xyz);
+                vec3 l = 1.0 - g;
+                vec3 i1 = min( g.xyz, l.zxy );
+                vec3 i2 = max( g.xyz, l.zxy );
+                vec3 x1 = x0 - i1 + C.xxx;
+                vec3 x2 = x0 - i2 + C.yyy;
+                vec3 x3 = x0 - D.yyy;
+                i = mod289(i);
+                vec4 p = permute( permute( permute( i.z + vec4(0.0, i1.z, i2.z, 1.0 )) + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+                float n_ = 0.142857142857;
+                vec3  ns = n_ * D.wyz - D.xzx;
+                vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+                vec4 x_ = floor(j * ns.z);
+                vec4 y_ = floor(j - 7.0 * x_ );
+                vec4 x = x_ *ns.x + ns.yyyy;
+                vec4 y = y_ *ns.x + ns.yyyy;
+                vec4 h = 1.0 - abs(x) - abs(y);
+                vec4 b0 = vec4( x.xy, y.xy );
+                vec4 b1 = vec4( x.zw, y.zw );
+                vec4 s0 = floor(b0)*2.0 + 1.0;
+                vec4 s1 = floor(b1)*2.0 + 1.0;
+                vec4 sh = -step(h, vec4(0.0));
+                vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+                vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+                vec3 p0 = vec3(a0.xy,h.x);
+                vec3 p1 = vec3(a0.zw,h.y);
+                vec3 p2 = vec3(a1.xy,h.z);
+                vec3 p3 = vec3(a1.zw,h.w);
+                vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+                vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                m = m * m;
+                return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
+            }
+        `;
 
-        function getGeometry(shapeName, isWire = false) {
-            const s = 1; // On n'utilise pas isWire pour l'UI, donc taille standard
-            switch (shapeName) {
-                case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
-                case 'box': return new THREE.BoxGeometry(0.08 * s, 0.08 * s, 0.08 * s);
-                case 'cone': return new THREE.ConeGeometry(0.05 * s, 0.1 * s, 16);
-                case 'icosahedron': return new THREE.IcosahedronGeometry(0.06 * s, 0);
-                case 'cylinder': return new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 0.1 * s, 16);
-                case 'sphere': return new THREE.SphereGeometry(0.05 * s, 32, 32);
-                case 'octahedron': default: return new THREE.OctahedronGeometry(0.06 * s, 0);
+        function createOrganicMaterial() {
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                metalness: 0.1, roughness: 0.15,
+                transmission: 0.95, ior: 1.5, // Rendu Verre
+                iridescence: 1.0, iridescenceIOR: 1.3, // Reflets chromatiques
+                transparent: true, opacity: 1.0
+            });
+            
+            // Injection du code shader
+            mat.onBeforeCompile = (shader) => {
+                shader.uniforms.uTime = customUniforms.uTime;
+                shader.vertexShader = `
+                    uniform float uTime;
+                    ${noiseGLSL}
+                    ${shader.vertexShader}
+                `.replace(
+                    `#include <begin_vertex>`,
+                    `#include <begin_vertex>
+                     // On déforme le vertex le long de sa normale en fonction du bruit 3D
+                     float noiseVal = snoise(position * 25.0 + uTime * 1.5);
+                     transformed += normal * noiseVal * 0.012; 
+                    `
+                );
+            };
+            return mat;
+        }
+
+        // Géométries en Haute Définition pour que la déformation soit lisse
+        function getGeometry(shapeName) {
+            const s = 1;
+            switch(shapeName) {
+                case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 8);
+                case 'box': return new THREE.BoxGeometry(0.08*s, 0.08*s, 0.08*s, 16, 16, 16);
+                case 'cone': return new THREE.ConeGeometry(0.05*s, 0.1*s, 32, 16);
+                case 'icosahedron': return new THREE.IcosahedronGeometry(0.06*s, 8);
+                case 'cylinder': return new THREE.CylinderGeometry(0.04*s, 0.04*s, 0.1*s, 32, 16);
+                case 'sphere': return new THREE.SphereGeometry(0.05*s, 64, 64);
+                case 'octahedron': default: return new THREE.OctahedronGeometry(0.06*s, 8);
             }
         }
 
         function initUI3D() {
-            const containerSize = 220;
+            const containerSize = 250;
             uiScene = new THREE.Scene();
             uiCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 10);
-            uiCamera.position.z = 0.25;
+            uiCamera.position.z = 0.35;
 
             uiRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             uiRenderer.setSize(containerSize, containerSize);
             uiRenderer.setPixelRatio(window.devicePixelRatio);
 
-            // Matériau Glassmorphism & Iridescence
-            const uiMaterial = new THREE.MeshPhysicalMaterial({
-                color: 0xffffff,
-                metalness: 0.3,
-                roughness: 0.15,
-                clearcoat: 1.0,
-                clearcoatRoughness: 0.1,
-                iridescence: 1.0,
-                iridescenceIOR: 1.5,
-                transparent: true,
-                opacity: 0.95
-            });
-
+            const uiMaterial = createOrganicMaterial();
             uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
             uiScene.add(uiMesh);
 
-            uiLight1 = new THREE.PointLight(0xffffff, 5, 10);
-            uiLight1.position.set(0.1, 0.1, 0.1);
-            uiScene.add(uiLight1);
-
-            uiLight2 = new THREE.PointLight(0xffffff, 5, 10);
-            uiLight2.position.set(-0.1, -0.1, 0.1);
-            uiScene.add(uiLight2);
-
-            // Animation loop indépendante de l'AR
+            // Lumière d'ambiance qui simule le dégradé du fond !
+            uiHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 3.5);
+            uiScene.add(uiHemiLight);
+            
             uiRenderer.setAnimationLoop(() => {
+                customUniforms.uTime.value += 0.01; // Avance le temps du fluide
                 uiMesh.rotation.y += 0.005;
                 uiMesh.rotation.x += 0.003;
                 uiRenderer.render(uiScene, uiCamera);
             });
         }
 
-        // Fonction pour attacher le canvas 3D au bon endroit
         function attachUI3D(containerId, profile) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
@@ -1058,10 +498,11 @@
 
             uiMesh.geometry.dispose();
             uiMesh.geometry = getGeometry(profile.shape);
-            uiMesh.scale.set(1.3, 1.3, 1.3); // Grossit l'objet pour la fiche
+            uiMesh.geometry.computeVertexNormals(); // Lisse la lumière
 
-            uiLight1.color.setStyle(profile.color1);
-            uiLight2.color.setStyle(profile.color2);
+            // La lumière prend les couleurs de l'artefact
+            uiHemiLight.color.setStyle(profile.color2);
+            uiHemiLight.groundColor.setStyle(profile.color1);
         }
 
         if (gameState.foundNodes.length >= 7 && !isSanctuaryView) {
@@ -1073,29 +514,29 @@
             overlay.style.display = 'flex';
             void overlay.offsetWidth;
             overlay.style.opacity = '1';
-
+            
             playUISound('apotheosis');
-
+            
             await new Promise(r => setTimeout(r, 2000));
 
             const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
-
+            
             for (let i = 0; i < words.length; i++) {
                 const el = document.createElement('div');
                 el.className = 'apo-word';
                 el.style.color = words[i].color;
                 el.innerText = words[i].text;
                 overlay.appendChild(el);
-
+                
                 void el.offsetWidth;
                 el.classList.add('show');
-
+                
                 await new Promise(r => setTimeout(r, 1800));
                 el.classList.remove('show');
                 await new Promise(r => setTimeout(r, 1000));
                 overlay.removeChild(el);
             }
-
+            
             await new Promise(r => setTimeout(r, 1000));
             overlay.style.opacity = '0';
             await new Promise(r => setTimeout(r, 2000));
@@ -1109,11 +550,11 @@
             const constelContainer = document.getElementById('constellation');
             const mapContainer = document.getElementById('memory-map');
             listContainer.innerHTML = '';
-
+            
             if (gameState.foundNodes.length > 0) {
                 constelContainer.style.display = 'none';
                 mapContainer.style.display = 'block';
-
+                
                 setTimeout(() => {
                     if (!mapInstance) {
                         mapInstance = L.map('memory-map', { zoomControl: false, attributionControl: false }).setView([gameState.foundNodes[0].lat, gameState.foundNodes[0].lon], 16);
@@ -1123,14 +564,14 @@
                     gameState.foundNodes.forEach((node) => {
                         const profile = ARTIFACTS_DATA.find(p => p.id === node.id);
                         latlngs.push([node.lat, node.lon]);
-                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColor, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
+                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColorLight, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
                     });
-                    if (latlngs.length > 1) { L.polyline(latlngs, { color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4' }).addTo(mapInstance); }
-                    if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), { padding: [20, 20] }); }
+                    if (latlngs.length > 1) { L.polyline(latlngs, {color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4'}).addTo(mapInstance); }
+                    if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), {padding: [20, 20]}); }
                 }, 100);
             } else {
                 constelContainer.innerHTML = '';
-                for (let i = 0; i < 7; i++) {
+                for(let i=0; i<7; i++) {
                     let star = document.createElement('div'); star.className = 'star'; constelContainer.appendChild(star);
                     if (i < 6) { let link = document.createElement('div'); link.className = 'star-link'; constelContainer.appendChild(link); }
                 }
@@ -1147,48 +588,47 @@
             ARTIFACTS_DATA.forEach((profile, index) => {
                 const isFound = gameState.foundNodes.find(n => n.id === index) !== undefined;
                 const slot = document.createElement('div');
-
+                
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
-
+                
                 let blobHtml = '';
-                if (isFound) {
+                if(isFound) {
                     let blobTop = Math.floor(Math.random() * 60) - 30;
                     let blobLeft = Math.floor(Math.random() * 80) - 20;
                     blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, ${profile.color2} 0%, ${profile.color1} 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
-
+                    
                     slot.addEventListener('click', () => {
                         playUISound('click');
                         document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
-
+                        
                         document.getElementById('review-art-name').innerText = profile.name;
                         document.getElementById('review-art-lore').innerText = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
                         document.getElementById('review-word').style.color = profile.cssColor;
-
+                        
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
-                        if (nodeData) {
+                        if(nodeData) {
                             document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
                         }
 
-                        document.getElementById('review-ui').style.backgroundColor = profile.cssColor.replace('1)', '0.15)');
                         document.getElementById('review-bg-blob1').style.background = profile.color1;
                         document.getElementById('review-bg-blob2').style.background = profile.color2;
-
-                        // Attache et met à jour l'objet 3D dans la vue Carnet
+                        
+                        // Attache l'Objet 3D Organique à la fiche du carnet
                         attachUI3D('review-3d-container', profile);
 
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
-
+                
                 let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
                         <div class="slot-title">REFLECTION ${index + 1}</div>
                         <div class="slot-name" style="${isFound ? 'opacity:1;' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
-                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'};">${isFound ? profile.word : ''}</div>
+                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'}; text-shadow: 0 0 10px ${wordColor.replace('1)', '0.5)')};">${isFound ? profile.word : ''}</div>
                     </div>
                 `;
                 listContainer.appendChild(slot);
@@ -1204,10 +644,10 @@
             document.getElementById('radar-ui').style.display = 'none';
             document.getElementById('threejs-radar-container').style.display = 'none';
             document.getElementById('dream-veil').style.display = 'none';
-
+            
             if (gameState.foundNodes.length >= 7 && !gameState.apotheosisPlayed) {
                 document.getElementById('sanctuary-ui').style.display = 'none';
-
+                
                 playApotheosisSequence().then(() => {
                     gameState.apotheosisPlayed = true;
                     localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
@@ -1240,23 +680,24 @@
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
-            // Ne pas confondre la scène AR (coreMesh, wireMesh) avec la scène UI (uiMesh)
-            let coreMesh, wireMesh;
+            let coreMesh;
 
             function setActiveProfile(profile) {
-                if (!profile) return;
+                if(!profile) return;
                 document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
                 document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
-
+                
                 if (shaderMaterial) updateRadarShader(profile);
 
-                if (coreMesh && wireMesh) {
-                    coreMesh.geometry.dispose(); wireMesh.geometry.dispose();
+                // Mise à jour de l'objet AR dans la pièce
+                if (coreMesh) {
+                    coreMesh.geometry.dispose();
                     coreMesh.geometry = getGeometry(profile.shape);
-                    coreMesh.material.color.setHex(profile.colorHex);
-                    coreMesh.material.emissive.setHex(profile.colorHex);
-                    wireMesh.geometry = getGeometry(profile.shape, true);
+                    coreMesh.geometry.computeVertexNormals();
+                    // On lui met la couleur claire en haut et foncé en bas !
+                    arHemiLight.color.setStyle(profile.color2);
+                    arHemiLight.groundColor.setStyle(profile.color1);
                 }
             }
 
@@ -1265,10 +706,10 @@
                 audioCtx = getAudioCtx();
                 startBtn.style.display = 'none'; recalcBtn.style.display = 'block';
                 document.getElementById('main-title').innerText = "Listen";
-
+                
                 dataStreamInterval = setInterval(() => {
                     let stream = ""; const chars = "01010011...";
-                    for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                    for(let i=0; i<8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
                     document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
                 }, 150);
 
@@ -1309,14 +750,14 @@
 
                 distanceDisplay.innerText = `${Math.round(currentDistance)} m`;
                 let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
-                if (shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
+                if(shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
                     statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
-
+                    
                     if (arBtn) {
                         arBtn.innerText = "Grasp the dream";
                         arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
@@ -1340,25 +781,25 @@
                 videoElement = document.createElement('video');
                 videoElement.setAttribute('playsinline', ''); videoElement.setAttribute('autoplay', ''); videoElement.setAttribute('muted', '');
                 videoElement.srcObject = stream; videoElement.play();
-
+                
                 radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
                 videoTexture = new THREE.VideoTexture(videoElement);
-
+                
                 updateRadarShader(activeProfile);
                 renderRadar();
             }
 
             function updateRadarShader(profile) {
-                if (!radarScene || !videoTexture) return;
-
-                while (radarScene.children.length > 0) {
+                if(!radarScene || !videoTexture) return;
+                
+                while(radarScene.children.length > 0){
                     let child = radarScene.children[0]; radarScene.remove(child);
-                    if (child.material) child.material.dispose(); if (child.geometry) child.geometry.dispose();
+                    if(child.material) child.material.dispose(); if(child.geometry) child.geometry.dispose();
                 }
-
+                
                 let uvMod = ""; let isSplit = false; let isBloom = false;
-                switch (profile.shaderMod) {
+                switch(profile.shaderMod) {
                     case "wobble": uvMod = "uv.x += sin(uv.y * 50.0 + time * 10.0) * 0.02 * intensity;"; break;
                     case "pixelate": uvMod = "if(intensity > 0.0) { float pixels = max(10.0, 100.0 - (intensity * 90.0)); uv = mix(uv, floor(uv * pixels) / pixels, smoothstep(0.0, 0.2, intensity)); }"; break;
                     case "split": isSplit = true; break;
@@ -1396,7 +837,7 @@
                 });
                 const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad);
             }
-
+            
             let clock = new THREE.Clock();
             function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
 
@@ -1404,11 +845,15 @@
             let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false;
             let xrState = 'search'; let spawnedArtifactMesh = null;
             const raycaster = new THREE.Raycaster();
+            let arHemiLight;
 
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-                scene.add(new THREE.HemisphereLight(0xffffff, 0x444466, 2));
-
+                
+                // Lumière AR Hémisphérique pour colorer l'objet flottant
+                arHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 3.0);
+                scene.add(arHemiLight);
+                
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
                 document.body.appendChild(renderer.domElement);
 
@@ -1418,22 +863,21 @@
                 renderer.xr.addEventListener('sessionstart', () => {
                     flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
                     arContainer.style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none';
-                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if (videoElement) videoElement.pause();
+                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
                     clearTimeout(radarTimeout); clearInterval(dataStreamInterval);
-                    if (radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
-
+                    if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
+                    
                     document.getElementById('xr-ui').style.display = 'block';
-
+                    
                     setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
                 });
 
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
-                const coreMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissiveIntensity: 0.4, transparent: true });
+                // Application du matériau Glassmorphism Déformé
+                const coreMat = createOrganicMaterial();
                 coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
-                const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 });
-                wireMesh = new THREE.Mesh(getGeometry('octahedron', true), wireMat);
-
-                artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
+                
+                artifactGroup.add(coreMesh);
 
                 controller = renderer.xr.getController(0);
                 controller.addEventListener('select', () => {
@@ -1441,7 +885,7 @@
                         spawnedArtifactMesh = artifactGroup.clone();
                         reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
                         scene.add(spawnedArtifactMesh);
-
+                        
                         xrState = 'revealed'; reticle.visible = false;
                         document.getElementById('xr-ui').innerText = "Reach out to assimilate it";
                         document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
@@ -1454,7 +898,7 @@
 
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
                             xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none';
-
+                            
                             playUISound('success');
 
                             if (!gameState.foundNodes.find(n => n.id === activeProfile.id)) {
@@ -1463,19 +907,19 @@
                             }
 
                             document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
-
+                            
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
                             document.getElementById('ui-art-lore').innerText = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
                             document.getElementById('ui-word').style.color = activeProfile.cssColor;
-
+                            
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(3)}, ${startLon.toFixed(3)}`;
 
                             document.getElementById('ui-bg-blob1').style.background = activeProfile.color1;
                             document.getElementById('ui-bg-blob2').style.background = activeProfile.color2;
-
-                            // Attache et met à jour l'objet 3D dans la vue AR Extraction
+                            
+                            // Attache l'Objet 3D Organique à la fiche d'Extraction !
                             attachUI3D('ui-3d-container', activeProfile);
 
                             document.getElementById('artifact-ui').style.display = 'flex';
@@ -1484,8 +928,8 @@
                     }
                 });
                 scene.add(controller);
-
-                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+                
+                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
                 reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
                 renderer.setAnimationLoop(renderXR);
             }
@@ -1510,11 +954,11 @@
                             if (isTargetSpawned) {
                                 let curr = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
                                 let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
-
+                                
                                 let projVec = hiddenTarget.clone().project(camera);
                                 let isBehind = projVec.z > 1;
                                 let glowColor = activeProfile.cssColor.replace('1)', '0.4)');
-
+                                
                                 if (projVec.x < -0.8 || (isBehind && projVec.x > 0)) {
                                     document.getElementById('glow-left').style.opacity = '1'; document.getElementById('glow-right').style.opacity = '0';
                                     document.getElementById('glow-left').style.background = `linear-gradient(to right, ${glowColor}, transparent)`;
@@ -1552,7 +996,15 @@
                         }
                     }
                 }
-                scene.traverse((obj) => { if (obj.name === 'artifact') { obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; obj.children[0].rotation.y += 0.01; obj.children[0].rotation.x += 0.005; obj.children[1].rotation.y -= 0.015; obj.children[1].rotation.x -= 0.008; obj.children[1].rotation.z += 0.005; } });
+                scene.traverse((obj) => {
+                    if (obj.name === 'artifact') {
+                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
+                        if(obj.children[0]) {
+                            obj.children[0].rotation.y += 0.01;
+                            obj.children[0].rotation.x += 0.005;
+                        }
+                    }
+                });
                 renderer.render(scene, camera);
             }
 
@@ -1577,22 +1029,20 @@
             }
 
             function calculateDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371e3; const p1 = lat1 * Math.PI / 180; const p2 = lat2 * Math.PI / 180;
-                const dp = (lat2 - lat1) * Math.PI / 180; const dl = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
-                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180;
+                const dp = (lat2-lat1) * Math.PI/180; const dl = (lon2-lon1) * Math.PI/180;
+                const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             }
 
             document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
             document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
 
             initXR();
-            initUI3D(); // Initialisation du moteur 3D d'Interface
         }
-
-        // Initialiser la 3D même si on est directement dans la vue Sanctuaire (pour les rechargements de page)
-        if (isSanctuaryView) { initUI3D(); }
+        
+        // Toujours initialiser le studio 3D UI au chargement
+        initUI3D();
     </script>
 </body>
-
 </html>
