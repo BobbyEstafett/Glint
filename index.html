@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Oneiric Wandering</title>
+    <title>GLINT - 3D Crystal Artifacts</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +28,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* GRAIN GLOBAL DE FOND */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
@@ -70,7 +69,7 @@
         .delay-1 { animation-delay: 0.3s; } .delay-2 { animation-delay: 0.6s; } .delay-3 { animation-delay: 0.9s; }
         @keyframes fadeInAnim { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT (AR ET CARNET) --- */
+        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT --- */
         .fs-fiche {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: var(--bg-night) !important;
@@ -112,7 +111,8 @@
             width: 250px; height: 250px;
             margin: 0 auto 10px auto;
             display: flex; justify-content: center; align-items: center;
-            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+            /* Une légère ombre pour le détacher du fond */
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6));
         }
 
         .fs-content h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 15px 0; color: #fff; text-align: center; }
@@ -337,7 +337,6 @@
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
-        // Utilitaire pour nettoyer les rgba() et retirer l'alpha pour Three.js
         function getRGB(rgbaString) {
             return rgbaString.replace(/rgba\((.*),\s*[\d.]+\)/, 'rgb($1)');
         }
@@ -380,15 +379,17 @@
 
         function createGlassMaterial() {
             return new THREE.MeshPhysicalMaterial({
-                color: 0xffffff, // Sera écrasé par colorHex dynamique
-                metalness: 0.1,
-                roughness: 0.15,
-                transmission: 0.95,
+                color: 0xffffff,
+                metalness: 0.2,
+                roughness: 0.05, // Presque lisse comme un miroir
+                transmission: 0.95, // Laisse passer la lumière pour l'effet verre
                 ior: 1.5,
                 iridescence: 1.0,
                 iridescenceIOR: 1.3,
                 transparent: true,
-                opacity: 1.0
+                opacity: 1.0,
+                clearcoat: 1.0, // Effet vernis hyper brillant ajouté !
+                clearcoatRoughness: 0.1
             });
         }
 
@@ -419,8 +420,19 @@
             uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
             uiScene.add(uiMesh);
 
-            uiHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 3.5);
+            // Lumière d'ambiance (Hémisphérique) : baissée pour ne pas "noyer" l'objet
+            uiHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1.5);
             uiScene.add(uiHemiLight);
+            
+            // NOUVEAU : Lumière Directionnelle (Studio Lighting) pour les reflets blancs
+            const uiDirLight = new THREE.DirectionalLight(0xffffff, 3.0);
+            uiDirLight.position.set(1, 1, 2);
+            uiScene.add(uiDirLight);
+            
+            // NOUVEAU : Lumière d'appoint pour détacher l'objet du fond
+            const uiBackLight = new THREE.PointLight(0xffffff, 2.0);
+            uiBackLight.position.set(-1, -1, -2);
+            uiScene.add(uiBackLight);
             
             uiRenderer.setAnimationLoop(() => {
                 uiMesh.rotation.y += 0.005;
@@ -438,10 +450,9 @@
             uiMesh.geometry = getGeometry(profile.shape);
             uiMesh.geometry.computeVertexNormals();
 
-            // Injection des couleurs avec suppression de l'alpha pour éviter l'erreur de console
+            // L'objet garde sa couleur, mais ne "luit" plus tout seul. C'est la lumière qui fait le travail !
             uiMesh.material.color.setHex(profile.colorHex);
-            uiMesh.material.emissive.setHex(profile.colorHex);
-            uiMesh.material.emissiveIntensity = 0.2; // Léger glow interne
+            uiMesh.material.emissive.setHex(0x000000);
 
             uiHemiLight.color.setStyle(getRGB(profile.color2));
             uiHemiLight.groundColor.setStyle(getRGB(profile.color1));
@@ -637,10 +648,9 @@
                     coreMesh.geometry = getGeometry(profile.shape);
                     coreMesh.geometry.computeVertexNormals();
                     
-                    // Correction couleurs de l'AR
+                    // La magie s'applique aussi en AR : pas d'émission, que du reflet !
                     coreMesh.material.color.setHex(profile.colorHex);
-                    coreMesh.material.emissive.setHex(profile.colorHex);
-                    coreMesh.material.emissiveIntensity = 0.2;
+                    coreMesh.material.emissive.setHex(0x000000);
                     
                     arHemiLight.color.setStyle(getRGB(profile.color2));
                     arHemiLight.groundColor.setStyle(getRGB(profile.color1));
@@ -795,8 +805,13 @@
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
                 
-                arHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 3.0);
+                // Éclairage AR avec contraste pour les volumes
+                arHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1.5);
                 scene.add(arHemiLight);
+                
+                const arDirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+                arDirLight.position.set(1, 2, 1);
+                scene.add(arDirLight);
                 
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
                 document.body.appendChild(renderer.domElement);
