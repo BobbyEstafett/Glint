@@ -347,7 +347,7 @@
             overflow: hidden;
         }
 
-        /* --- ANIMATIONS DES BLOBS PLEIN ECRAN --- */
+        /* L'arrière plan "Noisy Moving Gradient" de la fiche */
         .fs-blobs-container {
             position: absolute;
             top: 0;
@@ -365,41 +365,20 @@
             border-radius: 50%;
             opacity: 0.7;
             mix-blend-mode: screen;
+            animation: slowDrift 20s ease-in-out infinite alternate;
         }
 
-        .fs-blob.b1 {
-            animation: driftBlob1 15s ease-in-out infinite alternate;
-        }
-
-        .fs-blob.b2 {
-            animation: driftBlob2 20s ease-in-out infinite alternate;
-        }
-
-        @keyframes driftBlob1 {
+        @keyframes slowDrift {
             0% {
                 transform: translate(0, 0) scale(1);
             }
 
             50% {
-                transform: translate(15vw, 15vh) scale(1.2);
+                transform: translate(25vw, -20vh) scale(1.3);
             }
 
             100% {
-                transform: translate(-5vw, 10vh) scale(0.9);
-            }
-        }
-
-        @keyframes driftBlob2 {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            50% {
-                transform: translate(-20vw, -10vh) scale(1.1);
-            }
-
-            100% {
-                transform: translate(10vw, -20vh) scale(1.3);
+                transform: translate(-10vw, 15vh) scale(0.9);
             }
         }
 
@@ -684,7 +663,7 @@
             width: 280px;
             height: 280px;
             filter: blur(45px);
-            opacity: 0.7;
+            opacity: 0.8;
             z-index: 0;
             animation: morphCardBlob 12s linear infinite;
             mix-blend-mode: screen;
@@ -1191,7 +1170,7 @@
                 document.getElementById('main-title').innerText = "Listen";
 
                 dataStreamInterval = setInterval(() => {
-                    let stream = ""; const chars = "01010011...";
+                    let stream = ""; chars = "01010011...";
                     for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
                     document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
                 }, 150);
@@ -1409,8 +1388,11 @@
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(3)}, ${startLon.toFixed(3)}`;
 
+                            // Maj des Blobs de Fond Full Screen pour l'AR Extraction
                             document.getElementById('ui-bg-blob1').style.background = activeProfile.cssColor;
                             document.getElementById('ui-bg-blob2').style.background = `rgba(30, 40, 80, 0.8)`;
+
+                            // Maj du Blob Ethereal central
                             document.getElementById('ui-artefact-blob').style.background = `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, ${activeProfile.cssColor} 50%, rgba(0,0,0,0.3) 100%)`;
 
                             document.getElementById('artifact-ui').style.display = 'flex';
