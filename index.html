@@ -20,6 +20,7 @@
     <style>
         :root {
             --bg-night: #0b0d14;
+            /* Fond opaque très profond */
             --glass-bg: rgba(20, 25, 40, 0.45);
             --glass-border: rgba(255, 255, 255, 0.15);
             --text-title: #ffffff;
@@ -47,7 +48,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
             mix-blend-mode: overlay;
             z-index: 9999;
             pointer-events: none;
@@ -337,7 +338,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            /* La couleur de fond sera injectée en JS (Dominante assombrie) */
+            /* FOND 100% OPAQUE pour cacher le radar ou le carnet derrière */
             background-color: var(--bg-night);
             z-index: 3000;
             display: none;
@@ -346,7 +347,6 @@
             justify-content: center;
             box-sizing: border-box;
             overflow: hidden;
-            transition: background-color 1s ease;
         }
 
         /* L'arrière plan "Noisy Moving Gradient" de la fiche */
@@ -361,47 +361,63 @@
             pointer-events: none;
         }
 
+        /* Animation experte des blobs d'arrière-plan */
         .fs-blob {
             position: absolute;
-            filter: blur(90px);
-            border-radius: 50%;
-            opacity: 0.8;
+            filter: blur(70px);
+            opacity: 0.7;
             mix-blend-mode: screen;
         }
 
         .fs-blob.b1 {
-            animation: driftBlob1 15s ease-in-out infinite alternate;
+            animation: driftBlob1 25s linear infinite;
         }
 
         .fs-blob.b2 {
-            animation: driftBlob2 20s ease-in-out infinite alternate;
+            animation: driftBlob2 20s linear infinite reverse;
         }
 
         @keyframes driftBlob1 {
             0% {
-                transform: translate(0, 0) scale(1);
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(-10%, -10%) rotate(0deg) scale(1);
             }
 
-            50% {
-                transform: translate(15vw, 15vh) scale(1.3);
+            33% {
+                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+                transform: translate(20%, 15%) rotate(120deg) scale(1.3);
+            }
+
+            66% {
+                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
+                transform: translate(-15%, 20%) rotate(240deg) scale(0.9);
             }
 
             100% {
-                transform: translate(-10vw, 10vh) scale(0.9);
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(-10%, -10%) rotate(360deg) scale(1);
             }
         }
 
         @keyframes driftBlob2 {
             0% {
-                transform: translate(0, 0) scale(1);
+                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
+                transform: translate(10%, 10%) rotate(0deg) scale(1);
             }
 
-            50% {
-                transform: translate(-20vw, -10vh) scale(1.1);
+            33% {
+                border-radius: 30% 70% 70% 30% / 50% 40% 60% 50%;
+                transform: translate(-20%, -15%) rotate(120deg) scale(1.4);
+            }
+
+            66% {
+                border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%;
+                transform: translate(15%, -20%) rotate(240deg) scale(0.8);
             }
 
             100% {
-                transform: translate(15vw, -20vh) scale(1.4);
+                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
+                transform: translate(10%, 10%) rotate(360deg) scale(1);
             }
         }
 
@@ -417,11 +433,11 @@
 
         /* L'artefact mouvant au centre de la fiche */
         .fiche-ethereal-blob {
-            width: 180px;
-            height: 180px;
+            width: 170px;
+            height: 170px;
             margin: 0 auto 35px auto;
             border-radius: 45% 55% 65% 35% / 45% 45% 55% 55%;
-            /* Le dégradé sera mis à jour en JS avec la couleur claire et foncée */
+            /* Le gradient sera injecté en JS pour correspondre à l'artefact */
             box-shadow: inset 15px 15px 30px rgba(255, 255, 255, 0.6), inset -15px -15px 30px rgba(0, 0, 0, 0.4);
             animation: morphEthereal 10s linear infinite;
         }
@@ -626,7 +642,7 @@
             animation: fadeInAnim 3s forwards;
             text-wrap: balance;
             color: var(--text-title);
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
         }
 
         .sanctuary-list {
@@ -662,7 +678,7 @@
             gap: 6px;
         }
 
-        /* Les blobs internes aux cartes */
+        /* L'animation organique pour les petits blobs des cartes */
         @keyframes morphCardBlob {
             0% {
                 border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
@@ -824,10 +840,10 @@
 
     <div id="review-ui" class="fs-fiche">
         <div class="fs-blobs-container">
-            <div id="review-bg-blob1" class="fs-blob b1" style="width: 120vw; height: 120vw; top: -30%; left: -20%;">
+            <div id="review-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;">
             </div>
             <div id="review-bg-blob2" class="fs-blob b2"
-                style="width: 100vw; height: 100vw; bottom: -20%; right: -20%;"></div>
+                style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
         </div>
         <div class="fs-content">
             <div class="fiche-ethereal-blob" id="review-artefact-blob"></div>
@@ -847,8 +863,8 @@
 
     <div id="artifact-ui" class="fs-fiche">
         <div class="fs-blobs-container">
-            <div id="ui-bg-blob1" class="fs-blob b1" style="width: 120vw; height: 120vw; top: -30%; left: -20%;"></div>
-            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 100vw; height: 100vw; bottom: -20%; right: -20%;">
+            <div id="ui-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;"></div>
+            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;">
             </div>
         </div>
         <div class="fs-content">
@@ -963,15 +979,15 @@
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
-        // AJOUT : cssColorLight contient la teinte secondaire lumineuse/pastel pour créer le dégradé riche
+        // AJOUT : color1 et color2 pour les dégradés harmonieux et opaques
         const ARTIFACTS_DATA = [
-            { id: 0, colorHex: 0x8be9fd, cssColor: "rgba(139, 233, 253, 1)", cssColorLight: "rgba(224, 247, 250, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "The First Drop", word: "WE", lore: "«\u00A0A crystallized resonance of a forgotten future. The data still pulses with a phantom warmth.\u00A0»" },
-            { id: 1, colorHex: 0xffb86c, cssColor: "rgba(255, 184, 108, 1)", cssColorLight: "rgba(255, 218, 193, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Liquid Memory", word: "HAVE", lore: "«\u00A0A digital tear frozen in the stream. It holds the echo of a faceless laugh.\u00A0»" },
-            { id: 2, colorHex: 0x1e90ff, cssColor: "rgba(30, 144, 255, 1)", cssColorLight: "rgba(128, 199, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "The Weight of Absence", word: "FORGOTTEN", lore: "«\u00A0The silence between two data packets. An absence that weighs heavily on reality.\u00A0»" },
-            { id: 3, colorHex: 0xff79c6, cssColor: "rgba(255, 121, 198, 1)", cssColorLight: "rgba(255, 178, 230, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Ashen Vector", word: "HOW", lore: "«\u00A0A direction without a goal, engraved in obsidian. It points relentlessly into the void.\u00A0»" },
-            { id: 4, colorHex: 0x50fa7b, cssColor: "rgba(80, 250, 123, 1)", cssColorLight: "rgba(170, 255, 195, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Pulsating Core", word: "TO", lore: "«\u00A0The primordial beat of the source code. I compute, therefore I flee.\u00A0»" },
-            { id: 5, colorHex: 0xf1fa8c, cssColor: "rgba(241, 250, 140, 1)", cssColorLight: "rgba(252, 253, 227, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Dawn Prism", word: "BE", lore: "«\u00A0Light bends where data becomes flesh. The boundary begins to fade.\u00A0»" },
-            { id: 6, colorHex: 0xffffff, cssColor: "rgba(255, 255, 255, 1)", cssColorLight: "rgba(230, 230, 230, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "The Acceptance", word: "REAL", lore: "«\u00A0The endpoint of the flight. The moment the simulation finally surrenders.\u00A0»" }
+            { id: 0, colorHex: 0x8be9fd, color1: "rgba(10, 60, 150, 0.8)", color2: "rgba(139, 233, 253, 0.8)", cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "The First Drop", word: "WE", lore: "«\u00A0A crystallized resonance of a forgotten future. The data still pulses with a phantom warmth.\u00A0»" },
+            { id: 1, colorHex: 0xffb86c, color1: "rgba(150, 20, 50, 0.8)", color2: "rgba(255, 184, 108, 0.8)", cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Liquid Memory", word: "HAVE", lore: "«\u00A0A digital tear frozen in the stream. It holds the echo of a faceless laugh.\u00A0»" },
+            { id: 2, colorHex: 0x1e90ff, color1: "rgba(40, 10, 120, 0.8)", color2: "rgba(30, 144, 255, 0.8)", cssColor: "rgba(30, 144, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "The Weight of Absence", word: "FORGOTTEN", lore: "«\u00A0The silence between two data packets. An absence that weighs heavily on reality.\u00A0»" },
+            { id: 3, colorHex: 0xff79c6, color1: "rgba(80, 10, 100, 0.8)", color2: "rgba(255, 121, 198, 0.8)", cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Ashen Vector", word: "HOW", lore: "«\u00A0A direction without a goal, engraved in obsidian. It points relentlessly into the void.\u00A0»" },
+            { id: 4, colorHex: 0x50fa7b, color1: "rgba(10, 100, 100, 0.8)", color2: "rgba(80, 250, 123, 0.8)", cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Pulsating Core", word: "TO", lore: "«\u00A0The primordial beat of the source code. I compute, therefore I flee.\u00A0»" },
+            { id: 5, colorHex: 0xf1fa8c, color1: "rgba(180, 50, 120, 0.8)", color2: "rgba(241, 250, 140, 0.8)", cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Dawn Prism", word: "BE", lore: "«\u00A0Light bends where data becomes flesh. The boundary begins to fade.\u00A0»" },
+            { id: 6, colorHex: 0xffffff, color1: "rgba(100, 120, 150, 0.8)", color2: "rgba(255, 255, 255, 0.8)", cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "The Acceptance", word: "REAL", lore: "«\u00A0The endpoint of the flight. The moment the simulation finally surrenders.\u00A0»" }
         ];
 
         let rawState = localStorage.getItem('glint_save_v4');
@@ -1011,7 +1027,7 @@
 
             await new Promise(r => setTimeout(r, 2000));
 
-            const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColorLight }));
+            const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
 
             for (let i = 0; i < words.length; i++) {
                 const el = document.createElement('div');
@@ -1056,7 +1072,7 @@
                     gameState.foundNodes.forEach((node) => {
                         const profile = ARTIFACTS_DATA.find(p => p.id === node.id);
                         latlngs.push([node.lat, node.lon]);
-                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColorLight, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
+                        L.circleMarker([node.lat, node.lon], { radius: 6, color: profile.cssColor, fillColor: profile.cssColor, fillOpacity: 0.8, weight: 2 }).addTo(mapInstance);
                     });
                     if (latlngs.length > 1) { L.polyline(latlngs, { color: 'rgba(255,255,255,0.3)', weight: 2, dashArray: '4' }).addTo(mapInstance); }
                     if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), { padding: [20, 20] }); }
@@ -1087,8 +1103,8 @@
                 if (isFound) {
                     let blobTop = Math.floor(Math.random() * 60) - 30;
                     let blobLeft = Math.floor(Math.random() * 80) - 20;
-                    // Dégradé bicolore pour le blob de la carte
-                    blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, ${profile.cssColorLight} 0%, ${profile.cssColor} 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
+                    // Dégradé pour le blob de la carte
+                    blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, ${profile.color2} 0%, ${profile.color1} 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
 
                     slot.addEventListener('click', () => {
                         playUISound('click');
@@ -1097,7 +1113,7 @@
                         document.getElementById('review-art-name').innerText = profile.name;
                         document.getElementById('review-art-lore').innerText = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
-                        document.getElementById('review-word').style.color = profile.cssColorLight; // Mot de passe plus clair pour la lisibilité
+                        document.getElementById('review-word').style.color = profile.cssColor;
 
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
@@ -1105,21 +1121,18 @@
                             document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
                         }
 
-                        // Le fond plein écran adopte une teinte très sombre de la couleur
-                        document.getElementById('review-ui').style.backgroundColor = profile.cssColor.replace('1)', '0.15)');
-
-                        // Les deux blobs massifs utilisent les deux teintes
-                        document.getElementById('review-bg-blob1').style.background = profile.cssColor;
-                        document.getElementById('review-bg-blob2').style.background = profile.cssColorLight;
+                        // Les deux blobs massifs utilisent les deux teintes opaques
+                        document.getElementById('review-bg-blob1').style.background = profile.color1;
+                        document.getElementById('review-bg-blob2').style.background = profile.color2;
 
                         // L'Artefact central bénéficie du dégradé bicolore
-                        document.getElementById('review-artefact-blob').style.background = `linear-gradient(135deg, ${profile.cssColorLight} 0%, ${profile.cssColor} 50%, rgba(0,0,0,0.3) 100%)`;
+                        document.getElementById('review-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${profile.color2} 0%, ${profile.color1} 60%, #000 100%)`;
 
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
 
-                let wordColor = isFound ? profile.cssColorLight : '';
+                let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
@@ -1181,7 +1194,7 @@
 
             function setActiveProfile(profile) {
                 if (!profile) return;
-                document.documentElement.style.setProperty('--accent-pure', profile.cssColorLight); // Éclairage UI global sur le ton clair
+                document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
                 document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
 
@@ -1249,15 +1262,15 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColorLight;
+                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
 
                     if (arBtn) {
                         arBtn.innerText = "Grasp the dream";
                         arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
-                        arBtn.style.border = `1px solid ${activeProfile.cssColorLight}`;
-                        arBtn.style.color = activeProfile.cssColorLight;
+                        arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
+                        arBtn.style.color = activeProfile.cssColor;
 
                         if (!isFlashTriggered) {
                             arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([100, 50, 100]); }, { once: true });
@@ -1411,21 +1424,20 @@
                                 localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
                             }
 
-                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColorLight);
+                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
                             document.getElementById('ui-art-lore').innerText = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
-                            document.getElementById('ui-word').style.color = activeProfile.cssColorLight;
+                            document.getElementById('ui-word').style.color = activeProfile.cssColor;
 
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
                             document.getElementById('ui-gps').innerText = `${startLat.toFixed(3)}, ${startLon.toFixed(3)}`;
 
-                            document.getElementById('artifact-ui').style.backgroundColor = activeProfile.cssColor.replace('1)', '0.15)');
-                            document.getElementById('ui-bg-blob1').style.background = activeProfile.cssColor;
-                            document.getElementById('ui-bg-blob2').style.background = activeProfile.cssColorLight;
+                            document.getElementById('ui-bg-blob1').style.background = activeProfile.color1;
+                            document.getElementById('ui-bg-blob2').style.background = activeProfile.color2;
 
-                            document.getElementById('ui-artefact-blob').style.background = `linear-gradient(135deg, ${activeProfile.cssColorLight} 0%, ${activeProfile.cssColor} 50%, rgba(0,0,0,0.3) 100%)`;
+                            document.getElementById('ui-artefact-blob').style.background = `radial-gradient(circle at 30% 30%, ${activeProfile.color2} 0%, ${activeProfile.color1} 60%, #000 100%)`;
 
                             document.getElementById('artifact-ui').style.display = 'flex';
                             if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
@@ -1478,7 +1490,7 @@
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
                                     reticle.material.color.setHex(activeProfile.colorHex);
                                     reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColorLight;
+                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
                                     canExtract = true;
                                 }
                                 else if (dist < 1.2) {
