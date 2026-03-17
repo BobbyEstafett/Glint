@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Iridescent Crystal Artifacts</title>
+    <title>GLINT - Faceted Colored Gems</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -956,6 +956,7 @@
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
         function getRGB(rgbaString) {
+            if (!rgbaString) return 'rgb(255,255,255)';
             return rgbaString.replace(/rgba\((.*),\s*[\d.]+\)/, 'rgb($1)');
         }
 
@@ -993,22 +994,22 @@
         let activeProfile = ARTIFACTS_DATA[0];
 
         /* --- MOTEUR 3D "FACETED CRYSTAL" --- */
-        let uiScene, uiCamera, uiRenderer, uiMesh, uiHemiLight, uiDirLight, uiBackLight;
+        let uiScene, uiCamera, uiRenderer, uiMesh, uiHemiLight;
 
         function createGlassMaterial() {
             return new THREE.MeshPhysicalMaterial({
-                color: 0xffffff, // Base neutre pour laisser exploser la lumière
-                metalness: 0.4,  // Capte fortement la lumière
-                roughness: 0.05, // Lisse comme un miroir pour avoir des reflets nets
-                transmission: 0.9, // Rendu transparent/verre
-                ior: 1.8, // Indice de réfraction du cristal
-                iridescence: 1.0, // Effet chromatique arc-en-ciel
+                color: 0xffffff, // La base neutre sera tintée par le setHex juste en bas
+                metalness: 0.4,
+                roughness: 0.05,
+                transmission: 0.9,
+                ior: 1.8,
+                iridescence: 1.0,
                 iridescenceIOR: 2.2,
                 transparent: true,
                 opacity: 1.0,
-                clearcoat: 1.0, // Effet vernis hyper brillant
+                clearcoat: 1.0,
                 clearcoatRoughness: 0.0,
-                flatShading: true // FORCE LE RENDU DES FACETTES
+                flatShading: true // Maintient les arêtes franches
             });
         }
 
@@ -1020,7 +1021,7 @@
                 case 'cone': return new THREE.ConeGeometry(0.05 * s, 0.1 * s, 8);
                 case 'icosahedron': return new THREE.IcosahedronGeometry(0.06 * s, 0);
                 case 'cylinder': return new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 0.1 * s, 8);
-                case 'sphere': return new THREE.IcosahedronGeometry(0.05 * s, 2); // Pseudo-sphère facettée géométrique
+                case 'sphere': return new THREE.IcosahedronGeometry(0.05 * s, 2);
                 case 'octahedron': default: return new THREE.OctahedronGeometry(0.06 * s, 0);
             }
         }
@@ -1039,17 +1040,14 @@
             uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
             uiScene.add(uiMesh);
 
-            // Lumière d'ambiance qui injecte les couleurs
             uiHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 2.0);
             uiScene.add(uiHemiLight);
 
-            // SPOT BLANC PUISSANT pour claquer sur les facettes et donner le volume
-            uiDirLight = new THREE.DirectionalLight(0xffffff, 4.0);
+            const uiDirLight = new THREE.DirectionalLight(0xffffff, 4.0);
             uiDirLight.position.set(2, 2, 3);
             uiScene.add(uiDirLight);
 
-            // Lumière de dos purement esthétique (rebords lumineux)
-            uiBackLight = new THREE.PointLight(0xffffff, 3.0);
+            const uiBackLight = new THREE.PointLight(0xffffff, 3.0);
             uiBackLight.position.set(-2, 1, -2);
             uiScene.add(uiBackLight);
 
@@ -1068,11 +1066,9 @@
             uiMesh.geometry.dispose();
             uiMesh.geometry = getGeometry(profile.shape);
 
-            // On laisse l'objet en verre "blanc/neutre"
-            uiMesh.material.color.setHex(0xffffff);
-            uiMesh.material.emissive.setHex(0x000000);
+            // LA CORRECTION DE COULEUR EST ICI : l'artefact prend sa teinte dans la masse
+            uiMesh.material.color.setHex(profile.colorHex);
 
-            // C'est l'environnement lumineux qui colore la gemme de l'intérieur !
             uiHemiLight.color.setStyle(getRGB(profile.color2));
             uiHemiLight.groundColor.setStyle(getRGB(profile.color1));
         }
@@ -1174,15 +1170,17 @@
                         document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
 
                         document.getElementById('review-art-name').innerText = profile.name;
-                        document.getElementById('review-art-lore').innerText = profile.lore;
+                        document.getElementById('review-art-lore').innerHTML = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
                         document.getElementById('review-word').style.color = profile.cssColor;
 
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
-                        if (nodeData) {
-                            document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
-                        }
+
+                        // CORRECTION CRASH GPS ICI (Sécurisation des données de test de la console)
+                        let latVal = (nodeData && typeof nodeData.lat === 'number') ? nodeData.lat : 0;
+                        let lonVal = (nodeData && typeof nodeData.lon === 'number') ? nodeData.lon : 0;
+                        document.getElementById('review-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
 
                         document.getElementById('review-bg-blob1').style.background = profile.color1;
                         document.getElementById('review-bg-blob2').style.background = profile.color2;
@@ -1266,9 +1264,8 @@
                     coreMesh.geometry.dispose();
                     coreMesh.geometry = getGeometry(profile.shape);
 
-                    // Même matériau pur pour l'AR (Blanc neutre teinté par la lumière)
-                    coreMesh.material.color.setHex(0xffffff);
-                    coreMesh.material.emissive.setHex(0x000000);
+                    // La vraie couleur de l'artefact injectée dans l'AR
+                    coreMesh.material.color.setHex(profile.colorHex);
 
                     arHemiLight.color.setStyle(getRGB(profile.color2));
                     arHemiLight.groundColor.setStyle(getRGB(profile.color1));
@@ -1488,12 +1485,16 @@
                             document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
-                            document.getElementById('ui-art-lore').innerText = activeProfile.lore;
+                            document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
                             document.getElementById('ui-word').style.color = activeProfile.cssColor;
 
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
-                            document.getElementById('ui-gps').innerText = `${startLat.toFixed(3)}, ${startLon.toFixed(3)}`;
+
+                            // SECURISATION GPS ICI AUSSI 
+                            let latVal = startLat !== null ? startLat : 0;
+                            let lonVal = startLon !== null ? startLon : 0;
+                            document.getElementById('ui-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
 
                             document.getElementById('ui-bg-blob1').style.background = activeProfile.color1;
                             document.getElementById('ui-bg-blob2').style.background = activeProfile.color2;
