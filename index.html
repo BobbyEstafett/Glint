@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Faceted Colored Gems</title>
+    <title>GLINT - Holo Glass Artifacts</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -433,7 +433,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.8));
         }
 
         .fs-content h2 {
@@ -993,23 +993,23 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
-        /* --- MOTEUR 3D "FACETED CRYSTAL" --- */
-        let uiScene, uiCamera, uiRenderer, uiMesh, uiHemiLight;
+        /* --- MOTEUR 3D "HOLO GLASS" --- */
+        let uiScene, uiCamera, uiRenderer, uiMesh, uiLightA, uiLightB;
 
-        function createGlassMaterial() {
+        function createHoloGlassMaterial() {
             return new THREE.MeshPhysicalMaterial({
-                color: 0xffffff, // La base neutre sera tintée par le setHex juste en bas
-                metalness: 0.4,
+                color: 0x0a0a10, // Cœur sombre pour contraster avec les bords
+                emissive: 0x000000,
+                metalness: 0.1,
                 roughness: 0.05,
-                transmission: 0.9,
-                ior: 1.8,
+                transmission: 0.95, // Translucide
+                thickness: 0.5, // Ajoute de la réfraction interne (essentiel pour le look Holo)
+                ior: 2.0, // Indice de réfraction très fort
                 iridescence: 1.0,
-                iridescenceIOR: 2.2,
-                transparent: true,
-                opacity: 1.0,
+                iridescenceIOR: 1.5,
                 clearcoat: 1.0,
-                clearcoatRoughness: 0.0,
-                flatShading: true // Maintient les arêtes franches
+                clearcoatRoughness: 0.1,
+                flatShading: true
             });
         }
 
@@ -1036,20 +1036,22 @@
             uiRenderer.setSize(containerSize, containerSize);
             uiRenderer.setPixelRatio(window.devicePixelRatio);
 
-            const uiMaterial = createGlassMaterial();
+            const uiMaterial = createHoloGlassMaterial();
             uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
             uiScene.add(uiMesh);
 
-            uiHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 2.0);
-            uiScene.add(uiHemiLight);
+            // Lumières d'arêtes intenses (Neon Edge effect)
+            uiLightA = new THREE.PointLight(0xffffff, 15.0, 2);
+            uiLightA.position.set(0.1, 0.2, 0.1); // Proche pour accrocher les bords
+            uiScene.add(uiLightA);
 
-            const uiDirLight = new THREE.DirectionalLight(0xffffff, 4.0);
-            uiDirLight.position.set(2, 2, 3);
-            uiScene.add(uiDirLight);
+            uiLightB = new THREE.PointLight(0xffffff, 15.0, 2);
+            uiLightB.position.set(-0.1, -0.2, 0.1);
+            uiScene.add(uiLightB);
 
-            const uiBackLight = new THREE.PointLight(0xffffff, 3.0);
-            uiBackLight.position.set(-2, 1, -2);
-            uiScene.add(uiBackLight);
+            // Remplissage subtil global
+            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            uiScene.add(ambient);
 
             uiRenderer.setAnimationLoop(() => {
                 uiMesh.rotation.y += 0.005;
@@ -1066,11 +1068,9 @@
             uiMesh.geometry.dispose();
             uiMesh.geometry = getGeometry(profile.shape);
 
-            // LA CORRECTION DE COULEUR EST ICI : l'artefact prend sa teinte dans la masse
-            uiMesh.material.color.setHex(profile.colorHex);
-
-            uiHemiLight.color.setStyle(getRGB(profile.color2));
-            uiHemiLight.groundColor.setStyle(getRGB(profile.color1));
+            // On colore violemment les lumières avec les teintes du profil
+            uiLightA.color.setStyle(getRGB(profile.color2));
+            uiLightB.color.setStyle(getRGB(profile.color1));
         }
 
         if (gameState.foundNodes.length >= 7 && !isSanctuaryView) {
@@ -1177,7 +1177,6 @@
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
 
-                        // CORRECTION CRASH GPS ICI (Sécurisation des données de test de la console)
                         let latVal = (nodeData && typeof nodeData.lat === 'number') ? nodeData.lat : 0;
                         let lonVal = (nodeData && typeof nodeData.lon === 'number') ? nodeData.lon : 0;
                         document.getElementById('review-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
@@ -1249,8 +1248,7 @@
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
-            let coreMesh;
-            let arHemiLight;
+            let coreMesh, arLightA, arLightB;
 
             function setActiveProfile(profile) {
                 if (!profile) return;
@@ -1264,11 +1262,8 @@
                     coreMesh.geometry.dispose();
                     coreMesh.geometry = getGeometry(profile.shape);
 
-                    // La vraie couleur de l'artefact injectée dans l'AR
-                    coreMesh.material.color.setHex(profile.colorHex);
-
-                    arHemiLight.color.setStyle(getRGB(profile.color2));
-                    arHemiLight.groundColor.setStyle(getRGB(profile.color1));
+                    arLightA.color.setStyle(getRGB(profile.color2));
+                    arLightB.color.setStyle(getRGB(profile.color1));
                 }
             }
 
@@ -1420,16 +1415,17 @@
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
-                arHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 2.0);
-                scene.add(arHemiLight);
+                // Lumières "Néon" en AR
+                arLightA = new THREE.PointLight(0xffffff, 15.0, 2);
+                arLightA.position.set(0.1, 0.2, 0.1);
+                scene.add(arLightA);
 
-                const arDirLight = new THREE.DirectionalLight(0xffffff, 4.0);
-                arDirLight.position.set(2, 2, 3);
-                scene.add(arDirLight);
+                arLightB = new THREE.PointLight(0xffffff, 15.0, 2);
+                arLightB.position.set(-0.1, -0.2, 0.1);
+                scene.add(arLightB);
 
-                const arBackLight = new THREE.PointLight(0xffffff, 3.0);
-                arBackLight.position.set(-2, 1, -2);
-                scene.add(arBackLight);
+                const arAmbient = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(arAmbient);
 
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
                 document.body.appendChild(renderer.domElement);
@@ -1450,7 +1446,7 @@
                 });
 
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
-                const coreMat = createGlassMaterial();
+                const coreMat = createHoloGlassMaterial();
                 coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
 
                 artifactGroup.add(coreMesh);
@@ -1485,13 +1481,11 @@
                             document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
 
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
-                            document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
+                            document.getElementById('ui-art-lore').innerText = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
                             document.getElementById('ui-word').style.color = activeProfile.cssColor;
 
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
-
-                            // SECURISATION GPS ICI AUSSI 
                             let latVal = startLat !== null ? startLat : 0;
                             let lonVal = startLon !== null ? startLon : 0;
                             document.getElementById('ui-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
