@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - Oneiric Wandering</title>
+    <title>GLINT - Iridescent Crystal Artifacts</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -426,18 +426,16 @@
             align-items: center;
         }
 
-        /* Le conteneur du Canvas 3D de l'interface */
         .artifact-3d-canvas {
-            width: 220px;
-            height: 220px;
-            margin: 0 auto 20px auto;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 10px auto;
             display: flex;
             justify-content: center;
             align-items: center;
-            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
         }
 
-        /* Typographie Minimaliste & Éditoriale */
         .fs-content h2 {
             font-family: 'Playfair Display', serif;
             font-weight: 400;
@@ -825,7 +823,6 @@
         </div>
         <div class="fs-content">
             <div id="review-3d-container" class="artifact-3d-canvas"></div>
-
             <h2 id="review-art-name">NAME</h2>
             <p id="review-art-lore" class="artifact-lore">LORE</p>
             <hr class="clean-divider">
@@ -848,7 +845,6 @@
         </div>
         <div class="fs-content">
             <div id="ui-3d-container" class="artifact-3d-canvas fade-in-seq"></div>
-
             <h2 id="ui-art-name" class="fade-in-seq">MNEMONIC SHARD</h2>
             <p id="ui-art-lore" class="artifact-lore fade-in-seq delay-1"></p>
             <hr class="clean-divider fade-in-seq delay-2">
@@ -959,6 +955,10 @@
         window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
         function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
 
+        function getRGB(rgbaString) {
+            return rgbaString.replace(/rgba\((.*),\s*[\d.]+\)/, 'rgb($1)');
+        }
+
         const ARTIFACTS_DATA = [
             { id: 0, colorHex: 0x8be9fd, color1: "rgba(10, 60, 150, 0.8)", color2: "rgba(139, 233, 253, 0.8)", cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "The First Drop", word: "WE", lore: "«\u00A0A crystallized resonance of a forgotten future. The data still pulses with a phantom warmth.\u00A0»" },
             { id: 1, colorHex: 0xffb86c, color1: "rgba(150, 20, 50, 0.8)", color2: "rgba(255, 184, 108, 0.8)", cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Liquid Memory", word: "HAVE", lore: "«\u00A0A digital tear frozen in the stream. It holds the echo of a faceless laugh.\u00A0»" },
@@ -992,57 +992,67 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
-        /* --- NOUVEAU : LE MOTEUR 3D POUR LES FICHES D'INTERFACE --- */
-        let uiScene, uiCamera, uiRenderer, uiMesh, uiLight1, uiLight2;
+        /* --- MOTEUR 3D "FACETED CRYSTAL" --- */
+        let uiScene, uiCamera, uiRenderer, uiMesh, uiHemiLight, uiDirLight, uiBackLight;
 
-        function getGeometry(shapeName, isWire = false) {
-            const s = 1; // On n'utilise pas isWire pour l'UI, donc taille standard
+        function createGlassMaterial() {
+            return new THREE.MeshPhysicalMaterial({
+                color: 0xffffff, // Base neutre pour laisser exploser la lumière
+                metalness: 0.4,  // Capte fortement la lumière
+                roughness: 0.05, // Lisse comme un miroir pour avoir des reflets nets
+                transmission: 0.9, // Rendu transparent/verre
+                ior: 1.8, // Indice de réfraction du cristal
+                iridescence: 1.0, // Effet chromatique arc-en-ciel
+                iridescenceIOR: 2.2,
+                transparent: true,
+                opacity: 1.0,
+                clearcoat: 1.0, // Effet vernis hyper brillant
+                clearcoatRoughness: 0.0,
+                flatShading: true // FORCE LE RENDU DES FACETTES
+            });
+        }
+
+        function getGeometry(shapeName) {
+            const s = 1.2;
             switch (shapeName) {
                 case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
                 case 'box': return new THREE.BoxGeometry(0.08 * s, 0.08 * s, 0.08 * s);
-                case 'cone': return new THREE.ConeGeometry(0.05 * s, 0.1 * s, 16);
+                case 'cone': return new THREE.ConeGeometry(0.05 * s, 0.1 * s, 8);
                 case 'icosahedron': return new THREE.IcosahedronGeometry(0.06 * s, 0);
-                case 'cylinder': return new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 0.1 * s, 16);
-                case 'sphere': return new THREE.SphereGeometry(0.05 * s, 32, 32);
+                case 'cylinder': return new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 0.1 * s, 8);
+                case 'sphere': return new THREE.IcosahedronGeometry(0.05 * s, 2); // Pseudo-sphère facettée géométrique
                 case 'octahedron': default: return new THREE.OctahedronGeometry(0.06 * s, 0);
             }
         }
 
         function initUI3D() {
-            const containerSize = 220;
+            const containerSize = 250;
             uiScene = new THREE.Scene();
             uiCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 10);
-            uiCamera.position.z = 0.25;
+            uiCamera.position.z = 0.35;
 
             uiRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             uiRenderer.setSize(containerSize, containerSize);
             uiRenderer.setPixelRatio(window.devicePixelRatio);
 
-            // Matériau Glassmorphism & Iridescence
-            const uiMaterial = new THREE.MeshPhysicalMaterial({
-                color: 0xffffff,
-                metalness: 0.3,
-                roughness: 0.15,
-                clearcoat: 1.0,
-                clearcoatRoughness: 0.1,
-                iridescence: 1.0,
-                iridescenceIOR: 1.5,
-                transparent: true,
-                opacity: 0.95
-            });
-
+            const uiMaterial = createGlassMaterial();
             uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
             uiScene.add(uiMesh);
 
-            uiLight1 = new THREE.PointLight(0xffffff, 5, 10);
-            uiLight1.position.set(0.1, 0.1, 0.1);
-            uiScene.add(uiLight1);
+            // Lumière d'ambiance qui injecte les couleurs
+            uiHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 2.0);
+            uiScene.add(uiHemiLight);
 
-            uiLight2 = new THREE.PointLight(0xffffff, 5, 10);
-            uiLight2.position.set(-0.1, -0.1, 0.1);
-            uiScene.add(uiLight2);
+            // SPOT BLANC PUISSANT pour claquer sur les facettes et donner le volume
+            uiDirLight = new THREE.DirectionalLight(0xffffff, 4.0);
+            uiDirLight.position.set(2, 2, 3);
+            uiScene.add(uiDirLight);
 
-            // Animation loop indépendante de l'AR
+            // Lumière de dos purement esthétique (rebords lumineux)
+            uiBackLight = new THREE.PointLight(0xffffff, 3.0);
+            uiBackLight.position.set(-2, 1, -2);
+            uiScene.add(uiBackLight);
+
             uiRenderer.setAnimationLoop(() => {
                 uiMesh.rotation.y += 0.005;
                 uiMesh.rotation.x += 0.003;
@@ -1050,7 +1060,6 @@
             });
         }
 
-        // Fonction pour attacher le canvas 3D au bon endroit
         function attachUI3D(containerId, profile) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
@@ -1058,10 +1067,14 @@
 
             uiMesh.geometry.dispose();
             uiMesh.geometry = getGeometry(profile.shape);
-            uiMesh.scale.set(1.3, 1.3, 1.3); // Grossit l'objet pour la fiche
 
-            uiLight1.color.setStyle(profile.color1);
-            uiLight2.color.setStyle(profile.color2);
+            // On laisse l'objet en verre "blanc/neutre"
+            uiMesh.material.color.setHex(0xffffff);
+            uiMesh.material.emissive.setHex(0x000000);
+
+            // C'est l'environnement lumineux qui colore la gemme de l'intérieur !
+            uiHemiLight.color.setStyle(getRGB(profile.color2));
+            uiHemiLight.groundColor.setStyle(getRGB(profile.color1));
         }
 
         if (gameState.foundNodes.length >= 7 && !isSanctuaryView) {
@@ -1171,11 +1184,9 @@
                             document.getElementById('review-gps').innerText = `${nodeData.lat.toFixed(3)}, ${nodeData.lon.toFixed(3)}`;
                         }
 
-                        document.getElementById('review-ui').style.backgroundColor = profile.cssColor.replace('1)', '0.15)');
                         document.getElementById('review-bg-blob1').style.background = profile.color1;
                         document.getElementById('review-bg-blob2').style.background = profile.color2;
 
-                        // Attache et met à jour l'objet 3D dans la vue Carnet
                         attachUI3D('review-3d-container', profile);
 
                         document.getElementById('review-ui').style.display = 'flex';
@@ -1240,8 +1251,8 @@
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
-            // Ne pas confondre la scène AR (coreMesh, wireMesh) avec la scène UI (uiMesh)
-            let coreMesh, wireMesh;
+            let coreMesh;
+            let arHemiLight;
 
             function setActiveProfile(profile) {
                 if (!profile) return;
@@ -1251,12 +1262,16 @@
 
                 if (shaderMaterial) updateRadarShader(profile);
 
-                if (coreMesh && wireMesh) {
-                    coreMesh.geometry.dispose(); wireMesh.geometry.dispose();
+                if (coreMesh) {
+                    coreMesh.geometry.dispose();
                     coreMesh.geometry = getGeometry(profile.shape);
-                    coreMesh.material.color.setHex(profile.colorHex);
-                    coreMesh.material.emissive.setHex(profile.colorHex);
-                    wireMesh.geometry = getGeometry(profile.shape, true);
+
+                    // Même matériau pur pour l'AR (Blanc neutre teinté par la lumière)
+                    coreMesh.material.color.setHex(0xffffff);
+                    coreMesh.material.emissive.setHex(0x000000);
+
+                    arHemiLight.color.setStyle(getRGB(profile.color2));
+                    arHemiLight.groundColor.setStyle(getRGB(profile.color1));
                 }
             }
 
@@ -1407,7 +1422,17 @@
 
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-                scene.add(new THREE.HemisphereLight(0xffffff, 0x444466, 2));
+
+                arHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 2.0);
+                scene.add(arHemiLight);
+
+                const arDirLight = new THREE.DirectionalLight(0xffffff, 4.0);
+                arDirLight.position.set(2, 2, 3);
+                scene.add(arDirLight);
+
+                const arBackLight = new THREE.PointLight(0xffffff, 3.0);
+                arBackLight.position.set(-2, 1, -2);
+                scene.add(arBackLight);
 
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
                 document.body.appendChild(renderer.domElement);
@@ -1428,12 +1453,10 @@
                 });
 
                 const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
-                const coreMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.1, transmission: 0.9, ior: 1.5, emissiveIntensity: 0.4, transparent: true });
+                const coreMat = createGlassMaterial();
                 coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
-                const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.4 });
-                wireMesh = new THREE.Mesh(getGeometry('octahedron', true), wireMat);
 
-                artifactGroup.add(coreMesh); artifactGroup.add(wireMesh);
+                artifactGroup.add(coreMesh);
 
                 controller = renderer.xr.getController(0);
                 controller.addEventListener('select', () => {
@@ -1475,7 +1498,6 @@
                             document.getElementById('ui-bg-blob1').style.background = activeProfile.color1;
                             document.getElementById('ui-bg-blob2').style.background = activeProfile.color2;
 
-                            // Attache et met à jour l'objet 3D dans la vue AR Extraction
                             attachUI3D('ui-3d-container', activeProfile);
 
                             document.getElementById('artifact-ui').style.display = 'flex';
@@ -1552,7 +1574,15 @@
                         }
                     }
                 }
-                scene.traverse((obj) => { if (obj.name === 'artifact') { obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; obj.children[0].rotation.y += 0.01; obj.children[0].rotation.x += 0.005; obj.children[1].rotation.y -= 0.015; obj.children[1].rotation.x -= 0.008; obj.children[1].rotation.z += 0.005; } });
+                scene.traverse((obj) => {
+                    if (obj.name === 'artifact') {
+                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
+                        if (obj.children[0]) {
+                            obj.children[0].rotation.y += 0.01;
+                            obj.children[0].rotation.x += 0.005;
+                        }
+                    }
+                });
                 renderer.render(scene, camera);
             }
 
@@ -1587,11 +1617,9 @@
             document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
 
             initXR();
-            initUI3D(); // Initialisation du moteur 3D d'Interface
         }
 
-        // Initialiser la 3D même si on est directement dans la vue Sanctuaire (pour les rechargements de page)
-        if (isSanctuaryView) { initUI3D(); }
+        initUI3D();
     </script>
 </body>
 
