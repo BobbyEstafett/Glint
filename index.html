@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - 3D Crystal Artifacts</title>
+    <title>GLINT - Faceted Crystal Artifacts</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,7 +69,7 @@
         .delay-1 { animation-delay: 0.3s; } .delay-2 { animation-delay: 0.6s; } .delay-3 { animation-delay: 0.9s; }
         @keyframes fadeInAnim { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT --- */
+        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT (AR ET CARNET) --- */
         .fs-fiche {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: var(--bg-night) !important;
@@ -111,8 +111,7 @@
             width: 250px; height: 250px;
             margin: 0 auto 10px auto;
             display: flex; justify-content: center; align-items: center;
-            /* Une légère ombre pour le détacher du fond */
-            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6));
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
         }
 
         .fs-content h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 15px 0; color: #fff; text-align: center; }
@@ -374,35 +373,37 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
-        /* --- MOTEUR 3D "POLISHED GLASS" --- */
+        /* --- MOTEUR 3D "FACETED CRYSTAL" --- */
         let uiScene, uiCamera, uiRenderer, uiMesh, uiHemiLight;
 
         function createGlassMaterial() {
             return new THREE.MeshPhysicalMaterial({
                 color: 0xffffff,
                 metalness: 0.2,
-                roughness: 0.05, // Presque lisse comme un miroir
-                transmission: 0.95, // Laisse passer la lumière pour l'effet verre
+                roughness: 0.1,
+                transmission: 0.95,
                 ior: 1.5,
                 iridescence: 1.0,
                 iridescenceIOR: 1.3,
                 transparent: true,
                 opacity: 1.0,
-                clearcoat: 1.0, // Effet vernis hyper brillant ajouté !
-                clearcoatRoughness: 0.1
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.1,
+                flatShading: true // <-- LA MAGIE EST ICI : force le rendu facetté
             });
         }
 
+        // Géométries de base (non subdivisées) pour retrouver les formes pures
         function getGeometry(shapeName) {
             const s = 1;
             switch(shapeName) {
-                case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 8);
-                case 'box': return new THREE.BoxGeometry(0.08*s, 0.08*s, 0.08*s, 16, 16, 16);
-                case 'cone': return new THREE.ConeGeometry(0.05*s, 0.1*s, 32, 16);
-                case 'icosahedron': return new THREE.IcosahedronGeometry(0.06*s, 8);
-                case 'cylinder': return new THREE.CylinderGeometry(0.04*s, 0.04*s, 0.1*s, 32, 16);
-                case 'sphere': return new THREE.SphereGeometry(0.05*s, 64, 64);
-                case 'octahedron': default: return new THREE.OctahedronGeometry(0.06*s, 8);
+                case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
+                case 'box': return new THREE.BoxGeometry(0.08*s, 0.08*s, 0.08*s);
+                case 'cone': return new THREE.ConeGeometry(0.05*s, 0.1*s, 8); // 8 faces pour un cône cristal
+                case 'icosahedron': return new THREE.IcosahedronGeometry(0.06*s, 0);
+                case 'cylinder': return new THREE.CylinderGeometry(0.04*s, 0.04*s, 0.1*s, 8); // 8 faces pour un prisme
+                case 'sphere': return new THREE.IcosahedronGeometry(0.05*s, 2); // Pseudo-sphère facettée
+                case 'octahedron': default: return new THREE.OctahedronGeometry(0.06*s, 0);
             }
         }
 
@@ -420,16 +421,13 @@
             uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
             uiScene.add(uiMesh);
 
-            // Lumière d'ambiance (Hémisphérique) : baissée pour ne pas "noyer" l'objet
             uiHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1.5);
             uiScene.add(uiHemiLight);
             
-            // NOUVEAU : Lumière Directionnelle (Studio Lighting) pour les reflets blancs
             const uiDirLight = new THREE.DirectionalLight(0xffffff, 3.0);
             uiDirLight.position.set(1, 1, 2);
             uiScene.add(uiDirLight);
             
-            // NOUVEAU : Lumière d'appoint pour détacher l'objet du fond
             const uiBackLight = new THREE.PointLight(0xffffff, 2.0);
             uiBackLight.position.set(-1, -1, -2);
             uiScene.add(uiBackLight);
@@ -448,9 +446,8 @@
 
             uiMesh.geometry.dispose();
             uiMesh.geometry = getGeometry(profile.shape);
-            uiMesh.geometry.computeVertexNormals();
+            // ON A RETIRÉ `computeVertexNormals` pour garder les angles durs
 
-            // L'objet garde sa couleur, mais ne "luit" plus tout seul. C'est la lumière qui fait le travail !
             uiMesh.material.color.setHex(profile.colorHex);
             uiMesh.material.emissive.setHex(0x000000);
 
@@ -646,9 +643,8 @@
                 if (coreMesh) {
                     coreMesh.geometry.dispose();
                     coreMesh.geometry = getGeometry(profile.shape);
-                    coreMesh.geometry.computeVertexNormals();
+                    // Retiré computeVertexNormals pour l'AR aussi !
                     
-                    // La magie s'applique aussi en AR : pas d'émission, que du reflet !
                     coreMesh.material.color.setHex(profile.colorHex);
                     coreMesh.material.emissive.setHex(0x000000);
                     
@@ -805,7 +801,6 @@
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
                 
-                // Éclairage AR avec contraste pour les volumes
                 arHemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1.5);
                 scene.add(arHemiLight);
                 
