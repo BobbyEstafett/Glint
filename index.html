@@ -82,6 +82,8 @@
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
         }
 
         #threejs-radar-container {
@@ -154,6 +156,21 @@
             pointer-events: auto;
             box-sizing: border-box;
             transition: box-shadow 1s ease;
+        }
+
+        /* Conteneur pour les blobs à l'intérieur du panel Radar */
+        .panel-blobs {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.5;
+            mix-blend-mode: screen;
+            border-radius: 20px;
+            overflow: hidden;
         }
 
         .info-top {
@@ -804,7 +821,7 @@
             z-index: 6000;
         }
 
-        /* --- NOUVEAU : ONBOARDING SCÉNARISÉ --- */
+        /* --- ONBOARDING CLEAN (Sans Blobs mouvants pour éviter les glitches GPU) --- */
         #onboarding-ui {
             position: fixed;
             top: 0;
@@ -816,12 +833,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 2s ease;
-        }
-
-        #onboarding-ui .fs-blobs-container {
-            opacity: 0.8;
-            mix-blend-mode: screen;
+            transition: opacity 1.5s ease;
+            background: var(--bg-night);
         }
 
         .ob-content {
@@ -865,17 +878,7 @@
     <div id="flash-overlay"></div>
     <div id="apotheosis-overlay"></div>
 
-    <div id="onboarding-ui" class="fs-fiche">
-        <div class="fs-blobs-container">
-            <div class="fs-blob b1"
-                style="width: 150vw; height: 150vw; background: rgba(139, 233, 253, 0.4); top: -20%; left: -20%;"></div>
-            <div class="fs-blob b2"
-                style="width: 150vw; height: 150vw; background: rgba(255, 121, 198, 0.3); bottom: -20%; right: -20%;">
-            </div>
-            <div class="fs-blob b1"
-                style="width: 100vw; height: 100vw; background: rgba(255, 184, 108, 0.2); top: 30%; left: 10%; animation-duration: 35s;">
-            </div>
-        </div>
+    <div id="onboarding-ui">
         <div class="ob-content">
             <p id="ob-text" class="ob-text"></p>
             <button id="ob-btn" class="clean-btn ob-btn"></button>
@@ -931,17 +934,18 @@
     <div id="threejs-radar-container"></div>
     <div id="dream-veil"></div>
 
-    <div id="radar-blobs-container" class="fs-blobs-container"
-        style="z-index: 3; opacity: 0.35; mix-blend-mode: color-dodge;">
-        <div id="radar-blob1" class="fs-blob b1" style="width: 150vw; height: 150vw; top: -30%; left: -30%;"></div>
-        <div id="radar-blob2" class="fs-blob b2" style="width: 150vw; height: 150vw; bottom: -30%; right: -30%;"></div>
-    </div>
-
     <div id="glow-left" class="edge-glow"></div>
     <div id="glow-right" class="edge-glow"></div>
 
     <div id="radar-ui">
         <div class="info-box glass-panel" id="main-panel">
+            <div class="panel-blobs">
+                <div id="panel-blob1" class="fs-blob b1" style="width: 250px; height: 250px; top: -50px; left: -50px;">
+                </div>
+                <div id="panel-blob2" class="fs-blob b2"
+                    style="width: 250px; height: 250px; bottom: -50px; right: -50px;"></div>
+            </div>
+
             <div class="info-top">
                 <h1 class="main-title serif" id="main-title">Slumber</h1>
                 <p id="distance-display">---</p>
@@ -1312,7 +1316,6 @@
 
         document.getElementById('btn-back-radar').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
 
-        // RESET supprime la sauvegarde ET relance l'onboarding complet
         document.getElementById('btn-reset').addEventListener('click', () => {
             playUISound('action');
             localStorage.removeItem('glint_save_v4');
@@ -1336,8 +1339,105 @@
 
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
+            let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
+            let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false;
+            let xrState = 'search'; let spawnedArtifactMesh = null;
+            const raycaster = new THREE.Raycaster();
+
             let coreMesh;
             const arHoloUniforms = { color1: { value: new THREE.Color(0xffffff) }, color2: { value: new THREE.Color(0xffffff) } };
+
+            // INITIALISATION AR DEPLACÉE ICI (Avant de définir le profil)
+            function initXR() {
+                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
+                document.body.appendChild(renderer.domElement);
+
+                const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
+                arContainer.appendChild(arButton);
+
+                renderer.xr.addEventListener('sessionstart', () => {
+                    flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
+                    arContainer.style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none';
+                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if (videoElement) videoElement.pause();
+                    clearTimeout(radarTimeout); clearInterval(dataStreamInterval);
+                    if (radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
+
+                    document.getElementById('xr-ui').style.display = 'block';
+                    setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
+                });
+
+                const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
+
+                const coreMat = new THREE.ShaderMaterial({
+                    uniforms: arHoloUniforms,
+                    vertexShader: holoVertexShader,
+                    fragmentShader: holoFragmentShader,
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+
+                // Géométrie gérée dynamiquement par setActiveProfile ensuite
+                coreMesh = new THREE.Mesh(new THREE.BufferGeometry(), coreMat);
+                artifactGroup.add(coreMesh);
+
+                controller = renderer.xr.getController(0);
+                controller.addEventListener('select', () => {
+                    if (xrState === 'search' && reticle.visible && canExtract) {
+                        spawnedArtifactMesh = artifactGroup.clone();
+                        reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
+                        scene.add(spawnedArtifactMesh);
+
+                        xrState = 'revealed'; reticle.visible = false;
+                        document.getElementById('xr-ui').innerText = "Reach out to assimilate it";
+                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
+                        if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                    }
+                    else if (xrState === 'revealed') {
+                        const tempMatrix = new THREE.Matrix4().identity().extractRotation(controller.matrixWorld);
+                        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+                        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+
+                        if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
+                            xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none';
+
+                            playUISound('success');
+
+                            if (!gameState.foundNodes.find(n => n.id === activeProfile.id)) {
+                                gameState.foundNodes.push({ id: activeProfile.id, lat: startLat, lon: startLon });
+                                localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
+                            }
+
+                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
+
+                            document.getElementById('ui-art-name').innerText = activeProfile.name;
+                            document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
+                            document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
+                            document.getElementById('ui-word').style.color = activeProfile.cssColor;
+
+                            document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
+                            let latVal = startLat !== null ? startLat : 0;
+                            let lonVal = startLon !== null ? startLon : 0;
+                            document.getElementById('ui-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
+
+                            document.getElementById('ui-bg-blob1').style.background = `rgba(${activeProfile.color1.r * 255},${activeProfile.color1.g * 255},${activeProfile.color1.b * 255},0.8)`;
+                            document.getElementById('ui-bg-blob2').style.background = `rgba(${activeProfile.color2.r * 255},${activeProfile.color2.g * 255},${activeProfile.color2.b * 255},0.8)`;
+
+                            attachUI3D('ui-3d-container', activeProfile);
+
+                            document.getElementById('artifact-ui').style.display = 'flex';
+                            if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
+                        }
+                    }
+                });
+                scene.add(controller);
+
+                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+                reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
+                renderer.setAnimationLoop(renderXR);
+            }
 
             function setActiveProfile(profile) {
                 if (!profile) return;
@@ -1345,9 +1445,11 @@
                 document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
 
-                // Teinte de la lentille radar avec les blobs
-                document.getElementById('radar-blob1').style.background = `rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.25)`;
-                document.getElementById('radar-blob2').style.background = `rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.25)`;
+                // NOUVEAU : Blobs de la vitre du Panel
+                const pb1 = document.getElementById('panel-blob1');
+                const pb2 = document.getElementById('panel-blob2');
+                if (pb1) pb1.style.background = `rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.8)`;
+                if (pb2) pb2.style.background = `rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.8)`;
 
                 if (shaderMaterial) updateRadarShader(profile);
 
@@ -1358,6 +1460,9 @@
                     arHoloUniforms.color2.value.copy(profile.color2);
                 }
             }
+
+            // On initialise le système AR avant l'onboarding pour que la forme géométrique se charge bien
+            initXR();
 
             /* --- LORE ET ONBOARDING --- */
             async function runOnboarding() {
@@ -1372,7 +1477,6 @@
                 setActiveProfile(activeProfile);
 
                 if (gameState.onboardingDone) {
-                    // Bypass rapide si le joueur est déjà venu
                     obText.innerText = "L'errance n'est pas terminée.";
                     obText.style.opacity = '1';
                     obBtn.innerText = "REPRENDRE L'ERRANCE";
@@ -1380,16 +1484,31 @@
                     setTimeout(() => obBtn.style.opacity = '1', 100);
 
                     await new Promise(resolve => {
-                        obBtn.onclick = async () => {
+                        obBtn.onclick = () => {
                             playUISound('action');
                             audioCtx = getAudioCtx();
                             obText.style.opacity = '0'; obBtn.style.opacity = '0';
-                            await startGPSAndCamera();
+
+                            setTimeout(() => {
+                                obUI.style.display = 'none';
+                                const radarUI = document.getElementById('radar-ui');
+                                radarUI.style.opacity = '1';
+                                recalcBtn.style.display = 'block';
+                                document.getElementById('main-title').innerText = "Listen";
+                                statusDisplay.innerText = "Synchronisation du signal..."; // Feedback utilisateur
+                                dataStreamInterval = setInterval(() => {
+                                    let stream = ""; const chars = "01010011...";
+                                    for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                                    document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
+                                }, 150);
+                            }, 1000);
+
+                            // Lancement en arrière-plan sans bloquer l'UI
+                            startGPSAndCamera();
                             resolve();
                         };
                     });
                 } else {
-                    // L'expérience narrative complète
                     await sleep(1000);
                     obText.innerText = "Écoutez. Le monde est devenu silencieux.";
                     obText.style.opacity = '1';
@@ -1411,22 +1530,29 @@
                     await new Promise(resolve => {
                         obBtn.onclick = () => {
                             playUISound('click');
-                            audioCtx = getAudioCtx(); // Init audio au premier clic
+                            audioCtx = getAudioCtx();
+                            obText.innerText = "Recherche du signal GPS...";
+                            obBtn.style.opacity = '0';
+
                             navigator.geolocation.getCurrentPosition((pos) => {
                                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                                 generateTarget(startLat, startLon, spawnDistance);
                                 navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
                                 resolve();
-                            });
+                            }, (err) => {
+                                console.warn("GPS timeout/error", err);
+                                resolve(); // On passe quand même si l'utilisateur refuse pour ne pas le bloquer
+                            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
                         };
                     });
 
-                    obText.style.opacity = '0'; obBtn.style.opacity = '0';
+                    obText.style.opacity = '0'; obBtn.style.display = 'none';
                     await sleep(1500);
 
                     obText.innerText = "Les souvenirs de l'ancien monde se sont cristallisés.\nFaites de cet écran votre lentille.";
                     obText.style.opacity = '1';
                     obBtn.innerText = "OUVRIR LA LENTILLE";
+                    obBtn.style.display = 'flex';
                     setTimeout(() => obBtn.style.opacity = '1', 100);
 
                     await new Promise(resolve => {
@@ -1444,46 +1570,53 @@
                             } catch (err) { console.error("Camera error:", err); resolve(); }
                         };
                     });
+
+                    await sleep(1000);
+                    obUI.style.opacity = '0';
+                    await sleep(2000);
+                    obUI.style.display = 'none';
+
+                    const radarUI = document.getElementById('radar-ui');
+                    radarUI.style.opacity = '1';
+
+                    recalcBtn.style.display = 'block';
+                    document.getElementById('main-title').innerText = "Listen";
+
+                    dataStreamInterval = setInterval(() => {
+                        let stream = ""; const chars = "01010011...";
+                        for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                        document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
+                    }, 150);
                 }
-
-                // Transition vers le Radar
-                await sleep(1000);
-                obUI.style.opacity = '0';
-                await sleep(2000);
-                obUI.style.display = 'none';
-
-                const radarUI = document.getElementById('radar-ui');
-                radarUI.style.opacity = '1';
-
-                recalcBtn.style.display = 'block';
-                document.getElementById('main-title').innerText = "Listen";
-
-                dataStreamInterval = setInterval(() => {
-                    let stream = ""; const chars = "01010011...";
-                    for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
-                    document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
-                }, 150);
             }
 
-            async function startGPSAndCamera() {
-                return new Promise((resolve) => {
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
+            // Version parallèle rapide pour la reprise de l'errance
+            function startGPSAndCamera() {
+                let gpsDone = false; let camDone = false;
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                         generateTarget(startLat, startLon, spawnDistance);
                         navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
+                        gpsDone = true;
+                    },
+                    (err) => { console.warn("GPS Error", err); gpsDone = true; },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
 
-                        try {
-                            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                            initRadarShader(cameraStream);
-                            radarLoop();
-                        } catch (err) { console.error("Camera error:", err); }
-
-                        resolve();
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                    .then((stream) => {
+                        cameraStream = stream;
+                        initRadarShader(cameraStream);
+                        radarLoop();
+                        camDone = true;
+                    })
+                    .catch((err) => {
+                        console.error("Camera error:", err);
+                        camDone = true;
                     });
-                });
             }
 
-            // Lancement automatique du processus d'onboarding
             runOnboarding();
 
             recalcBtn.addEventListener('click', () => {
@@ -1593,102 +1726,6 @@
             let clock = new THREE.Clock();
             function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
 
-            let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
-            let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false;
-            let xrState = 'search'; let spawnedArtifactMesh = null;
-            const raycaster = new THREE.Raycaster();
-
-            function initXR() {
-                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
-                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
-                document.body.appendChild(renderer.domElement);
-
-                const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
-                arContainer.appendChild(arButton);
-
-                renderer.xr.addEventListener('sessionstart', () => {
-                    flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
-                    arContainer.style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none'; document.getElementById('radar-blobs-container').style.display = 'none';
-                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if (videoElement) videoElement.pause();
-                    clearTimeout(radarTimeout); clearInterval(dataStreamInterval);
-                    if (radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
-
-                    document.getElementById('xr-ui').style.display = 'block';
-
-                    setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
-                });
-
-                const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
-
-                const coreMat = new THREE.ShaderMaterial({
-                    uniforms: arHoloUniforms,
-                    vertexShader: holoVertexShader,
-                    fragmentShader: holoFragmentShader,
-                    transparent: true,
-                    blending: THREE.AdditiveBlending,
-                    depthWrite: false
-                });
-
-                coreMesh = new THREE.Mesh(getGeometry('octahedron'), coreMat);
-                artifactGroup.add(coreMesh);
-
-                controller = renderer.xr.getController(0);
-                controller.addEventListener('select', () => {
-                    if (xrState === 'search' && reticle.visible && canExtract) {
-                        spawnedArtifactMesh = artifactGroup.clone();
-                        reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
-                        scene.add(spawnedArtifactMesh);
-
-                        xrState = 'revealed'; reticle.visible = false;
-                        document.getElementById('xr-ui').innerText = "Reach out to assimilate it";
-                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
-                        if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-                    }
-                    else if (xrState === 'revealed') {
-                        const tempMatrix = new THREE.Matrix4().identity().extractRotation(controller.matrixWorld);
-                        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-                        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-
-                        if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
-                            xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none';
-
-                            playUISound('success');
-
-                            if (!gameState.foundNodes.find(n => n.id === activeProfile.id)) {
-                                gameState.foundNodes.push({ id: activeProfile.id, lat: startLat, lon: startLon });
-                                localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
-                            }
-
-                            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
-
-                            document.getElementById('ui-art-name').innerText = activeProfile.name;
-                            document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
-                            document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
-                            document.getElementById('ui-word').style.color = activeProfile.cssColor;
-
-                            document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
-                            let latVal = startLat !== null ? startLat : 0;
-                            let lonVal = startLon !== null ? startLon : 0;
-                            document.getElementById('ui-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
-
-                            document.getElementById('ui-bg-blob1').style.background = `rgba(${activeProfile.color1.r * 255},${activeProfile.color1.g * 255},${activeProfile.color1.b * 255},0.8)`;
-                            document.getElementById('ui-bg-blob2').style.background = `rgba(${activeProfile.color2.r * 255},${activeProfile.color2.g * 255},${activeProfile.color2.b * 255},0.8)`;
-
-                            attachUI3D('ui-3d-container', activeProfile);
-
-                            document.getElementById('artifact-ui').style.display = 'flex';
-                            if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
-                        }
-                    }
-                });
-                scene.add(controller);
-
-                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
-                reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
-                renderer.setAnimationLoop(renderXR);
-            }
-
             function renderXR(timestamp, frame) {
                 if (frame) {
                     const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
@@ -1790,10 +1827,6 @@
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             }
 
-            document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
-            document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
-
-            initXR();
         }
 
         initUI3D();
