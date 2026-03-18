@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GLINT - The Awakening</title>
+    <title>GLINT - The Great Slumber</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -557,7 +557,7 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* --- CARNET (SANCTUARY) --- */
+        /* --- THE SANCTUARY --- */
         #sanctuary-ui {
             position: fixed;
             top: 0;
@@ -928,7 +928,7 @@
         </div>
         <div class="fs-content">
             <div id="ui-3d-container" class="artifact-3d-canvas fade-in-seq"></div>
-            <h2 id="ui-art-name" class="fade-in-seq">MNEMONIC SHARD</h2>
+            <h2 id="ui-art-name" class="fade-in-seq">NAME</h2>
             <p id="ui-art-lore" class="artifact-lore fade-in-seq delay-1"></p>
             <hr class="clean-divider fade-in-seq delay-2">
             <div class="clean-stats fade-in-seq delay-2">
@@ -937,7 +937,7 @@
                 <p><span class="lbl">RESONANCE</span> <span class="val resonance" id="ui-word">"---"</span></p>
             </div>
             <div class="clean-btn-group fade-in-seq delay-3">
-                <button id="btn-inventory" class="clean-btn">OPEN THE JOURNAL</button>
+                <button id="btn-inventory" class="clean-btn">OPEN THE SANCTUARY</button>
                 <button id="btn-continue" class="clean-btn">CONTINUE WANDERING</button>
             </div>
         </div>
@@ -964,7 +964,7 @@
             </div>
             <div class="info-mid">
                 <div id="ar-container"></div>
-                <button id="recalc-btn">Recenter</button>
+                <button id="recalc-btn">RECALIBRATE</button>
             </div>
             <div class="info-bottom">
                 <div class="data-stream" id="data-stream">_</div>
@@ -972,22 +972,22 @@
         </div>
     </div>
 
-    <div id="xr-ui" class="glass-panel">Let your gaze wander...</div>
+    <div id="xr-ui" class="glass-panel">Seek the resonance around you...</div>
 
     <div id="sanctuary-ui">
         <div class="sanctuary-header">
-            <h2>JOURNAL</h2>
-            <p>Reconstructed thoughts</p>
+            <h2>THE SANCTUARY</h2>
+            <p>Reconstructed realities</p>
             <div id="constellation" class="constellation"></div>
             <div id="memory-map"></div>
         </div>
         <div class="sanctuary-list" id="sanctuary-list"></div>
         <div class="sanctuary-footer">
-            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">Close your eyes
-                (Return)</button>
+            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">CLOSE YOUR EYES
+                (RETURN)</button>
             <button id="btn-reset" class="clean-btn"
-                style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">Restart the
-                Wandering</button>
+                style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">SEVER THE LINK
+                (RESTART)</button>
         </div>
     </div>
 
@@ -1051,13 +1051,13 @@
         }
 
         const ARTIFACTS_DATA = [
-            { id: 0, colorHex: 0x8be9fd, color1: new THREE.Color(0x0a3c96), color2: new THREE.Color(0x8be9fd), cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "The First Drop", word: "WE", lore: "«\u00A0A crystallized resonance of a forgotten future. The data still pulses with a phantom warmth.\u00A0»" },
-            { id: 1, colorHex: 0xffb86c, color1: new THREE.Color(0x961432), color2: new THREE.Color(0xffb86c), cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Liquid Memory", word: "HAVE", lore: "«\u00A0A digital tear frozen in the stream. It holds the echo of a faceless laugh.\u00A0»" },
-            { id: 2, colorHex: 0x1e90ff, color1: new THREE.Color(0x280a78), color2: new THREE.Color(0x1e90ff), cssColor: "rgba(30, 144, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "The Weight of Absence", word: "FORGOTTEN", lore: "«\u00A0The silence between two data packets. An absence that weighs heavily on reality.\u00A0»" },
-            { id: 3, colorHex: 0xff79c6, color1: new THREE.Color(0x500a64), color2: new THREE.Color(0xff79c6), cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Ashen Vector", word: "HOW", lore: "«\u00A0A direction without a goal, engraved in obsidian. It points relentlessly into the void.\u00A0»" },
-            { id: 4, colorHex: 0x50fa7b, color1: new THREE.Color(0x0a6464), color2: new THREE.Color(0x50fa7b), cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Pulsating Core", word: "TO", lore: "«\u00A0The primordial beat of the source code. I compute, therefore I flee.\u00A0»" },
-            { id: 5, colorHex: 0xf1fa8c, color1: new THREE.Color(0xb43278), color2: new THREE.Color(0xf1fa8c), cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Dawn Prism", word: "BE", lore: "«\u00A0Light bends where data becomes flesh. The boundary begins to fade.\u00A0»" },
-            { id: 6, colorHex: 0xffffff, color1: new THREE.Color(0x647896), color2: new THREE.Color(0xffffff), cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "The Acceptance", word: "REAL", lore: "«\u00A0The endpoint of the flight. The moment the simulation finally surrenders.\u00A0»" }
+            { id: 0, colorHex: 0x8be9fd, color1: new THREE.Color(0x0a3c96), color2: new THREE.Color(0x8be9fd), cssColor: "rgba(139, 233, 253, 1)", shape: "octahedron", audioFreqs: [440, 493.88, 554.37, 659.25, 739.99], shaderMod: "water", name: "The First Drop", word: "WE", lore: "« A crystallized fragment of a waking mind. It still pulses with a phantom warmth. »" },
+            { id: 1, colorHex: 0xffb86c, color1: new THREE.Color(0x961432), color2: new THREE.Color(0xffb86c), cssColor: "rgba(255, 184, 108, 1)", shape: "tetrahedron", audioFreqs: [440, 466.16, 554.37, 587.33, 659.25], shaderMod: "wobble", name: "Liquid Memory", word: "HAVE", lore: "« A tear frozen within the Great Slumber. It holds the faint echo of a faceless laugh. »" },
+            { id: 2, colorHex: 0x1e90ff, color1: new THREE.Color(0x280a78), color2: new THREE.Color(0x1e90ff), cssColor: "rgba(30, 144, 255, 1)", shape: "box", audioFreqs: [440, 493.88, 554.37, 622.25, 698.46], shaderMod: "pixelate", name: "The Weight of Absence", word: "FORGOTTEN", lore: "« The silence between two dreams. An absence that weighs heavily on the illusion. »" },
+            { id: 3, colorHex: 0xff79c6, color1: new THREE.Color(0x500a64), color2: new THREE.Color(0xff79c6), cssColor: "rgba(255, 121, 198, 1)", shape: "cone", audioFreqs: [440, 493.88, 554.37, 622.25, 659.25], shaderMod: "split", name: "Ashen Vector", word: "HOW", lore: "« A direction without a destination, engraved in glass. It points relentlessly into the void. »" },
+            { id: 4, colorHex: 0x50fa7b, color1: new THREE.Color(0x0a6464), color2: new THREE.Color(0x50fa7b), cssColor: "rgba(80, 250, 123, 1)", shape: "icosahedron", audioFreqs: [440, 587.33, 659.25, 880, 1174.66], shaderMod: "pulse", name: "Pulsating Core", word: "TO", lore: "« The primordial beat of a waking heart. I dream, therefore I fade. »" },
+            { id: 5, colorHex: 0xf1fa8c, color1: new THREE.Color(0xb43278), color2: new THREE.Color(0xf1fa8c), cssColor: "rgba(241, 250, 140, 1)", shape: "cylinder", audioFreqs: [440, 554.37, 659.25, 880, 1108.73], shaderMod: "mirror", name: "Dawn Prism", word: "BE", lore: "« Light bends where the dream meets reality. The boundary begins to fracture. »" },
+            { id: 6, colorHex: 0xffffff, color1: new THREE.Color(0x647896), color2: new THREE.Color(0xffffff), cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "The Acceptance", word: "REAL", lore: "« The endpoint of the slumber. The moment the illusion finally surrenders. »" }
         ];
 
         let rawState = localStorage.getItem('glint_save_v4');
@@ -1082,7 +1082,7 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
-        /* --- MOTEUR 3D "HOLO GLASS" (UI et AR) --- */
+        /* --- MOTEUR 3D "HOLO GLASS" --- */
         let uiScene, uiCamera, uiRenderer, uiMesh;
 
         const holoVertexShader = `
@@ -1296,8 +1296,8 @@
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
-                        <div class="slot-title">REFLECTION ${index + 1}</div>
-                        <div class="slot-name" style="${isFound ? 'opacity:1;' : ''}">${isFound ? profile.name : 'Vanished thought'}</div>
+                        <div class="slot-title">SHARD ${index + 1}</div>
+                        <div class="slot-name" style="${isFound ? 'opacity:1;' : ''}">${isFound ? profile.name : 'Vanished memory'}</div>
                         <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1' : '0'};">${isFound ? profile.word : ''}</div>
                     </div>
                 `;
@@ -1326,16 +1326,14 @@
         }
 
         document.getElementById('btn-back-radar').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
+        document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
+        document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
 
         document.getElementById('btn-reset').addEventListener('click', () => {
             playUISound('action');
             localStorage.removeItem('glint_save_v4');
             navigateTo(window.location.pathname);
         });
-
-        // RE-Mise en place des écouteurs accidentellement supprimés !
-        document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
-        document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
 
         if (!isSanctuaryView && gameState.foundNodes.length < 7) {
             let targetLat = null, targetLon = null, startLat = null, startLon = null;
@@ -1393,7 +1391,6 @@
                     depthWrite: false
                 });
 
-                // Géométrie par défaut vide, remplacée dans setActiveProfile
                 coreMesh = new THREE.Mesh(new THREE.BufferGeometry(), coreMat);
                 artifactGroup.add(coreMesh);
 
@@ -1405,7 +1402,7 @@
                         scene.add(spawnedArtifactMesh);
 
                         xrState = 'revealed'; reticle.visible = false;
-                        document.getElementById('xr-ui').innerText = "Reach out to assimilate it";
+                        document.getElementById('xr-ui').innerText = "Reach out to assimilate the shard.";
                         document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                         if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
                     }
@@ -1474,7 +1471,7 @@
                 }
             }
 
-            initXR(); // Initialisation avant l'onboarding pour préparer la géométrie AR
+            initXR();
 
             /* --- LORE ET ONBOARDING OPTIMISÉ --- */
             async function runOnboarding() {
@@ -1489,9 +1486,9 @@
                 setActiveProfile(activeProfile);
 
                 if (gameState.onboardingDone) {
-                    obText.innerText = "L'errance n'est pas terminée.";
+                    obText.innerText = "The wandering is not over.";
                     obText.style.opacity = '1';
-                    obBtn.innerText = "REPRENDRE L'ERRANCE";
+                    obBtn.innerText = "RESUME WANDERING";
                     obBtn.style.display = 'flex';
                     setTimeout(() => obBtn.style.opacity = '1', 100);
 
@@ -1506,8 +1503,8 @@
                                 const radarUI = document.getElementById('radar-ui');
                                 radarUI.style.opacity = '1';
                                 recalcBtn.style.display = 'block';
-                                document.getElementById('main-title').innerText = "Listen";
-                                statusDisplay.innerText = "Synchronisation du signal...";
+                                document.getElementById('main-title').innerText = "Slumber";
+                                statusDisplay.innerText = "Synchronizing resonance...";
                                 dataStreamInterval = setInterval(() => {
                                     let stream = ""; const chars = "01010011...";
                                     for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -1521,20 +1518,20 @@
                     });
                 } else {
                     await sleep(1000);
-                    obText.innerText = "Écoutez. Le monde est devenu silencieux.";
+                    obText.innerText = "Listen. The world has grown silent.";
                     obText.style.opacity = '1';
                     await sleep(3500);
                     obText.style.opacity = '0';
                     await sleep(1500);
-                    obText.innerText = "Une illusion collective.\nUn grand Sommeil.";
+                    obText.innerText = "A collective illusion.\nThe Great Slumber.";
                     obText.style.opacity = '1';
                     await sleep(3500);
                     obText.style.opacity = '0';
                     await sleep(1500);
 
-                    obText.innerText = "Vous marchez dans un rêve qui s'effrite.\nPour vous guider, j'ai besoin d'ancrer votre position à ce qu'il reste de la terre ferme.";
+                    obText.innerText = "You are wandering through a crumbling dream.\nTo guide you, I must anchor your presence to what remains of the waking world.";
                     obText.style.opacity = '1';
-                    obBtn.innerText = "PLANTER L'ANCRE";
+                    obBtn.innerText = "DROP THE ANCHOR";
                     obBtn.style.display = 'flex';
                     setTimeout(() => obBtn.style.opacity = '1', 100);
 
@@ -1542,10 +1539,9 @@
                         obBtn.onclick = () => {
                             playUISound('click');
                             audioCtx = getAudioCtx();
-                            obText.innerText = "Recherche du signal GPS...";
+                            obText.innerText = "Seeking anchor point...";
                             obBtn.style.opacity = '0';
 
-                            // On ne bloque plus la suite sur l'attente du signal parfait
                             navigator.geolocation.getCurrentPosition((pos) => {
                                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                                 generateTarget(startLat, startLon, spawnDistance);
@@ -1558,9 +1554,9 @@
                     obText.style.opacity = '0'; obBtn.style.display = 'none';
                     await sleep(1500);
 
-                    obText.innerText = "Les souvenirs de l'ancien monde se sont cristallisés.\nFaites de cet écran votre lentille.";
+                    obText.innerText = "The memories of the true world have crystallized.\nMake this screen your Lens.";
                     obText.style.opacity = '1';
-                    obBtn.innerText = "OUVRIR LA LENTILLE";
+                    obBtn.innerText = "OPEN THE LENS";
                     obBtn.style.display = 'flex';
                     setTimeout(() => obBtn.style.opacity = '1', 100);
 
@@ -1589,7 +1585,7 @@
                     radarUI.style.opacity = '1';
 
                     recalcBtn.style.display = 'block';
-                    document.getElementById('main-title').innerText = "Listen";
+                    document.getElementById('main-title').innerText = "Slumber";
 
                     dataStreamInterval = setInterval(() => {
                         let stream = ""; const chars = "01010011...";
@@ -1642,12 +1638,12 @@
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
-                    statusDisplay.innerText = "Memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
+                    statusDisplay.innerText = "A memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
                     arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
 
                     if (arBtn) {
-                        arBtn.innerText = "Grasp the dream";
+                        arBtn.innerText = "GRASP THE SHARD";
                         arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
                         arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
                         arBtn.style.color = activeProfile.cssColor;
@@ -1658,7 +1654,7 @@
                         }
                     }
                 } else {
-                    statusDisplay.innerText = "Follow the thread..."; statusDisplay.style.color = "var(--text-body)";
+                    statusDisplay.innerText = "Follow the echo..."; statusDisplay.style.color = "var(--text-body)";
                     document.getElementById('main-panel').style.boxShadow = `0 8px 32px 0 rgba(0, 0, 0, 0.4)`;
                     arContainer.style.display = 'none'; recalcBtn.style.display = 'block';
                 }
@@ -1774,19 +1770,19 @@
                                 else if (dist < 1.2) {
                                     let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15;
                                     reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
-                                    document.getElementById('xr-ui').innerText = "The resonance fades..."; document.getElementById('xr-ui').style.color = "#b19cd9";
+                                    document.getElementById('xr-ui').innerText = "The resonance is fading..."; document.getElementById('xr-ui').style.color = "#b19cd9";
                                     canExtract = false;
                                 }
                                 else {
                                     let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05;
                                     reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(slowPulse, slowPulse, 1);
-                                    document.getElementById('xr-ui').innerText = "The echo is confused..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
+                                    document.getElementById('xr-ui').innerText = "The echo is distorted..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
                                     canExtract = false;
                                 }
                             }
                         } else {
                             reticle.visible = false;
-                            document.getElementById('xr-ui').innerText = "Search for the resonance around you...";
+                            document.getElementById('xr-ui').innerText = "Seek the resonance around you...";
                             document.getElementById('xr-ui').style.color = "var(--text-title)";
                         }
                     }
