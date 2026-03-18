@@ -158,7 +158,6 @@
             transition: box-shadow 1s ease;
         }
 
-        /* Conteneur optimisé pour les blobs à l'intérieur du panel Radar (aucun glitch) */
         .panel-blobs {
             position: absolute;
             top: 0;
@@ -834,7 +833,7 @@
             z-index: 6000;
         }
 
-        /* --- ONBOARDING CLEAN (Fond uni pour zéro glitch) --- */
+        /* --- ONBOARDING CLEAN (Fond uni) --- */
         #onboarding-ui {
             position: fixed;
             top: 0;
@@ -946,7 +945,6 @@
 
     <div id="threejs-radar-container"></div>
     <div id="dream-veil"></div>
-
     <div id="glow-left" class="edge-glow"></div>
     <div id="glow-right" class="edge-glow"></div>
 
@@ -1084,7 +1082,7 @@
 
         let activeProfile = ARTIFACTS_DATA[0];
 
-        /* --- MOTEUR 3D "HOLO GLASS" --- */
+        /* --- MOTEUR 3D "HOLO GLASS" (UI et AR) --- */
         let uiScene, uiCamera, uiRenderer, uiMesh;
 
         const holoVertexShader = `
@@ -1335,6 +1333,10 @@
             navigateTo(window.location.pathname);
         });
 
+        // RE-Mise en place des écouteurs accidentellement supprimés !
+        document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
+        document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
+
         if (!isSanctuaryView && gameState.foundNodes.length < 7) {
             let targetLat = null, targetLon = null, startLat = null, startLon = null;
             const spawnDistance = 2; const glitchStartDistance = 15; const extractionDistance = 5;
@@ -1391,6 +1393,7 @@
                     depthWrite: false
                 });
 
+                // Géométrie par défaut vide, remplacée dans setActiveProfile
                 coreMesh = new THREE.Mesh(new THREE.BufferGeometry(), coreMat);
                 artifactGroup.add(coreMesh);
 
@@ -1471,7 +1474,7 @@
                 }
             }
 
-            initXR();
+            initXR(); // Initialisation avant l'onboarding pour préparer la géométrie AR
 
             /* --- LORE ET ONBOARDING OPTIMISÉ --- */
             async function runOnboarding() {
@@ -1542,15 +1545,13 @@
                             obText.innerText = "Recherche du signal GPS...";
                             obBtn.style.opacity = '0';
 
+                            // On ne bloque plus la suite sur l'attente du signal parfait
                             navigator.geolocation.getCurrentPosition((pos) => {
                                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                                 generateTarget(startLat, startLon, spawnDistance);
                                 navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
-                                resolve();
-                            }, (err) => {
-                                console.warn("GPS error", err);
-                                resolve();
-                            }, { enableHighAccuracy: true });
+                            }, (err) => { console.warn("GPS Init skipped/error", err); }, { enableHighAccuracy: true });
+                            resolve();
                         };
                     });
 
