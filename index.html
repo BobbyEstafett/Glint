@@ -956,7 +956,6 @@
 </head>
 
 <body>
-
     <div id="transition-veil"></div>
     <div id="flash-overlay"></div>
     <div id="apotheosis-overlay"></div>
@@ -1419,35 +1418,38 @@
 
                 slots.forEach((slot) => {
                     const slotCenter = slot.offsetLeft + slot.offsetWidth / 2;
-                    const offset = slotCenter - containerCenter;
-                    const normalizedOffset = offset / slot.offsetWidth;
-                    const absOffset = Math.abs(normalizedOffset);
+                    const distance = slotCenter - containerCenter;
+                    const normalizedDistance = distance / slot.offsetWidth; // 0 au centre, 1 à droite, -1 à gauche
+                    const absDistance = Math.abs(normalizedDistance);
 
-                    let scale = 1 - absOffset * 0.15;
-                    if (scale < 0.6) scale = 0.6;
+                    // 1. ÉCHELLE : Courbe douce (Cubic)
+                    let scale = 1 - (Math.pow(absDistance, 1.5) * 0.2);
+                    scale = Math.max(scale, 0.7);
 
-                    // Empilement physique : on tire violemment les cartes latérales sous la carte active
-                    // Au lieu d'être espacées de 220px, elles ont un décalage visuel de ~70px
-                    let translateX = -normalizedOffset * 150;
+                    // 2. EMPILEMENT : Cartes très rapprochées (Stack)
+                    let overlap = normalizedDistance * -130;
 
-                    // Inclinaison Coverflow
-                    let rotateY = normalizedOffset * -45;
-                    if (rotateY > 60) rotateY = 60;
-                    if (rotateY < -60) rotateY = -60;
+                    // 3. ROTATION 3D : Éventail + bascule en arrière
+                    let rotateY = normalizedDistance * -35;
+                    let rotateX = absDistance * -5;
 
-                    let zIndex = 100 - Math.round(absOffset * 10);
+                    // 4. OPACITÉ
+                    let opacity = 1 - (absDistance * 0.6);
+                    opacity = Math.max(opacity, 0.2);
 
-                    // Opacité gérée dynamiquement par le JS
-                    let opacity = 1 - absOffset * 0.4;
-                    if (opacity < 0.2) opacity = 0.2;
+                    // 5. Z-INDEX : Précision absolue pour l'empilement
+                    let zIndex = Math.floor(100 - absDistance * 50);
 
                     // Applique les styles sans transition CSS pour un tracking 1:1 avec le doigt
-                    slot.style.transform = `perspective(1000px) translateX(${translateX}px) scale(${scale}) rotateY(${rotateY}deg)`;
+                    slot.style.transform = `perspective(1200px) translateX(${overlap}px) scale(${scale}) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
                     slot.style.zIndex = zIndex;
                     slot.style.opacity = opacity;
 
-                    if (absOffset < 0.3) {
-                        slot.classList.add('active-card');
+                    if (absDistance < 0.25) {
+                        if (!slot.classList.contains('active-card')) {
+                            slot.classList.add('active-card');
+                            if (navigator.vibrate) navigator.vibrate(2); // Micro-haptique
+                        }
                     } else {
                         slot.classList.remove('active-card');
                     }
