@@ -12,8 +12,10 @@
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         :root {
@@ -329,7 +331,36 @@
             transition: all 0.4s ease;
         }
 
-        /* --- STYLES FICHE ARTEFACT --- */
+        .fade-in-seq {
+            opacity: 0;
+            animation: fadeInAnim 1.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.6s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.9s;
+        }
+
+        @keyframes fadeInAnim {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT --- */
         .fs-fiche {
             position: absolute;
             top: 0;
@@ -522,7 +553,11 @@
             transition: background 0.3s;
         }
 
-        /* --- THE SANCTUARY --- */
+        .clean-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- THE SANCTUARY (CARTE V5 RÉTABLIE) --- */
         #sanctuary-ui {
             position: fixed;
             top: 0;
@@ -563,6 +598,7 @@
             margin-top: 5px;
         }
 
+        /* Map Container Standard */
         .map-wrapper {
             padding: 0 20px;
             margin-bottom: 20px;
@@ -584,6 +620,7 @@
             display: none !important;
         }
 
+        /* Nœuds et Constellation */
         .pulsing-node {
             width: 12px;
             height: 12px;
@@ -661,16 +698,19 @@
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
-        /* COVERFLOW STACK */
+        /* --- CARROUSEL COVERFLOW STACKÉ --- */
         .sanctuary-list {
             position: relative;
+            /* Référence absolue pour les calculs JS */
             flex: 1 1 auto;
             display: flex;
             flex-direction: row;
             gap: 0px;
+            /* Les cartes sont gérées par translateX */
             overflow-x: auto;
             overflow-y: hidden;
             padding: 20px calc(50vw - 110px);
+            /* 110px = moitié de la largeur d'une carte */
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
             align-items: center;
@@ -693,6 +733,8 @@
             overflow: hidden;
             backdrop-filter: blur(15px);
             scroll-snap-align: center;
+            /* ATTENTION: Ne PAS mettre de transition sur transform ou opacity ici pour éviter le lag JS */
+            transition: box-shadow 0.3s ease;
             will-change: transform, opacity, z-index;
         }
 
@@ -795,6 +837,17 @@
             flex-shrink: 0;
             margin-top: 10px;
             padding: 0 20px env(safe-area-inset-bottom, 10px) 20px;
+        }
+
+        #btn-back-radar {
+            border-color: transparent;
+        }
+
+        #btn-reset {
+            border-color: transparent;
+            opacity: 0.5;
+            font-size: 0.6rem;
+            margin-top: 10px;
         }
 
         /* --- DIVERS --- */
@@ -1018,7 +1071,6 @@
         import * as THREE from 'three';
         import { ARButton } from 'three/addons/webxr/ARButton.js';
 
-        // --- 1. CORE DATA & AUDIO ---
         let audioCtx = null;
         function getAudioCtx() {
             if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -1048,17 +1100,30 @@
                 const oscDrone = ctx.createOscillator(); const gainDrone = ctx.createGain();
                 oscDrone.type = 'sine'; oscDrone.frequency.value = 55;
                 oscDrone.connect(gainDrone); gainDrone.connect(ctx.destination);
-                gainDrone.gain.setValueAtTime(0, t); gainDrone.gain.linearRampToValueAtTime(0.3, t + 5); gainDrone.gain.exponentialRampToValueAtTime(0.001, t + 18);
+                gainDrone.gain.setValueAtTime(0, t);
+                gainDrone.gain.linearRampToValueAtTime(0.3, t + 5);
+                gainDrone.gain.exponentialRampToValueAtTime(0.001, t + 18);
                 oscDrone.start(t); oscDrone.stop(t + 18);
 
                 [440, 554.37, 659.25, 880].forEach((f, i) => {
                     const osc = ctx.createOscillator(); const g = ctx.createGain();
                     osc.type = 'triangle'; osc.frequency.value = f;
                     osc.connect(g); g.connect(ctx.destination);
-                    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05, t + 3 + (i * 1.5)); g.gain.exponentialRampToValueAtTime(0.001, t + 18);
+                    g.gain.setValueAtTime(0, t);
+                    g.gain.linearRampToValueAtTime(0.05, t + 3 + (i * 1.5));
+                    g.gain.exponentialRampToValueAtTime(0.001, t + 18);
                     osc.start(t); osc.stop(t + 18);
                 });
             }
+        }
+
+        window.addEventListener('load', () => { setTimeout(() => document.getElementById('transition-veil').style.opacity = '0', 200); });
+        function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1200); }
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        function getRGB(rgbaString) {
+            if (!rgbaString) return 'rgb(255,255,255)';
+            return rgbaString.replace(/rgba\((.*),\s*[\d.]+\)/, 'rgb($1)');
         }
 
         const ARTIFACTS_DATA = [
@@ -1071,24 +1136,68 @@
             { id: 6, colorHex: 0xffffff, color1: new THREE.Color(0x647896), color2: new THREE.Color(0xffffff), cssColor: "rgba(255, 255, 255, 1)", shape: "sphere", audioFreqs: [220, 440, 880, 1760, 3520], shaderMod: "bloom", name: "The Acceptance", word: "REAL", lore: "« The endpoint of the slumber. The moment the illusion finally surrenders. »" }
         ];
 
-        let gameState = JSON.parse(localStorage.getItem('glint_save_final')) || { foundNodes: [], onboardingDone: false, apotheosisPlayed: false };
+        let rawState = localStorage.getItem('glint_save_v4');
+        let gameState = rawState ? JSON.parse(rawState) : { foundNodes: [], apotheosisPlayed: false, onboardingDone: false };
+        if (!gameState || !Array.isArray(gameState.foundNodes)) {
+            gameState = { foundNodes: [], apotheosisPlayed: false, onboardingDone: false };
+            localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
 
         function pickRandomUnfound() {
-            let unfound = ARTIFACTS_DATA.filter(a => !gameState.foundNodes.find(n => n.id === a.id));
-            return unfound.length ? unfound[Math.floor(Math.random() * unfound.length)] : null;
+            let unfound = [];
+            for (let i = 0; i < 7; i++) {
+                if (!gameState.foundNodes.find(n => n.id === i)) unfound.push(i);
+            }
+            if (unfound.length === 0) return null;
+            let randomIndex = Math.floor(Math.random() * unfound.length);
+            return unfound[randomIndex];
         }
 
-        let activeProfile = pickRandomUnfound() || ARTIFACTS_DATA[0];
+        let activeProfile = ARTIFACTS_DATA[0];
 
-        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-        function navigateTo(url) { document.getElementById('transition-veil').style.opacity = '1'; setTimeout(() => window.location.href = url, 1000); }
-
-        // --- 2. 3D UI ENGINE (HOLOGRAM) ---
+        /* --- MOTEUR 3D "HOLO GLASS" --- */
         let uiScene, uiCamera, uiRenderer, uiMesh;
-        const holoVertex = `varying vec3 vNormal; varying vec3 vPos; void main() { vNormal = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vPos = -mv.xyz; gl_Position = projectionMatrix * mv; }`;
-        const holoFragment = `uniform vec3 color1; uniform vec3 color2; varying vec3 vNormal; varying vec3 vPos; void main() { vec3 view = normalize(vPos); float f = pow(1.0 - max(dot(view, vNormal), 0.0), 3.0); vec3 c = mix(vec3(0.05), mix(color1, color2, vNormal.y*0.5+0.5), f*1.5); gl_FragColor = vec4(c + vec3(1.0)*f*0.8, 0.9); }`;
+
+        const holoVertexShader = `
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vPosition = -mvPosition.xyz;
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+
+        const holoFragmentShader = `
+            uniform vec3 color1;
+            uniform vec3 color2;
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            
+            void main() {
+                vec3 viewDir = normalize(vPosition);
+                float fresnel = 1.0 - max(dot(viewDir, vNormal), 0.0);
+                float rimPower = pow(fresnel, 3.0);
+                float glowPower = pow(fresnel, 1.5);
+                
+                vec3 coreColor = vec3(0.05, 0.05, 0.08); 
+                vec3 edgeColor = mix(color1, color2, vNormal.y * 0.5 + 0.5); 
+                
+                vec3 finalColor = mix(coreColor, edgeColor, glowPower);
+                finalColor += vec3(1.0) * rimPower * 0.8;
+                
+                gl_FragColor = vec4(finalColor, 0.85 + (rimPower * 0.15));
+            }
+        `;
+
+        const holoUniforms = {
+            color1: { value: new THREE.Color(0x0a3c96) },
+            color2: { value: new THREE.Color(0x8be9fd) }
+        };
 
         function getGeometry(shapeName) {
             const s = 1.2;
@@ -1104,64 +1213,115 @@
         }
 
         function initUI3D() {
-            uiRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            uiRenderer.setSize(250, 250); uiRenderer.setPixelRatio(window.devicePixelRatio);
-            uiScene = new THREE.Scene(); uiCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 10); uiCamera.position.z = 0.35;
+            const containerSize = 250;
+            uiScene = new THREE.Scene();
+            uiCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 10);
+            uiCamera.position.z = 0.35;
 
-            const mat = new THREE.ShaderMaterial({
-                uniforms: { color1: { value: new THREE.Color() }, color2: { value: new THREE.Color() } },
-                vertexShader: holoVertex, fragmentShader: holoFragment, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+            uiRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            uiRenderer.setSize(containerSize, containerSize);
+            uiRenderer.setPixelRatio(window.devicePixelRatio);
+
+            const uiMaterial = new THREE.ShaderMaterial({
+                uniforms: holoUniforms,
+                vertexShader: holoVertexShader,
+                fragmentShader: holoFragmentShader,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
             });
-            uiMesh = new THREE.Mesh(getGeometry('octahedron'), mat); uiScene.add(uiMesh);
-            uiRenderer.setAnimationLoop(() => { uiMesh.rotation.y += 0.005; uiMesh.rotation.x += 0.003; uiRenderer.render(uiScene, uiCamera); });
+
+            uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
+            uiScene.add(uiMesh);
+
+            uiRenderer.setAnimationLoop(() => {
+                uiMesh.rotation.y += 0.005;
+                uiMesh.rotation.x += 0.003;
+                uiRenderer.render(uiScene, uiCamera);
+            });
         }
 
         function attachUI3D(containerId, profile) {
             const container = document.getElementById(containerId);
-            container.innerHTML = ''; container.appendChild(uiRenderer.domElement);
-            uiMesh.geometry.dispose(); uiMesh.geometry = getGeometry(profile.shape);
-            uiMesh.material.uniforms.color1.value.copy(profile.color1); uiMesh.material.uniforms.color2.value.copy(profile.color2);
+            container.innerHTML = '';
+            container.appendChild(uiRenderer.domElement);
+
+            uiMesh.geometry.dispose();
+            uiMesh.geometry = getGeometry(profile.shape);
+
+            holoUniforms.color1.value.copy(profile.color1);
+            holoUniforms.color2.value.copy(profile.color2);
+        }
+
+        if (gameState.foundNodes.length >= 7 && !isSanctuaryView && gameState.onboardingDone) {
+            navigateTo(window.location.pathname + '?view=sanctuary');
         }
 
         async function playApotheosisSequence() {
             const overlay = document.getElementById('apotheosis-overlay');
-            overlay.style.display = 'flex'; void overlay.offsetWidth; overlay.style.opacity = '1';
+            overlay.style.display = 'flex';
+            void overlay.offsetWidth;
+            overlay.style.opacity = '1';
+
             playUISound('apotheosis');
-            await sleep(2000);
+
+            await new Promise(r => setTimeout(r, 2000));
+
             const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
+
             for (let i = 0; i < words.length; i++) {
                 const el = document.createElement('div');
-                el.className = 'apo-word'; el.style.color = words[i].color; el.innerText = words[i].text;
-                overlay.appendChild(el); void el.offsetWidth; el.classList.add('show');
-                await sleep(1800); el.classList.remove('show'); await sleep(1000); overlay.removeChild(el);
+                el.className = 'apo-word';
+                el.style.color = words[i].color;
+                el.innerText = words[i].text;
+                overlay.appendChild(el);
+
+                void el.offsetWidth;
+                el.classList.add('show');
+
+                await new Promise(r => setTimeout(r, 1800));
+                el.classList.remove('show');
+                await new Promise(r => setTimeout(r, 1000));
+                overlay.removeChild(el);
             }
-            await sleep(1000); overlay.style.opacity = '0'; await sleep(2000); overlay.style.display = 'none';
+
+            await new Promise(r => setTimeout(r, 1000));
+            overlay.style.opacity = '0';
+            await new Promise(r => setTimeout(r, 2000));
+            overlay.style.display = 'none';
         }
 
-        // --- 3. SANCTUARY ENGINE (COVERFLOW & MAP) ---
         let mapInstance = null;
 
-        function buildSanctuary() {
+        function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
             const constelContainer = document.getElementById('constellation');
             const mapContainer = document.getElementById('memory-map');
             listContainer.innerHTML = '';
 
             if (gameState.foundNodes.length > 0) {
-                constelContainer.style.display = 'none'; mapContainer.style.display = 'block';
+                constelContainer.style.display = 'none';
+                mapContainer.style.display = 'block';
 
                 setTimeout(() => {
                     if (!mapInstance) {
                         mapInstance = L.map('memory-map', { zoomControl: false, attributionControl: false }).setView([gameState.foundNodes[0].lat, gameState.foundNodes[0].lon], 16);
                         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapInstance);
                     }
-                    mapInstance.invalidateSize(); // Fix map rendering
-                    mapInstance.eachLayer((layer) => { if (!!layer.toGeoJSON) mapInstance.removeLayer(layer); });
+
+                    // SÉCURITÉ : Recalcul de la taille de la map après l'affichage du display block
+                    mapInstance.invalidateSize();
+
+                    mapInstance.eachLayer((layer) => {
+                        if (!!layer.toGeoJSON) mapInstance.removeLayer(layer);
+                    });
+
                     let latlngs = [];
 
                     gameState.foundNodes.forEach((node) => {
                         const profile = ARTIFACTS_DATA.find(p => p.id === node.id);
                         latlngs.push([node.lat, node.lon]);
+
                         const pulsingIcon = L.divIcon({
                             className: 'pulsing-node',
                             html: `<div class="artifact-core" style="background:${profile.cssColor};"></div><div class="artifact-halo" style="background:${profile.cssColor};"></div>`,
@@ -1171,9 +1331,16 @@
                     });
 
                     if (latlngs.length > 1) {
-                        L.polyline(latlngs, { color: 'rgba(255, 215, 0, 0.4)', weight: 3, opacity: 0.6, lineJoin: 'round', smoothFactor: 1 }).addTo(mapInstance);
-                        mapInstance.fitBounds(L.polyline(latlngs).getBounds(), { padding: [20, 20] });
+                        L.polyline(latlngs, {
+                            color: 'rgba(255, 215, 0, 0.4)',
+                            weight: 3,
+                            opacity: 0.6,
+                            lineJoin: 'round',
+                            smoothFactor: 1
+                        }).addTo(mapInstance);
                     }
+
+                    if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), { padding: [20, 20] }); }
                 }, 100);
             } else {
                 constelContainer.innerHTML = '';
@@ -1194,27 +1361,36 @@
             ARTIFACTS_DATA.forEach((profile, index) => {
                 const isFound = gameState.foundNodes.find(n => n.id === index) !== undefined;
                 const slot = document.createElement('div');
+
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
 
                 let blobHtml = '';
                 if (isFound) {
-                    let blobTop = Math.floor(Math.random() * 60) - 30; let blobLeft = Math.floor(Math.random() * 80) - 20;
+                    let blobTop = Math.floor(Math.random() * 60) - 30;
+                    let blobLeft = Math.floor(Math.random() * 80) - 20;
                     blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.8) 0%, rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.8) 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
 
                     slot.addEventListener('click', () => {
+                        // SÉCURITÉ UX : Force le scroll si la carte n'est pas déjà au centre
                         if (!slot.classList.contains('active-card')) {
                             slot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                             return;
                         }
+
                         playUISound('click');
                         document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
+
                         document.getElementById('review-art-name').innerText = profile.name;
                         document.getElementById('review-art-lore').innerHTML = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
                         document.getElementById('review-word').style.color = profile.cssColor;
+
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
-                        document.getElementById('review-gps').innerText = `${(nodeData.lat || 0).toFixed(3)}, ${(nodeData.lon || 0).toFixed(3)}`;
+                        let latVal = (nodeData && typeof nodeData.lat === 'number') ? nodeData.lat : 0;
+                        let lonVal = (nodeData && typeof nodeData.lon === 'number') ? nodeData.lon : 0;
+                        document.getElementById('review-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
+
                         document.getElementById('review-bg-blob1').style.background = `rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.8)`;
                         document.getElementById('review-bg-blob2').style.background = `rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.8)`;
 
@@ -1235,280 +1411,495 @@
                 listContainer.appendChild(slot);
             });
 
-            // V9 Coverflow Math Logic
+            // MOTEUR SCROLL COVERFLOW (Calcul de l'empilement)
             const slots = listContainer.querySelectorAll('.fragment-slot');
-            function updateCoverflow() {
+
+            function updateActiveCard() {
                 const containerCenter = listContainer.scrollLeft + listContainer.clientWidth / 2;
+
                 slots.forEach((slot) => {
                     const slotCenter = slot.offsetLeft + slot.offsetWidth / 2;
-                    const distance = slotCenter - containerCenter;
-                    const normalizedDistance = distance / slot.offsetWidth;
-                    const absDistance = Math.abs(normalizedDistance);
+                    const offset = slotCenter - containerCenter;
+                    const normalizedOffset = offset / slot.offsetWidth;
+                    const absOffset = Math.abs(normalizedOffset);
 
-                    let scale = Math.max(1 - (Math.pow(absDistance, 1.5) * 0.2), 0.7);
-                    let overlap = normalizedDistance * -130;
-                    let rotateY = Math.max(-60, Math.min(60, normalizedDistance * -35));
-                    let rotateX = absDistance * -5;
-                    let opacity = Math.max(1 - (absDistance * 0.5), 0.2);
-                    let zIndex = Math.floor(100 - absDistance * 50);
+                    let scale = 1 - absOffset * 0.15;
+                    if (scale < 0.6) scale = 0.6;
 
-                    slot.style.transform = `perspective(1200px) translateX(${overlap}px) scale(${scale}) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
-                    slot.style.zIndex = zIndex; slot.style.opacity = opacity;
+                    // Empilement physique : on tire violemment les cartes latérales sous la carte active
+                    // Au lieu d'être espacées de 220px, elles ont un décalage visuel de ~70px
+                    let translateX = -normalizedOffset * 150;
 
-                    if (absDistance < 0.3) {
-                        if (!slot.classList.contains('active-card')) {
-                            slot.classList.add('active-card');
-                            if (navigator.vibrate) navigator.vibrate(2);
-                        }
-                    } else slot.classList.remove('active-card');
-                });
-            }
-            listContainer.addEventListener('scroll', updateCoverflow);
-            setTimeout(updateCoverflow, 100);
-        }
+                    // Inclinaison Coverflow
+                    let rotateY = normalizedOffset * -45;
+                    if (rotateY > 60) rotateY = 60;
+                    if (rotateY < -60) rotateY = -60;
 
-        // --- 4. UNIFIED RADAR, GPS & AR ENGINE ---
-        // Global variables (Single Source of Truth)
-        let userPos = null;
-        let targetPos = null;
-        const SPAWN_DIST = 15;
-        const GLITCH_DIST = 15;
-        const EXTRACT_DIST = 5;
+                    let zIndex = 100 - Math.round(absOffset * 10);
 
-        let radarRenderer, shaderMat, videoTex, radarTimeout, dataStreamInterval;
-        let xrScene, xrCamera, xrRenderer, xrReticle, xrController, hitSource = null, xrState = 'search';
-        let isTargetSpawned = false, hiddenTarget = new THREE.Vector3(), canExtract = false;
-        let crystalGroup, crystalMesh; // AR objects
+                    // Opacité gérée dynamiquement par le JS
+                    let opacity = 1 - absOffset * 0.4;
+                    if (opacity < 0.2) opacity = 0.2;
 
-        function calcDist(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; const p1 = lat1 * Math.PI / 180; const p2 = lat2 * Math.PI / 180;
-            const dp = (lat2 - lat1) * Math.PI / 180; const dl = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        }
+                    // Applique les styles sans transition CSS pour un tracking 1:1 avec le doigt
+                    slot.style.transform = `perspective(1000px) translateX(${translateX}px) scale(${scale}) rotateY(${rotateY}deg)`;
+                    slot.style.zIndex = zIndex;
+                    slot.style.opacity = opacity;
 
-        function generateTarget(lat, lon, distance) {
-            const R = 6371000; const angle = Math.random() * 2 * Math.PI;
-            targetPos = {
-                lat: lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI,
-                lon: lon + ((distance * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI
-            };
-        }
-
-        function updateRadarUI() {
-            if (!targetPos || !userPos) return;
-
-            // Stop UI updates if AR is presenting
-            if (xrRenderer && xrRenderer.xr && xrRenderer.xr.isPresenting) {
-                document.getElementById('ar-container').style.display = 'none';
-                return;
-            }
-
-            const dist = calcDist(userPos.lat, userPos.lon, targetPos.lat, targetPos.lon);
-            document.getElementById('distance-display').innerText = Math.round(dist) + " m";
-
-            let intensity = dist <= GLITCH_DIST ? 1 - (dist / GLITCH_DIST) : 0;
-            if (shaderMat) shaderMat.uniforms.intensity.value = intensity;
-
-            const arBtn = document.getElementById('ARButton');
-            if (dist < EXTRACT_DIST) {
-                document.getElementById('status-display').innerText = "MEMORY SURFACING...";
-                document.getElementById('status-display').style.color = activeProfile.cssColor;
-                document.getElementById('ar-container').style.display = 'block';
-                document.getElementById('recalc-btn').style.display = 'none';
-                document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
-
-                if (arBtn && !arBtn.dataset.styled) {
-                    arBtn.innerText = "GRASP THE SHARD";
-                    arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
-                    arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
-                    arBtn.style.color = activeProfile.cssColor;
-                    arBtn.dataset.styled = "true";
-                }
-            } else {
-                document.getElementById('status-display').innerText = "FOLLOW THE ECHO...";
-                document.getElementById('status-display').style.color = "var(--text-body)";
-                document.getElementById('ar-container').style.display = 'none';
-                document.getElementById('recalc-btn').style.display = 'block';
-                document.getElementById('main-panel').style.boxShadow = `0 8px 32px 0 rgba(0, 0, 0, 0.4)`;
-            }
-        }
-
-        function radarAudioLoop() {
-            clearTimeout(radarTimeout);
-            if (userPos && targetPos) {
-                const dist = calcDist(userPos.lat, userPos.lon, targetPos.lat, targetPos.lon);
-                let intensity = dist <= GLITCH_DIST ? 1 - (dist / GLITCH_DIST) : 0;
-
-                if (intensity > 0) {
-                    const ctx = getAudioCtx();
-                    if (ctx) {
-                        const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                        osc.type = 'sine'; osc.frequency.value = activeProfile.audioFreqs[Math.floor(Math.random() * activeProfile.audioFreqs.length)];
-                        osc.connect(gain); gain.connect(ctx.destination); osc.start();
-                        gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.15 * intensity, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
-                        osc.stop(ctx.currentTime + 1.5);
+                    if (absOffset < 0.3) {
+                        slot.classList.add('active-card');
+                    } else {
+                        slot.classList.remove('active-card');
                     }
-                }
-                let delay = intensity > 0 ? 200 + ((1 - intensity) * 1500) : 2000;
-                radarTimeout = setTimeout(radarAudioLoop, delay);
+                });
+            }
+
+            listContainer.addEventListener('scroll', updateActiveCard);
+            setTimeout(updateActiveCard, 100);
+        }
+
+        document.getElementById('btn-close-review').addEventListener('click', () => {
+            playUISound('transition');
+            document.getElementById('review-ui').style.display = 'none';
+        });
+
+        if (isSanctuaryView) {
+            if (gameState.foundNodes.length >= 7 && !gameState.apotheosisPlayed) {
+                document.getElementById('sanctuary-ui').style.display = 'none';
+                playApotheosisSequence().then(() => {
+                    gameState.apotheosisPlayed = true;
+                    localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
+                    buildSanctuaryList();
+                    document.getElementById('sanctuary-ui').style.display = 'flex';
+                });
             } else {
-                radarTimeout = setTimeout(radarAudioLoop, 2000);
+                buildSanctuaryList();
+                document.getElementById('sanctuary-ui').style.display = 'flex';
             }
         }
 
-        async function initRadarAndGPS() {
-            // Setup Camera & Shaders
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                const vid = document.createElement('video'); vid.setAttribute('playsinline', ''); vid.setAttribute('autoplay', ''); vid.setAttribute('muted', '');
-                vid.srcObject = stream; vid.play();
+        document.getElementById('btn-back-radar').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
 
-                const container = document.getElementById('threejs-radar-container');
-                radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight);
-                container.appendChild(radarRenderer.domElement);
-                videoTex = new THREE.VideoTexture(vid);
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            playUISound('action');
+            localStorage.removeItem('glint_save_v4');
+            navigateTo(window.location.pathname);
+        });
 
-                let uvMod = "uv += vec2(sin(uv.y * 15.0 + time * 1.5), cos(uv.x * 15.0 + time * 1.2)) * 0.015 * intensity;";
-                if (activeProfile.shaderMod === "pixelate") uvMod = "if(intensity > 0.0) { float pixels = max(10.0, 100.0 - (intensity * 90.0)); uv = mix(uv, floor(uv * pixels) / pixels, smoothstep(0.0, 0.2, intensity)); }";
+        document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
+        document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
 
-                let hex = activeProfile.colorHex; let rTint = ((hex >> 16) & 255) / 255; let gTint = ((hex >> 8) & 255) / 255; let bTint = (hex & 255) / 255;
+        if (!isSanctuaryView && gameState.foundNodes.length < 7) {
+            let targetLat = null, targetLon = null, startLat = null, startLon = null;
+            const spawnDistance = 2; const glitchStartDistance = 15; const extractionDistance = 5;
+            let currentDistance = 999; let radarTimeout, cameraStream = null, dataStreamInterval;
 
-                shaderMat = new THREE.ShaderMaterial({
-                    uniforms: { tDiffuse: { value: videoTex }, intensity: { value: 0 }, time: { value: 0 } },
-                    vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
-                    fragmentShader: `uniform sampler2D tDiffuse; uniform float intensity; uniform float time; varying vec2 vUv;
-                        void main() {
-                            vec2 uv = vUv; ${uvMod}
-                            vec3 c = texture2D(tDiffuse, uv).rgb; float lum = dot(c, vec3(0.299, 0.587, 0.114));
-                            vec3 dreamTint = vec3(${rTint}, ${gTint}, ${bTint}); 
-                            vec3 finalColor = mix(c, dreamTint * lum * 2.0, intensity * 0.8);
-                            gl_FragColor = vec4(finalColor, 1.0);
-                        }`
-                });
-                const rScene = new THREE.Scene(); rScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMat));
-                const rCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-                const clock = new THREE.Clock();
-                radarRenderer.setAnimationLoop(() => { shaderMat.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(rScene, rCam); });
-            } catch (e) { console.warn("Camera init failed", e); }
+            const recalcBtn = document.getElementById('recalc-btn');
+            const distanceDisplay = document.getElementById('distance-display'); const statusDisplay = document.getElementById('status-display');
+            const arContainer = document.getElementById('ar-container'); const flashOverlay = document.getElementById('flash-overlay');
 
-            // Setup GPS
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                    generateTarget(userPos.lat, userPos.lon, SPAWN_DIST);
-                    updateRadarUI();
-                    navigator.geolocation.watchPosition(p => {
-                        userPos = { lat: p.coords.latitude, lon: p.coords.longitude };
-                        updateRadarUI();
-                    }, null, { enableHighAccuracy: true });
-                },
-                (err) => { console.warn("GPS Error", err); },
-                { enableHighAccuracy: true }
-            );
+            function generateTarget(lat, lon, distance) {
+                const R = 6371000; const angle = Math.random() * 2 * Math.PI;
+                targetLat = lat + ((distance * Math.cos(angle)) / R) * 180 / Math.PI;
+                targetLon = lon + ((distance * Math.sin(angle)) / (R * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI;
+            }
 
-            radarAudioLoop();
-            initWebXR();
-        }
-
-        function initWebXR() {
-            xrScene = new THREE.Scene(); xrCamera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-            xrRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); xrRenderer.setPixelRatio(window.devicePixelRatio); xrRenderer.setSize(window.innerWidth, window.innerHeight); xrRenderer.xr.enabled = true;
-            document.body.appendChild(xrRenderer.domElement);
-
-            const arButton = ARButton.createButton(xrRenderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
-            document.getElementById('ar-container').appendChild(arButton);
-
-            xrRenderer.xr.addEventListener('sessionstart', () => {
-                document.getElementById('flash-overlay').style.transition = 'none'; document.getElementById('flash-overlay').style.opacity = '1';
-                document.getElementById('ar-container').style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none';
-                document.getElementById('xr-ui').style.display = 'block';
-                setTimeout(() => { document.getElementById('flash-overlay').style.transition = 'opacity 1.5s ease-in-out'; document.getElementById('flash-overlay').style.opacity = '0'; }, 50);
-            });
-
-            xrRenderer.xr.addEventListener('sessionend', () => {
-                hitSource = null; document.getElementById('ar-container').style.display = 'block';
-                if (xrState !== 'recovered') location.reload();
-            });
-
-            crystalGroup = new THREE.Group();
-            const coreMat = new THREE.ShaderMaterial({ uniforms: { color1: { value: activeProfile.color1 }, color2: { value: activeProfile.color2 } }, vertexShader: holoVertex, fragmentShader: holoFragment, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
-            crystalMesh = new THREE.Mesh(getGeometry(activeProfile.shape), coreMat);
-            crystalGroup.add(crystalMesh);
-
-            xrController = xrRenderer.xr.getController(0);
+            let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
+            let isFlashTriggered = false;
+            let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
+            let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false;
+            let xrState = 'search'; let spawnedArtifactMesh = null;
             const raycaster = new THREE.Raycaster();
 
-            xrController.addEventListener('select', () => {
-                if (xrState === 'search' && xrReticle.visible && canExtract) {
-                    crystalGroup.position.setFromMatrixPosition(xrReticle.matrix);
-                    xrScene.add(crystalGroup);
-                    xrState = 'revealed'; xrReticle.visible = false;
-                    document.getElementById('xr-ui').innerText = "Reach out to assimilate the shard.";
-                    document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
-                    if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-                }
-                else if (xrState === 'revealed') {
-                    const tempMatrix = new THREE.Matrix4().identity().extractRotation(xrController.matrixWorld);
-                    raycaster.ray.origin.setFromMatrixPosition(xrController.matrixWorld);
-                    raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+            let coreMesh;
+            const arHoloUniforms = { color1: { value: new THREE.Color(0xffffff) }, color2: { value: new THREE.Color(0xffffff) } };
 
-                    if (raycaster.intersectObject(crystalMesh, true).length > 0) {
-                        xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none';
-                        playUISound('success');
-                        document.getElementById('flash-overlay').style.transition = 'opacity 0.6s ease-out';
-                        document.getElementById('flash-overlay').style.opacity = '1';
+            function initXR() {
+                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
-                        setTimeout(() => {
-                            gameState.foundNodes.push({ id: activeProfile.id, lat: userPos.lat, lon: userPos.lon });
-                            localStorage.setItem('glint_save_final', JSON.stringify(gameState));
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
+                document.body.appendChild(renderer.domElement);
+
+                const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.body } });
+                arContainer.appendChild(arButton);
+
+                renderer.xr.addEventListener('sessionstart', () => {
+                    flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
+                    arContainer.style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none';
+                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if (videoElement) videoElement.pause();
+                    clearTimeout(radarTimeout); clearInterval(dataStreamInterval);
+                    if (radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
+
+                    document.getElementById('xr-ui').style.display = 'block';
+                    setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
+                });
+
+                const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
+
+                const coreMat = new THREE.ShaderMaterial({
+                    uniforms: arHoloUniforms,
+                    vertexShader: holoVertexShader,
+                    fragmentShader: holoFragmentShader,
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+
+                coreMesh = new THREE.Mesh(new THREE.BufferGeometry(), coreMat);
+                artifactGroup.add(coreMesh);
+
+                controller = renderer.xr.getController(0);
+                controller.addEventListener('select', () => {
+                    if (xrState === 'search' && reticle.visible && canExtract) {
+                        spawnedArtifactMesh = artifactGroup.clone();
+                        reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
+                        scene.add(spawnedArtifactMesh);
+
+                        xrState = 'revealed'; reticle.visible = false;
+                        document.getElementById('xr-ui').innerText = "Reach out to assimilate the shard.";
+                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
+                        if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                    }
+                    else if (xrState === 'revealed') {
+                        const tempMatrix = new THREE.Matrix4().identity().extractRotation(controller.matrixWorld);
+                        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+                        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+
+                        if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
+                            xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none';
+
+                            playUISound('success');
+
+                            if (!gameState.foundNodes.find(n => n.id === activeProfile.id)) {
+                                gameState.foundNodes.push({ id: activeProfile.id, lat: startLat, lon: startLon });
+                                localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
+                            }
 
                             document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
+
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
                             document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
                             document.getElementById('ui-word').style.color = activeProfile.cssColor;
+
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
-                            document.getElementById('ui-gps').innerText = `${userPos.lat.toFixed(3)}, ${userPos.lon.toFixed(3)}`;
+                            let latVal = startLat !== null ? startLat : 0;
+                            let lonVal = startLon !== null ? startLon : 0;
+                            document.getElementById('ui-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
 
                             document.getElementById('ui-bg-blob1').style.background = `rgba(${activeProfile.color1.r * 255},${activeProfile.color1.g * 255},${activeProfile.color1.b * 255},0.8)`;
                             document.getElementById('ui-bg-blob2').style.background = `rgba(${activeProfile.color2.r * 255},${activeProfile.color2.g * 255},${activeProfile.color2.b * 255},0.8)`;
 
                             attachUI3D('ui-3d-container', activeProfile);
-                            document.getElementById('artifact-ui').style.display = 'flex';
 
-                            xrRenderer.xr.getSession().end();
-                        }, 600);
+                            document.getElementById('artifact-ui').style.display = 'flex';
+                            if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
+                        }
                     }
+                });
+                scene.add(controller);
+
+                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+                reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
+                renderer.setAnimationLoop(renderXR);
+            }
+
+            function setActiveProfile(profile) {
+                if (!profile) return;
+                document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
+                document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
+                document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
+
+                const pb1 = document.getElementById('panel-blob1');
+                const pb2 = document.getElementById('panel-blob2');
+                if (pb1) pb1.style.background = `rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.8)`;
+                if (pb2) pb2.style.background = `rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.8)`;
+
+                if (shaderMaterial) updateRadarShader(profile);
+
+                if (coreMesh) {
+                    coreMesh.geometry.dispose();
+                    coreMesh.geometry = getGeometry(profile.shape);
+                    arHoloUniforms.color1.value.copy(profile.color1);
+                    arHoloUniforms.color2.value.copy(profile.color2);
+                }
+            }
+
+            initXR();
+
+            async function runOnboarding() {
+                const obUI = document.getElementById('onboarding-ui');
+                const obText = document.getElementById('ob-text');
+                const obBtn = document.getElementById('ob-btn');
+
+                obUI.style.display = 'flex';
+
+                let randomId = pickRandomUnfound();
+                if (randomId !== null) activeProfile = ARTIFACTS_DATA[randomId];
+                setActiveProfile(activeProfile);
+
+                if (gameState.onboardingDone) {
+                    obText.innerText = "The wandering is not over.";
+                    obText.style.opacity = '1';
+                    obBtn.innerText = "RESUME WANDERING";
+                    obBtn.style.display = 'flex';
+                    setTimeout(() => obBtn.style.opacity = '1', 100);
+
+                    await new Promise(resolve => {
+                        obBtn.onclick = () => {
+                            playUISound('action');
+                            audioCtx = getAudioCtx();
+                            obText.style.opacity = '0'; obBtn.style.opacity = '0';
+
+                            setTimeout(() => {
+                                obUI.style.display = 'none';
+                                const radarUI = document.getElementById('radar-ui');
+                                radarUI.style.opacity = '1';
+                                recalcBtn.style.display = 'block';
+                                document.getElementById('main-title').innerText = "Slumber";
+                                statusDisplay.innerText = "Synchronizing resonance...";
+                                dataStreamInterval = setInterval(() => {
+                                    let stream = ""; const chars = "01010011...";
+                                    for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                                    document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
+                                }, 150);
+                            }, 1000);
+
+                            startGPSAndCamera();
+                            resolve();
+                        };
+                    });
+                } else {
+                    await sleep(1000);
+                    obText.innerText = "Listen. The world has grown silent.";
+                    obText.style.opacity = '1';
+                    await sleep(3500);
+                    obText.style.opacity = '0';
+                    await sleep(1500);
+                    obText.innerText = "A collective illusion.\nThe Great Slumber.";
+                    obText.style.opacity = '1';
+                    await sleep(3500);
+                    obText.style.opacity = '0';
+                    await sleep(1500);
+
+                    obText.innerText = "You are wandering through a crumbling dream.\nTo guide you, I must anchor your presence to what remains of the waking world.";
+                    obText.style.opacity = '1';
+                    obBtn.innerText = "DROP THE ANCHOR";
+                    obBtn.style.display = 'flex';
+                    setTimeout(() => obBtn.style.opacity = '1', 100);
+
+                    await new Promise(resolve => {
+                        obBtn.onclick = () => {
+                            playUISound('click');
+                            audioCtx = getAudioCtx();
+                            obText.innerText = "Seeking anchor point...";
+                            obBtn.style.opacity = '0';
+
+                            navigator.geolocation.getCurrentPosition((pos) => {
+                                startLat = pos.coords.latitude; startLon = pos.coords.longitude;
+                                generateTarget(startLat, startLon, spawnDistance);
+                                navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
+                            }, (err) => { console.warn("GPS Init skipped/error", err); }, { enableHighAccuracy: true });
+                            resolve();
+                        };
+                    });
+
+                    obText.style.opacity = '0'; obBtn.style.display = 'none';
+                    await sleep(1500);
+
+                    obText.innerText = "The memories of the true world have crystallized.\nMake this screen your Lens.";
+                    obText.style.opacity = '1';
+                    obBtn.innerText = "OPEN THE LENS";
+                    obBtn.style.display = 'flex';
+                    setTimeout(() => obBtn.style.opacity = '1', 100);
+
+                    await new Promise(resolve => {
+                        obBtn.onclick = async () => {
+                            playUISound('action');
+                            obText.style.opacity = '0'; obBtn.style.opacity = '0';
+
+                            try {
+                                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                                initRadarShader(cameraStream);
+                                radarLoop();
+                                gameState.onboardingDone = true;
+                                localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
+                                resolve();
+                            } catch (err) { console.error("Camera error:", err); resolve(); }
+                        };
+                    });
+
+                    await sleep(1000);
+                    obUI.style.opacity = '0';
+                    await sleep(2000);
+                    obUI.style.display = 'none';
+
+                    const radarUI = document.getElementById('radar-ui');
+                    radarUI.style.opacity = '1';
+
+                    recalcBtn.style.display = 'block';
+                    document.getElementById('main-title').innerText = "Slumber";
+
+                    dataStreamInterval = setInterval(() => {
+                        let stream = ""; const chars = "01010011...";
+                        for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                        document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
+                    }, 150);
+                }
+            }
+
+            function startGPSAndCamera() {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        startLat = pos.coords.latitude; startLon = pos.coords.longitude;
+                        generateTarget(startLat, startLon, spawnDistance);
+                        navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
+                    },
+                    (err) => { console.warn("GPS Error", err); },
+                    { enableHighAccuracy: true }
+                );
+
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                    .then((stream) => {
+                        cameraStream = stream;
+                        initRadarShader(cameraStream);
+                        radarLoop();
+                    })
+                    .catch((err) => console.error("Camera error:", err));
+            }
+
+            runOnboarding();
+
+            recalcBtn.addEventListener('click', () => {
+                playUISound('click');
+                if (startLat && startLon) {
+                    generateTarget(startLat, startLon, spawnDistance);
+                    statusDisplay.innerText = "Map is reconfiguring...";
                 }
             });
-            xrScene.add(xrController);
 
-            xrReticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
-            xrReticle.matrixAutoUpdate = false; xrReticle.visible = false; xrScene.add(xrReticle);
+            function updatePosition(pos) {
+                startLat = pos.coords.latitude; startLon = pos.coords.longitude;
+                if (!targetLat || !targetLon) generateTarget(startLat, startLon, spawnDistance);
+                if (renderer && renderer.xr && renderer.xr.isPresenting) { arContainer.style.display = 'none'; return; }
 
-            let hitTestSourceRequested = false;
-            xrRenderer.setAnimationLoop((timestamp, frame) => {
+                currentDistance = calculateDistance(startLat, startLon, targetLat, targetLon);
+
+                distanceDisplay.innerText = `${Math.round(currentDistance)} m`;
+                let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
+                if (shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
+
+                const arBtn = document.getElementById('ARButton');
+                if (currentDistance < extractionDistance) {
+                    statusDisplay.innerText = "A memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
+                    arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
+                    document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
+
+                    if (arBtn) {
+                        arBtn.innerText = "GRASP THE SHARD";
+                        arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
+                        arBtn.style.border = `1px solid ${activeProfile.cssColor}`;
+                        arBtn.style.color = activeProfile.cssColor;
+
+                        if (!isFlashTriggered) {
+                            arBtn.addEventListener('click', () => { flashOverlay.style.opacity = '1'; if (navigator.vibrate) navigator.vibrate([100, 50, 100]); }, { once: true });
+                            isFlashTriggered = true;
+                        }
+                    }
+                } else {
+                    statusDisplay.innerText = "Follow the echo..."; statusDisplay.style.color = "var(--text-body)";
+                    document.getElementById('main-panel').style.boxShadow = `0 8px 32px 0 rgba(0, 0, 0, 0.4)`;
+                    arContainer.style.display = 'none'; recalcBtn.style.display = 'block';
+                }
+            }
+
+            function initRadarShader(stream) {
+                const container = document.getElementById('threejs-radar-container');
+                videoElement = document.createElement('video');
+                videoElement.setAttribute('playsinline', ''); videoElement.setAttribute('autoplay', ''); videoElement.setAttribute('muted', '');
+                videoElement.srcObject = stream; videoElement.play();
+
+                radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+                radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
+                videoTexture = new THREE.VideoTexture(videoElement);
+
+                updateRadarShader(activeProfile);
+                renderRadar();
+            }
+
+            function updateRadarShader(profile) {
+                if (!radarScene || !videoTexture) return;
+
+                while (radarScene.children.length > 0) {
+                    let child = radarScene.children[0]; radarScene.remove(child);
+                    if (child.material) child.material.dispose(); if (child.geometry) child.geometry.dispose();
+                }
+
+                let uvMod = ""; let isSplit = false; let isBloom = false;
+                switch (profile.shaderMod) {
+                    case "wobble": uvMod = "uv.x += sin(uv.y * 50.0 + time * 10.0) * 0.02 * intensity;"; break;
+                    case "pixelate": uvMod = "if(intensity > 0.0) { float pixels = max(10.0, 100.0 - (intensity * 90.0)); uv = mix(uv, floor(uv * pixels) / pixels, smoothstep(0.0, 0.2, intensity)); }"; break;
+                    case "split": isSplit = true; break;
+                    case "pulse": uvMod = "uv -= 0.5; uv *= 1.0 - (sin(time * 8.0) * 0.15 * intensity); uv += 0.5;"; break;
+                    case "mirror": uvMod = "if(intensity>0.1){ uv = abs(uv - 0.5) + 0.5; uv -= vec2(intensity * 0.1); }"; break;
+                    case "bloom": isBloom = true; break;
+                    case "water": default: uvMod = "uv += vec2(sin(uv.y * 15.0 + time * 1.5), cos(uv.x * 15.0 + time * 1.2)) * 0.015 * intensity;"; break;
+                }
+
+                let hex = profile.colorHex;
+                let rTint = ((hex >> 16) & 255) / 255; let gTint = ((hex >> 8) & 255) / 255; let bTint = (hex & 255) / 255;
+
+                shaderMaterial = new THREE.ShaderMaterial({
+                    uniforms: { tDiffuse: { value: videoTexture }, intensity: { value: 0 }, time: { value: 0 } },
+                    vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
+                    fragmentShader: `
+                        uniform sampler2D tDiffuse; uniform float intensity; uniform float time; varying vec2 vUv;
+                        void main() {
+                            vec2 uv = vUv;
+                            ${uvMod}
+                            float splitDist = ${isSplit ? '0.05' : '0.01'} * intensity;
+                            float r = texture2D(tDiffuse, uv + vec2(splitDist, 0.0)).r;
+                            float g = texture2D(tDiffuse, uv).g;
+                            float b = texture2D(tDiffuse, uv - vec2(splitDist, 0.0)).b;
+                            vec3 color = vec3(r, g, b);
+                            float lum = dot(color, vec3(0.299, 0.587, 0.114));
+                            vec3 dreamTint = vec3(${rTint}, ${gTint}, ${bTint}); 
+                            vec3 finalColor = mix(color, dreamTint * lum * 2.0, intensity * 0.8);
+                            float dist = distance(vUv, vec2(0.5));
+                            finalColor += dreamTint * smoothstep(0.4, 0.0, dist) * intensity * 0.6;
+                            ${isBloom ? 'finalColor *= 1.0 + (intensity * 2.0);' : ''}
+                            gl_FragColor = vec4(finalColor, 1.0);
+                        }
+                    `
+                });
+                const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad);
+            }
+
+            let clock = new THREE.Clock();
+            function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
+
+            function renderXR(timestamp, frame) {
                 if (frame) {
-                    const refSpace = xrRenderer.xr.getReferenceSpace(); const session = xrRenderer.xr.getSession();
+                    const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
                     if (!hitTestSourceRequested) {
-                        session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitSource = src); });
+                        session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
+                        session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
                         hitTestSourceRequested = true;
                     }
-                    if (hitSource && xrState === 'search') {
-                        const results = frame.getHitTestResults(hitSource);
+                    if (hitTestSource && xrState === 'search') {
+                        const results = frame.getHitTestResults(hitTestSource);
                         if (results.length > 0) {
-                            xrReticle.visible = true; xrReticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
+                            reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
                             if (!isTargetSpawned) {
-                                let pos = new THREE.Vector3().setFromMatrixPosition(xrReticle.matrix);
-                                hiddenTarget.set(pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()), pos.y, pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()));
+                                let pos = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
+                                hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
                                 isTargetSpawned = true;
                             }
                             if (isTargetSpawned) {
-                                let curr = new THREE.Vector3().setFromMatrixPosition(xrReticle.matrix);
+                                let curr = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
                                 let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
 
-                                let projVec = hiddenTarget.clone().project(xrCamera);
+                                let projVec = hiddenTarget.clone().project(camera);
                                 let isBehind = projVec.z > 1;
                                 let glowColor = activeProfile.cssColor.replace('1)', '0.4)');
 
@@ -1524,116 +1915,73 @@
 
                                 if (dist < 0.4) {
                                     let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
-                                    xrReticle.material.color.setHex(activeProfile.colorHex); xrReticle.material.opacity = 0.9; xrReticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor; canExtract = true;
-                                } else if (dist < 1.2) {
+                                    reticle.material.color.setHex(activeProfile.colorHex);
+                                    reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
+                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
+                                    canExtract = true;
+                                }
+                                else if (dist < 1.2) {
                                     let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15;
-                                    xrReticle.material.color.setHex(0xb19cd9); xrReticle.material.opacity = 0.7; xrReticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
-                                    document.getElementById('xr-ui').innerText = "The resonance is fading..."; document.getElementById('xr-ui').style.color = "#b19cd9"; canExtract = false;
-                                } else {
+                                    reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
+                                    document.getElementById('xr-ui').innerText = "The resonance is fading..."; document.getElementById('xr-ui').style.color = "#b19cd9";
+                                    canExtract = false;
+                                }
+                                else {
                                     let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05;
-                                    xrReticle.material.color.setHex(0xff6b6b); xrReticle.material.opacity = 0.4; xrReticle.scale.set(slowPulse, slowPulse, 1);
-                                    document.getElementById('xr-ui').innerText = "The echo is distorted..."; document.getElementById('xr-ui').style.color = "#ff6b6b"; canExtract = false;
+                                    reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(slowPulse, slowPulse, 1);
+                                    document.getElementById('xr-ui').innerText = "The echo is distorted..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
+                                    canExtract = false;
                                 }
                             }
                         } else {
-                            xrReticle.visible = false; document.getElementById('xr-ui').innerText = "Seek the resonance around you..."; document.getElementById('xr-ui').style.color = "var(--text-title)";
-                            document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
+                            reticle.visible = false;
+                            document.getElementById('xr-ui').innerText = "Seek the resonance around you...";
+                            document.getElementById('xr-ui').style.color = "var(--text-title)";
                         }
                     }
                 }
-                if (xrState === 'revealed') {
-                    crystalGroup.position.y += Math.sin(timestamp * 0.002) * 0.0005;
-                    crystalMesh.rotation.y += 0.01; crystalMesh.rotation.x += 0.005;
-                }
-                xrRenderer.render(xrScene, xrCamera);
-            });
+                scene.traverse((obj) => {
+                    if (obj.name === 'artifact') {
+                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
+                        if (obj.children[0]) {
+                            obj.children[0].rotation.y += 0.01;
+                            obj.children[0].rotation.x += 0.005;
+                        }
+                    }
+                });
+                renderer.render(scene, camera);
+            }
+
+            function playGlitchPop(intensity) {
+                const ctx = getAudioCtx();
+                if (!ctx || intensity <= 0 || !activeProfile) return;
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                osc.type = 'sine';
+                const freqs = activeProfile.audioFreqs;
+                osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
+                osc.connect(gain); gain.connect(ctx.destination); osc.start();
+                gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.15 * intensity, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+                osc.stop(ctx.currentTime + 1.5);
+            }
+
+            function radarLoop() {
+                clearTimeout(radarTimeout);
+                let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
+                if (intensity > 0) playGlitchPop(intensity);
+                let delay = 2000; if (intensity > 0) delay = 200 + ((1 - intensity) * 1500);
+                radarTimeout = setTimeout(radarLoop, delay);
+            }
+
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3; const p1 = lat1 * Math.PI / 180; const p2 = lat2 * Math.PI / 180;
+                const dp = (lat2 - lat1) * Math.PI / 180; const dl = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }
+
         }
 
-        // --- 5. INITIALIZATION & ROUTING ---
-        document.getElementById('btn-close-review').addEventListener('click', () => { playUISound('transition'); document.getElementById('review-ui').style.display = 'none'; });
-        document.getElementById('btn-back-radar').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
-        document.getElementById('btn-reset').addEventListener('click', () => { playUISound('action'); localStorage.removeItem('glint_save_final'); navigateTo(window.location.pathname); });
-        document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
-        document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
-        document.getElementById('recalc-btn').addEventListener('click', () => { playUISound('click'); if (userPos) { generateTarget(userPos.lat, userPos.lon, SPAWN_DIST); document.getElementById('status-display').innerText = "Map is reconfiguring..."; } });
-
-        async function runOnboarding() {
-            const obUI = document.getElementById('onboarding-ui'); const obText = document.getElementById('ob-text'); const obBtn = document.getElementById('ob-btn');
-            obUI.style.display = 'flex';
-
-            // Set dynamic colors
-            document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
-            document.getElementById('glow-left').style.background = `linear-gradient(to right, ${activeProfile.cssColor.replace('1)', '0.4)')}, transparent)`;
-            document.getElementById('glow-right').style.background = `linear-gradient(to left, ${activeProfile.cssColor.replace('1)', '0.4)')}, transparent)`;
-            document.getElementById('panel-blob1').style.background = `rgba(${activeProfile.color1.r * 255},${activeProfile.color1.g * 255},${activeProfile.color1.b * 255},0.8)`;
-            document.getElementById('panel-blob2').style.background = `rgba(${activeProfile.color2.r * 255},${activeProfile.color2.g * 255},${activeProfile.color2.b * 255},0.8)`;
-
-            if (gameState.onboardingDone) {
-                obText.innerText = "The wandering is not over."; obText.style.opacity = '1';
-                obBtn.innerText = "RESUME WANDERING"; obBtn.style.display = 'flex'; setTimeout(() => obBtn.style.opacity = '1', 100);
-
-                obBtn.onclick = () => {
-                    playUISound('action'); audioCtx = getAudioCtx(); obText.style.opacity = '0'; obBtn.style.opacity = '0';
-                    setTimeout(() => {
-                        obUI.style.display = 'none'; document.getElementById('radar-ui').style.opacity = '1';
-                        document.getElementById('recalc-btn').style.display = 'block'; document.getElementById('main-title').innerText = "Slumber"; document.getElementById('status-display').innerText = "Synchronizing resonance...";
-                        dataStreamInterval = setInterval(() => { let s = ""; const chars = "01010011..."; for (let i = 0; i < 8; i++) s += chars.charAt(Math.floor(Math.random() * chars.length)); document.getElementById('data-stream').innerText = `Wave: ~${s}`; }, 150);
-                    }, 1000);
-                    initRadarAndGPS(); // UNIFIED CALL
-                };
-            } else {
-                await sleep(1000); obText.innerText = "Listen. The world has grown silent."; obText.style.opacity = '1'; await sleep(3500); obText.style.opacity = '0'; await sleep(1500);
-                obText.innerText = "A collective illusion.\nThe Great Slumber."; obText.style.opacity = '1'; await sleep(3500); obText.style.opacity = '0'; await sleep(1500);
-                obText.innerText = "You are wandering through a crumbling dream.\nTo guide you, I must anchor your presence to what remains of the waking world."; obText.style.opacity = '1';
-                obBtn.innerText = "DROP THE ANCHOR"; obBtn.style.display = 'flex'; setTimeout(() => obBtn.style.opacity = '1', 100);
-
-                await new Promise(resolve => {
-                    obBtn.onclick = () => {
-                        playUISound('click'); audioCtx = getAudioCtx(); obText.innerText = "Seeking anchor point..."; obBtn.style.opacity = '0';
-                        navigator.geolocation.getCurrentPosition((pos) => { resolve(); }, (err) => { console.warn("GPS Init skipped/error", err); resolve(); }, { enableHighAccuracy: true });
-                    };
-                });
-
-                obText.style.opacity = '0'; obBtn.style.display = 'none'; await sleep(1500);
-                obText.innerText = "The memories of the true world have crystallized.\nMake this screen your Lens."; obText.style.opacity = '1';
-                obBtn.innerText = "OPEN THE LENS"; obBtn.style.display = 'flex'; setTimeout(() => obBtn.style.opacity = '1', 100);
-
-                await new Promise(resolve => {
-                    obBtn.onclick = async () => {
-                        playUISound('action'); obText.style.opacity = '0'; obBtn.style.opacity = '0';
-                        gameState.onboardingDone = true; localStorage.setItem('glint_save_final', JSON.stringify(gameState));
-                        resolve();
-                    };
-                });
-
-                await sleep(1000); obUI.style.opacity = '0'; await sleep(2000); obUI.style.display = 'none';
-                document.getElementById('radar-ui').style.opacity = '1'; document.getElementById('recalc-btn').style.display = 'block'; document.getElementById('main-title').innerText = "Slumber";
-                dataStreamInterval = setInterval(() => { let s = ""; const chars = "01010011..."; for (let i = 0; i < 8; i++) s += chars.charAt(Math.floor(Math.random() * chars.length)); document.getElementById('data-stream').innerText = `Wave: ~${s}`; }, 150);
-
-                initRadarAndGPS(); // UNIFIED CALL
-            }
-        }
-
-        window.onload = () => {
-            document.getElementById('transition-veil').style.opacity = '0';
-            initUI3D();
-
-            if (isSanctuaryView) {
-                if (gameState.foundNodes.length >= 7 && !gameState.apotheosisPlayed) {
-                    playApotheosisSequence().then(() => {
-                        gameState.apotheosisPlayed = true; localStorage.setItem('glint_save_final', JSON.stringify(gameState));
-                        buildSanctuary(); document.getElementById('sanctuary-ui').style.display = 'flex';
-                    });
-                } else {
-                    buildSanctuary(); document.getElementById('sanctuary-ui').style.display = 'flex';
-                }
-            } else if (gameState.foundNodes.length < 7) {
-                runOnboarding();
-            } else {
-                navigateTo(window.location.pathname + '?view=sanctuary');
-            }
-        };
+        initUI3D();
     </script>
 </body>
 
