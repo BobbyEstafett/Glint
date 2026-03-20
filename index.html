@@ -122,19 +122,17 @@
         .clean-btn { background: transparent; border: 1px solid rgba(255,255,255,0.4); border-radius: 30px; color: #fff; height: 50px; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
         .clean-btn:active { background: rgba(255,255,255,0.1); }
 
-        /* --- THE SANCTUARY --- */
+        /* --- THE SANCTUARY (CARTE V5 RÉTABLIE) --- */
         #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0b0d14; z-index: 5000; display: none; flex-direction: column; padding: 50px 0 20px 0; box-sizing: border-box; overflow: hidden; }
         
         .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; padding: 0 20px; }
         .sanctuary-header h2 { font-family: 'Montserrat', sans-serif; font-weight: 300; margin: 0; letter-spacing: 6px; font-size: 1.2rem; color: #fff; text-transform: uppercase;}
         .sanctuary-header p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 5px; }
         
-        /* Map Container avec le masque Vignette */
+        /* Map Container Standard */
         .map-wrapper { padding: 0 20px; margin-bottom: 20px; flex-shrink: 0; }
-        #memory-map { width: 100%; height: 180px; border-radius: 15px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); z-index: 1; overflow: hidden; display: none; }
+        #memory-map { width: 100%; height: 180px; border-radius: 15px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); z-index: 1; display: none; overflow: hidden; }
         .leaflet-control-attribution { display: none !important; }
-        #memory-map.vignette { mask-image: radial-gradient(circle, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%); -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%); }
-        .leaflet-tile-pane { filter: opacity(0.3) contrast(1.5); mix-blend-mode: screen; }
         
         /* Nœuds et Constellation */
         .pulsing-node { width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; z-index: 500;}
@@ -148,24 +146,22 @@
         
         .final-revelation { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; text-align: center; margin-bottom: 30px; padding: 0 20px; font-style: normal; animation: fadeInAnim 3s forwards; text-wrap: balance; color: var(--text-title); text-shadow: 0 0 15px rgba(255,255,255,0.4); }
         
-        /* --- CARROUSEL HORIZONTAL (COVERFLOW) --- */
+        /* --- CARROUSEL COVERFLOW STACKÉ --- */
         .sanctuary-list {
-            position: relative; /* <-- SECURITÉ : Permet un calcul de scroll offset parfait */
+            position: relative; /* Référence absolue pour les calculs JS */
             flex: 1 1 auto;
             display: flex;
             flex-direction: row;
-            gap: 20px;
+            gap: 0px; /* Les cartes sont gérées par translateX */
             overflow-x: auto;
             overflow-y: hidden;
-            padding: 20px calc(50vw - 110px);
+            padding: 20px calc(50vw - 110px); /* 110px = moitié de la largeur d'une carte */
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
             align-items: center;
-            scroll-behavior: smooth;
         }
         .sanctuary-list::-webkit-scrollbar { display: none; }
         
-        /* La Carte (Format Portrait) */
         .fragment-slot {
             position: relative;
             display: flex;
@@ -177,18 +173,15 @@
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 20px;
             overflow: hidden;
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease, box-shadow 0.4s ease;
             backdrop-filter: blur(15px);
             scroll-snap-align: center;
-            transform: scale(0.85);
-            opacity: 0.4;
+            /* ATTENTION: Ne PAS mettre de transition sur transform ou opacity ici pour éviter le lag JS */
+            transition: box-shadow 0.3s ease;
+            will-change: transform, opacity, z-index;
         }
 
         .fragment-slot.active-card {
-            transform: scale(1);
-            opacity: 1;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            z-index: 10;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
         }
 
         .slot-content {
@@ -204,17 +197,51 @@
             text-align: center;
         }
         
+        @keyframes morphCardBlob {
+            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(120deg) scale(1.3) translate(10%, -10%); }
+            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(240deg) scale(0.8) translate(-10%, 15%); }
+            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(360deg) scale(1) translate(0, 0); }
+        }
         .card-blob { position: absolute; width: 150%; height: 150%; filter: blur(45px); opacity: 0.6; z-index: 0; animation: morphCardBlob 12s linear infinite; mix-blend-mode: screen; }
         
         .fragment-slot:not(.found) { background: rgba(18, 20, 28, 0.3); border: 1px dashed rgba(255,255,255,0.05); }
         .clickable-slot { cursor: pointer; }
-        .clickable-slot:active { transform: scale(0.95); }
 
         .slot-content .slot-title { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; margin-bottom: auto; }
         .slot-content .slot-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 400; opacity: 0.3; text-transform: uppercase; margin-top: auto; margin-bottom: 10px; line-height: 1.1; }
         .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); }
         .slot-content .slot-word { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; text-align: center; opacity: 0; }
         
+        /* --- ANIMATION NOUVELLE CARTE (REVEAL) --- */
+        .fragment-slot.just-found .card-blob {
+            animation: revealBlob 1.5s cubic-bezier(0.1, 0.8, 0.2, 1) forwards, morphCardBlob 12s linear infinite 1.5s;
+            opacity: 0;
+            transform: scale(0);
+        }
+        @keyframes revealBlob {
+            0% { opacity: 0; transform: scale(0); filter: blur(10px) brightness(3); }
+            100% { opacity: 0.6; transform: scale(1); filter: blur(45px) brightness(1); }
+        }
+
+        .fragment-slot.just-found .slot-name {
+            opacity: 0;
+            animation: revealText 1s ease-out 1.2s forwards;
+        }
+        @keyframes revealText {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .fragment-slot.just-found .slot-word {
+            opacity: 0 !important; /* Override force pour la keyframe */
+            animation: revealWord 1.5s ease-out 1.8s forwards;
+        }
+        @keyframes revealWord {
+            0% { opacity: 0; text-shadow: 0 0 30px currentColor; filter: brightness(2); transform: scale(1.1); }
+            100% { opacity: 1; text-shadow: 0 0 0px transparent; filter: brightness(1); transform: scale(1); }
+        }
+
         .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding: 0 20px env(safe-area-inset-bottom, 10px) 20px; }
         #btn-back-radar { border-color: transparent; }
         #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
@@ -420,6 +447,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
+        let newShardId = urlParams.get('newShard'); // <-- RÉCUPÉRATION DU PARAMÈTRE D'ANIMATION
 
         function pickRandomUnfound() {
             let unfound = [];
@@ -568,17 +596,6 @@
 
         let mapInstance = null;
 
-        function createCircleHole(lat, lon, radiusInDegrees = 0.002) {
-            let hole = [];
-            for (let i = 0; i < 32; i++) {
-                let angle = (i * Math.PI * 2) / 32;
-                let latOffset = Math.sin(angle) * radiusInDegrees;
-                let lonOffset = Math.cos(angle) * (radiusInDegrees / Math.cos(lat * Math.PI / 180));
-                hole.push([lat + latOffset, lon + lonOffset]);
-            }
-            return hole;
-        }
-
         function buildSanctuaryList() {
             const listContainer = document.getElementById('sanctuary-list');
             const constelContainer = document.getElementById('constellation');
@@ -595,7 +612,7 @@
                         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapInstance);
                     }
                     
-                    // SÉCURITÉ: Force le redessin propre des tuiles une fois le conteneur affiché
+                    // SÉCURITÉ : Recalcul de la taille de la map après l'affichage du display block
                     mapInstance.invalidateSize();
                     
                     mapInstance.eachLayer((layer) => {
@@ -603,12 +620,10 @@
                     });
 
                     let latlngs = [];
-                    let fogPolygon = [[[-90, -180], [90, -180], [90, 180], [-90, 180]]];
 
                     gameState.foundNodes.forEach((node) => {
                         const profile = ARTIFACTS_DATA.find(p => p.id === node.id);
                         latlngs.push([node.lat, node.lon]);
-                        fogPolygon.push(createCircleHole(node.lat, node.lon));
 
                         const pulsingIcon = L.divIcon({
                             className: 'pulsing-node',
@@ -617,15 +632,6 @@
                         });
                         L.marker([node.lat, node.lon], { icon: pulsingIcon }).addTo(mapInstance);
                     });
-
-                    document.getElementById('memory-map').classList.add('vignette');
-
-                    L.polygon(fogPolygon, {
-                        color: 'transparent',
-                        fillColor: '#0b0d14',
-                        fillOpacity: 0.90,
-                        interactive: false
-                    }).addTo(mapInstance);
 
                     if (latlngs.length > 1) {
                         L.polyline(latlngs, {
@@ -661,6 +667,14 @@
                 
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
                 
+                // --- AJOUT : MARQUAGE DE LA NOUVELLE CARTE ---
+                let wordColorStyle = `color: ${isFound ? profile.cssColor : ''}; opacity: ${isFound ? '1':'0'};`;
+                
+                if (newShardId !== null && parseInt(newShardId) === index) {
+                    slot.classList.add('just-found');
+                    wordColorStyle = `color: ${profile.cssColor};`; // Le CSS Keyframe gèrera l'opacité
+                }
+                
                 let blobHtml = '';
                 if(isFound) {
                     let blobTop = Math.floor(Math.random() * 60) - 30;
@@ -668,7 +682,7 @@
                     blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, rgba(${profile.color2.r*255},${profile.color2.g*255},${profile.color2.b*255},0.8) 0%, rgba(${profile.color1.r*255},${profile.color1.g*255},${profile.color1.b*255},0.8) 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
                     
                     slot.addEventListener('click', () => {
-                        // SÉCURITÉ UX : Si la carte n'est pas au centre, on force un scroll vers elle au lieu de l'ouvrir !
+                        // SÉCURITÉ UX : Force le scroll si la carte n'est pas déjà au centre
                         if (!slot.classList.contains('active-card')) {
                             slot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                             return;
@@ -696,45 +710,71 @@
                     });
                 }
                 
-                let wordColor = isFound ? profile.cssColor : '';
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
                         <div class="slot-title">SHARD ${index + 1}</div>
-                        <div class="slot-name" style="${isFound ? 'opacity:1;' : ''}">${isFound ? profile.name : 'Vanished memory'}</div>
-                        <div class="slot-word" style="color: ${wordColor}; opacity: ${isFound ? '1':'0'};">${isFound ? profile.word : ''}</div>
+                        <div class="slot-name" style="${(isFound && !(newShardId !== null && parseInt(newShardId) === index)) ? 'opacity:1;' : ''}">${isFound ? profile.name : 'Vanished memory'}</div>
+                        <div class="slot-word" style="${wordColorStyle}">${isFound ? profile.word : ''}</div>
                     </div>
                 `;
                 listContainer.appendChild(slot);
             });
 
-            // Moteur de Scroll Magnétique 3D (Coverflow effect)
+            // MOTEUR SCROLL COVERFLOW (Calcul de l'empilement)
             const slots = listContainer.querySelectorAll('.fragment-slot');
             
             function updateActiveCard() {
                 const containerCenter = listContainer.scrollLeft + listContainer.clientWidth / 2;
-                let closestSlot = null;
-                let minDistance = Infinity;
                 
-                slots.forEach(slot => {
-                    // Offset calculé parfaitement grâce au position:relative parent
+                slots.forEach((slot) => {
                     const slotCenter = slot.offsetLeft + slot.offsetWidth / 2;
-                    const distance = Math.abs(containerCenter - slotCenter);
+                    const offset = slotCenter - containerCenter;
+                    const normalizedOffset = offset / slot.offsetWidth;
+                    const absOffset = Math.abs(normalizedOffset);
                     
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestSlot = slot;
+                    let scale = 1 - absOffset * 0.15;
+                    if (scale < 0.6) scale = 0.6;
+                    
+                    // Empilement physique : on tire violemment les cartes latérales sous la carte active
+                    let translateX = -normalizedOffset * 150;
+                    
+                    // Inclinaison Coverflow
+                    let rotateY = normalizedOffset * -45;
+                    if (rotateY > 60) rotateY = 60;
+                    if (rotateY < -60) rotateY = -60;
+                    
+                    let zIndex = 100 - Math.round(absOffset * 10);
+                    
+                    // Opacité gérée dynamiquement par le JS
+                    let opacity = 1 - absOffset * 0.4;
+                    if (opacity < 0.2) opacity = 0.2;
+                    
+                    // Applique les styles sans transition CSS pour un tracking 1:1 avec le doigt
+                    slot.style.transform = `perspective(1000px) translateX(${translateX}px) scale(${scale}) rotateY(${rotateY}deg)`;
+                    slot.style.zIndex = zIndex;
+                    slot.style.opacity = opacity;
+                    
+                    if (absOffset < 0.3) {
+                        slot.classList.add('active-card');
+                    } else {
+                        slot.classList.remove('active-card');
                     }
-                    slot.classList.remove('active-card');
                 });
-                
-                if (closestSlot) {
-                    closestSlot.classList.add('active-card');
-                }
             }
             
             listContainer.addEventListener('scroll', updateActiveCard);
             setTimeout(updateActiveCard, 100);
+
+            // --- AJOUT : AUTO-SCROLL SUR LA NOUVELLE CARTE ---
+            if (newShardId !== null) {
+                setTimeout(() => {
+                    const targetSlot = slots[parseInt(newShardId)];
+                    if (targetSlot) {
+                        targetSlot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    }
+                }, 1200); // Laisse le temps au "voile noir" de disparaître avant de scroller
+            }
         }
 
         document.getElementById('btn-close-review').addEventListener('click', () => {
@@ -766,7 +806,17 @@
         });
 
         document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
-        document.getElementById('btn-inventory').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname + '?view=sanctuary'); });
+        
+        // --- MODIFICATION DU ROUTING : GESTION DE L'ID ---
+        document.getElementById('btn-inventory').addEventListener('click', () => {
+            playUISound('transition');
+            let destUrl = window.location.pathname + '?view=sanctuary';
+            if (window.lastFoundShardId !== undefined) {
+                destUrl += '&newShard=' + window.lastFoundShardId;
+                window.lastFoundShardId = undefined; // On purge après utilisation
+            }
+            navigateTo(destUrl);
+        });
 
         if (!isSanctuaryView && gameState.foundNodes.length < 7) {
             let targetLat = null, targetLon = null, startLat = null, startLon = null;
@@ -870,6 +920,9 @@
                             document.getElementById('ui-bg-blob2').style.background = `rgba(${activeProfile.color2.r*255},${activeProfile.color2.g*255},${activeProfile.color2.b*255},0.8)`;
                             
                             attachUI3D('ui-3d-container', activeProfile);
+
+                            // --- AJOUT : SAUVEGARDE EN MÉMOIRE POUR LE CARROUSEL ---
+                            window.lastFoundShardId = activeProfile.id;
 
                             document.getElementById('artifact-ui').style.display = 'flex';
                             if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
@@ -1216,6 +1269,7 @@
                             reticle.visible = false;
                             document.getElementById('xr-ui').innerText = "Seek the resonance around you...";
                             document.getElementById('xr-ui').style.color = "var(--text-title)";
+                            document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                         }
                     }
                 }
