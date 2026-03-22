@@ -4,224 +4,844 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GLINT - The Great Slumber</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         :root {
-            --bg-night: #0b0d14; 
+            --bg-night: #0b0d14;
             --glass-bg: rgba(20, 25, 40, 0.45);
             --glass-border: rgba(255, 255, 255, 0.15);
-            --text-title: #ffffff; 
+            --text-title: #ffffff;
             --text-body: rgba(255, 255, 255, 0.8);
-            --accent-pure: #8be9fd; 
+            --accent-pure: #8be9fd;
         }
 
-        body { 
-            margin: 0; padding: 0; background-color: var(--bg-night); color: var(--text-body); 
-            font-family: 'Montserrat', sans-serif; overflow: hidden; height: 100vh; width: 100vw;
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-night);
+            color: var(--text-body);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
             -webkit-font-smoothing: antialiased;
         }
 
         body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay; z-index: 9999; pointer-events: none;
+            mix-blend-mode: overlay;
+            z-index: 9999;
+            pointer-events: none;
         }
 
-        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; color: var(--text-title); font-weight: normal; text-wrap: balance; }
+        h1,
+        h2,
+        h3,
+        .serif {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-title);
+            font-weight: normal;
+            text-wrap: balance;
+        }
 
-        #transition-veil { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-night); z-index: 999999; opacity: 1; transition: opacity 1.2s ease-in-out; pointer-events: none; }
-        
-        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); position: relative; overflow: hidden; }
-        
-        #threejs-radar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #dream-veil { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, transparent 0%, rgba(11, 13, 20, 0.8) 100%); pointer-events: none; z-index: 2; }
+        #transition-veil {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-night);
+            z-index: 999999;
+            opacity: 1;
+            transition: opacity 1.2s ease-in-out;
+            pointer-events: none;
+        }
 
-        .edge-glow { position: absolute; top: 0; width: 80px; height: 100vh; pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.4s ease; }
-        #glow-left { left: 0; } #glow-right { right: 0; }
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
 
-        #radar-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px; box-sizing: border-box; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 1.5s ease; }
-        
-        .info-box { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 20px; text-align: center; width: 85%; max-width: 350px; height: 300px; pointer-events: auto; box-sizing: border-box; transition: box-shadow 1s ease; }
-        
-        .panel-blobs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: 0.3; border-radius: 20px; overflow: hidden; }
-        .panel-blob { position: absolute; filter: blur(40px); opacity: 0.6; }
-        .panel-blob.b1 { animation: driftBlob1 20s linear infinite; }
-        .panel-blob.b2 { animation: driftBlob2 15s linear infinite reverse; }
+        #threejs-radar-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
 
-        .info-top { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100px; width: 100%; }
-        .info-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; width: 100%; }
-        .info-bottom { display: flex; justify-content: center; align-items: flex-end; height: 20px; width: 100%; }
+        #dream-veil {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, transparent 0%, rgba(11, 13, 20, 0.8) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
 
-        .main-title { font-size: 1.5rem; letter-spacing: 2px; margin: 0 0 10px 0; line-height: 1; }
-        #distance-display { font-size: 2rem; font-weight: 200; margin: 0; color: var(--text-title); line-height: 1; display: flex; align-items: center; }
-        #status-display { font-weight: 200; font-size: 0.8rem; margin: 0; line-height: 1.2; text-wrap: balance; height: 2em; display: flex; align-items: center; justify-content: center; }
-        .data-stream { font-size: 0.65rem; color: var(--text-body); margin: 0; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; line-height: 1; }
+        .edge-glow {
+            position: absolute;
+            top: 0;
+            width: 80px;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
 
-        button { display: flex; align-items: center; justify-content: center; text-align: center; margin: 0; height: 55px; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); color: var(--text-title); font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; border: 1px solid var(--glass-border); border-radius: 50px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.4s ease; line-height: 1; }
-        button:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
-        #recalc-btn { display: none; font-size: 0.65rem; border: none; opacity: 0.5; height: 40px; background: transparent; margin-top: 15px; }
+        #glow-left {
+            left: 0;
+        }
 
-        #ar-container { width: 100%; display: none; }
-        #ARButton { background: rgba(255,255,255, 0.05) !important; border: 1px solid var(--accent-pure) !important; color: var(--accent-pure) !important; font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important; letter-spacing: 2px !important; position: relative !important; bottom: auto !important; left: auto !important; transform: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; height: 55px !important; border-radius: 50px !important; box-shadow: 0 0 15px var(--accent-pure) !important; }
+        #glow-right {
+            right: 0;
+        }
 
-        #xr-ui { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: fit-content; z-index: 100; pointer-events: none; text-align: center; display: none; padding: 12px 25px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 2px; font-weight: 600; transition: all 0.4s ease; }
+        #radar-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 80px;
+            box-sizing: border-box;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
 
-        .fade-in-seq { opacity: 0; animation: fadeInAnim 1.5s ease forwards; }
-        .delay-1 { animation-delay: 0.3s; } .delay-2 { animation-delay: 0.6s; } .delay-3 { animation-delay: 0.9s; }
-        @keyframes fadeInAnim { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .info-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 30px 20px;
+            text-align: center;
+            width: 85%;
+            max-width: 350px;
+            height: 300px;
+            pointer-events: auto;
+            box-sizing: border-box;
+            transition: box-shadow 1s ease;
+        }
+
+        .panel-blobs {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.3;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .panel-blob {
+            position: absolute;
+            filter: blur(40px);
+            opacity: 0.6;
+        }
+
+        .panel-blob.b1 {
+            animation: driftBlob1 20s linear infinite;
+        }
+
+        .panel-blob.b2 {
+            animation: driftBlob2 15s linear infinite reverse;
+        }
+
+        .info-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100px;
+            width: 100%;
+        }
+
+        .info-mid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+        }
+
+        .info-bottom {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 20px;
+            width: 100%;
+        }
+
+        .main-title {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin: 0 0 10px 0;
+            line-height: 1;
+        }
+
+        #distance-display {
+            font-size: 2rem;
+            font-weight: 200;
+            margin: 0;
+            color: var(--text-title);
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        #status-display {
+            font-weight: 200;
+            font-size: 0.8rem;
+            margin: 0;
+            line-height: 1.2;
+            text-wrap: balance;
+            height: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .data-stream {
+            font-size: 0.65rem;
+            color: var(--text-body);
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            line-height: 1;
+        }
+
+        button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin: 0;
+            height: 55px;
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-title);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            line-height: 1;
+        }
+
+        button:active {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0.98);
+        }
+
+        #recalc-btn {
+            display: none;
+            font-size: 0.65rem;
+            border: none;
+            opacity: 0.5;
+            height: 40px;
+            background: transparent;
+            margin-top: 15px;
+        }
+
+        #ar-container {
+            width: 100%;
+            display: none;
+        }
+
+        #ARButton {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid var(--accent-pure) !important;
+            color: var(--accent-pure) !important;
+            font-family: 'Montserrat', sans-serif !important;
+            font-weight: 600 !important;
+            letter-spacing: 2px !important;
+            position: relative !important;
+            bottom: auto !important;
+            left: auto !important;
+            transform: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            height: 55px !important;
+            border-radius: 50px !important;
+            box-shadow: 0 0 15px var(--accent-pure) !important;
+        }
+
+        #xr-ui {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: fit-content;
+            z-index: 100;
+            pointer-events: none;
+            text-align: center;
+            display: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            font-weight: 600;
+            transition: all 0.4s ease;
+        }
+
+        .fade-in-seq {
+            opacity: 0;
+            animation: fadeInAnim 1.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.6s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.9s;
+        }
+
+        @keyframes fadeInAnim {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT --- */
         .fs-fiche {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: var(--bg-night) !important; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-night) !important;
             z-index: 3000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            box-sizing: border-box; overflow: hidden;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
-        .fs-blobs-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; overflow: hidden; pointer-events: none; }
-        .fs-blob { position: absolute; filter: blur(70px); opacity: 0.7; mix-blend-mode: screen; }
-        .fs-blob.b1 { animation: driftBlob1 25s linear infinite; }
-        .fs-blob.b2 { animation: driftBlob2 20s linear infinite reverse; }
+        .fs-blobs-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .fs-blob {
+            position: absolute;
+            filter: blur(70px);
+            opacity: 0.7;
+            mix-blend-mode: screen;
+        }
+
+        .fs-blob.b1 {
+            animation: driftBlob1 25s linear infinite;
+        }
+
+        .fs-blob.b2 {
+            animation: driftBlob2 20s linear infinite reverse;
+        }
 
         @keyframes driftBlob1 {
-            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(-10%, -10%) rotate(0deg) scale(1); }
-            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: translate(20%, 15%) rotate(120deg) scale(1.3); }
-            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: translate(-15%, 20%) rotate(240deg) scale(0.9); }
-            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(-10%, -10%) rotate(360deg) scale(1); }
+            0% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(-10%, -10%) rotate(0deg) scale(1);
+            }
+
+            33% {
+                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+                transform: translate(20%, 15%) rotate(120deg) scale(1.3);
+            }
+
+            66% {
+                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
+                transform: translate(-15%, 20%) rotate(240deg) scale(0.9);
+            }
+
+            100% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(-10%, -10%) rotate(360deg) scale(1);
+            }
         }
+
         @keyframes driftBlob2 {
-            0% { border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%; transform: translate(10%, 10%) rotate(0deg) scale(1); }
-            33% { border-radius: 30% 70% 70% 30% / 50% 40% 60% 50%; transform: translate(-20%, -15%) rotate(120deg) scale(1.4); }
-            66% { border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%; transform: translate(15%, -20%) rotate(240deg) scale(0.8); }
-            100% { border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%; transform: translate(10%, 10%) rotate(360deg) scale(1); }
+            0% {
+                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
+                transform: translate(10%, 10%) rotate(0deg) scale(1);
+            }
+
+            33% {
+                border-radius: 30% 70% 70% 30% / 50% 40% 60% 50%;
+                transform: translate(-20%, -15%) rotate(120deg) scale(1.4);
+            }
+
+            66% {
+                border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%;
+                transform: translate(15%, -20%) rotate(240deg) scale(0.8);
+            }
+
+            100% {
+                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
+                transform: translate(10%, 10%) rotate(360deg) scale(1);
+            }
         }
 
-        .fs-content { position: relative; z-index: 2; width: 85%; max-width: 380px; display: flex; flex-direction: column; align-items: center; }
+        .fs-content {
+            position: relative;
+            z-index: 2;
+            width: 85%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-        .artifact-3d-canvas { width: 250px; height: 250px; margin: 0 auto 10px auto; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5)); }
+        .artifact-3d-canvas {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 10px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
+        }
 
-        .fs-content h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 15px 0; color: #fff; text-align: center; }
-        .fs-content .artifact-lore { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.95rem; color: rgba(255,255,255,0.9); text-align: center; line-height: 1.6; margin-bottom: 25px; text-wrap: balance; }
-        
-        .clean-divider { border: none; border-top: 1px solid rgba(255,255,255,0.4); width: 100%; margin: 0 0 20px 0; }
-        .clean-stats { width: 100%; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; letter-spacing: 2px; }
-        .clean-stats p { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        .clean-stats .lbl { opacity: 0.7; text-transform: uppercase; font-weight: 400;}
-        .clean-stats .val { font-weight: 300; color: #fff; letter-spacing: 1px;}
-        .clean-stats .val.resonance { font-family: 'Montserrat', sans-serif; font-weight: 400; letter-spacing: 4px; color: var(--accent-pure); text-transform: uppercase; }
+        .fs-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0 0 15px 0;
+            color: #fff;
+            text-align: center;
+        }
 
-        .clean-btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; width: 100%; }
-        .clean-btn { background: transparent; border: 1px solid rgba(255,255,255,0.4); border-radius: 30px; color: #fff; height: 50px; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
-        .clean-btn:active { background: rgba(255,255,255,0.1); }
+        .fs-content .artifact-lore {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-wrap: balance;
+        }
+
+        .clean-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            width: 100%;
+            margin: 0 0 20px 0;
+        }
+
+        .clean-stats {
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
+        .clean-stats p {
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clean-stats .lbl {
+            opacity: 0.7;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+
+        .clean-stats .val {
+            font-weight: 300;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .clean-stats .val.resonance {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--accent-pure);
+            text-transform: uppercase;
+        }
+
+        .clean-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .clean-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            color: #fff;
+            height: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .clean-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
         /* --- THE SANCTUARY (CARTE V5 RÉTABLIE) --- */
-        #sanctuary-ui { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0b0d14; z-index: 5000; display: none; flex-direction: column; padding: 50px 0 20px 0; box-sizing: border-box; overflow: hidden; }
-        
-        .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; padding: 0 20px; }
-        .sanctuary-header h2 { font-family: 'Montserrat', sans-serif; font-weight: 300; margin: 0; letter-spacing: 6px; font-size: 1.2rem; color: #fff; text-transform: uppercase;}
-        .sanctuary-header p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 5px; }
-        
-        /* Map Container Standard */
-        .map-wrapper { padding: 0 20px; margin-bottom: 20px; flex-shrink: 0; }
-        #memory-map { width: 100%; height: 180px; border-radius: 15px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); z-index: 1; display: none; overflow: hidden; }
-        .leaflet-control-attribution { display: none !important; } 
-        
-        /* Nœuds et Constellation */
-        .pulsing-node { width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; z-index: 500;}
-        .artifact-core { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 10; }
-        .artifact-halo { position: absolute; width: 12px; height: 12px; border-radius: 50%; opacity: 0.8; animation: pulseHalo 2s infinite ease-out; }
-        @keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
-        
-        .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
-        .star { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin: 0 4px; transition: all 1s; }
-        .star-link { height: 1px; width: 12px; background: var(--glass-border); transition: background 1s; }
-        
-        .final-revelation { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; text-align: center; margin-bottom: 30px; padding: 0 20px; font-style: normal; animation: fadeInAnim 3s forwards; text-wrap: balance; color: var(--text-title); text-shadow: 0 0 15px rgba(255,255,255,0.4); }
-        
-        /* --- CARROUSEL COVERFLOW OPTIMISÉ (RÉSOLUTION DES BUGS DE SCROLL) --- */
-        .sanctuary-list { 
-            position: relative;
-            flex: 1 1 auto; 
-            display: flex; 
-            flex-direction: row; 
-            gap: 0px; 
-            overflow-x: auto; 
-            overflow-y: hidden;
-            /* Padding calculé pour compenser les marges négatives et centrer la première carte parfaitement */
-            padding: 20px calc(50vw - 65px); 
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none; 
-            align-items: center;
-            scroll-behavior: smooth;
+        #sanctuary-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0b0d14;
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+            padding: 50px 0 20px 0;
+            box-sizing: border-box;
+            overflow: hidden;
         }
-        .sanctuary-list::-webkit-scrollbar { display: none; }
-        
-        .fragment-slot { 
-            position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            flex-shrink: 0; 
-            width: 220px; 
+
+        .sanctuary-header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+            padding: 0 20px;
+        }
+
+        .sanctuary-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            margin: 0;
+            letter-spacing: 6px;
+            font-size: 1.2rem;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .sanctuary-header p {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
+        /* Map Container Standard */
+        .map-wrapper {
+            padding: 0 20px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        #memory-map {
+            width: 100%;
+            height: 180px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            z-index: 1;
+            display: none;
+            overflow: hidden;
+        }
+
+        .leaflet-control-attribution {
+            display: none !important;
+        }
+
+        /* Nœuds et Constellation */
+        .pulsing-node {
+            width: 12px;
+            height: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+        }
+
+        .artifact-core {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .artifact-halo {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: pulseHalo 2s infinite ease-out;
+        }
+
+        @keyframes pulseHalo {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        .constellation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .star {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--glass-border);
+            margin: 0 4px;
+            transition: all 1s;
+        }
+
+        .star-link {
+            height: 1px;
+            width: 12px;
+            background: var(--glass-border);
+            transition: background 1s;
+        }
+
+        .final-revelation {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            font-style: normal;
+            animation: fadeInAnim 3s forwards;
+            text-wrap: balance;
+            color: var(--text-title);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        /* --- CARROUSEL COVERFLOW OPTIMISÉ MATHÉMATIQUEMENT --- */
+        .sanctuary-list {
+            position: relative;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: row;
+            gap: 0px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            /* Padding calculé avec précision : 50vw - 70px.
+               Explication : La carte fait 220px. Avec les margins négatifs de -40px de chaque côté, 
+               elle "prend" physiquement 140px. Le centre est à 70px du bord gauche. */
+            padding: 20px calc(50vw - 70px);
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            align-items: center;
+        }
+
+        .sanctuary-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .fragment-slot {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            width: 220px;
             height: 340px;
-            /* La marge négative crée le chevauchement physiquement, ce qui permet au scroll-snap de marcher parfaitement */
-            margin: 0 -45px;
-            background: rgba(18, 20, 28, 0.65); 
-            border: 1px solid rgba(255,255,255,0.05); 
-            border-radius: 20px; 
-            overflow: hidden; 
+            /* La marge négative crée le véritable empilement physique CSS. 
+               Cela permet au scroll-snap natif du navigateur d'être PARFAITEMENT aligné */
+            margin: 0 -40px;
+            background: rgba(18, 20, 28, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
             backdrop-filter: blur(15px);
             scroll-snap-align: center;
             will-change: transform, opacity, z-index;
+            /* On désactive les transitions sur le transform pour éviter le conflit avec le JS en plein scroll */
             transition: box-shadow 0.3s ease;
         }
 
         .fragment-slot.active-card {
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
         }
 
-        .slot-content { 
-            position: relative; 
-            z-index: 2; 
-            padding: 30px 20px; 
-            display: flex; 
-            flex-direction: column; 
+        .slot-content {
+            position: relative;
+            z-index: 2;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: space-between;
             height: 100%;
             box-sizing: border-box;
             text-align: center;
         }
-        
-        @keyframes morphCardBlob {
-            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1) translate(0, 0); }
-            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(120deg) scale(1.3) translate(10%, -10%); }
-            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(240deg) scale(0.8) translate(-10%, 15%); }
-            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(360deg) scale(1) translate(0, 0); }
-        }
-        .card-blob { position: absolute; width: 150%; height: 150%; filter: blur(45px); opacity: 0.6; z-index: 0; animation: morphCardBlob 12s linear infinite; mix-blend-mode: screen; }
-        
-        .fragment-slot:not(.found) { background: rgba(18, 20, 28, 0.3); border: 1px dashed rgba(255,255,255,0.05); }
-        .clickable-slot { cursor: pointer; }
 
-        .slot-content .slot-title { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; margin-bottom: auto; }
-        .slot-content .slot-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 400; opacity: 0.3; text-transform: uppercase; margin-top: auto; margin-bottom: 10px; line-height: 1.1; }
-        .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); }
-        .slot-content .slot-word { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; text-align: center; opacity: 0; }
-        
-        /* --- ANIMATION DE RÉVÉLATION (NOUVELLE CARTE) --- */
+        @keyframes morphCardBlob {
+            0% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: rotate(0deg) scale(1) translate(0, 0);
+            }
+
+            33% {
+                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+                transform: rotate(120deg) scale(1.3) translate(10%, -10%);
+            }
+
+            66% {
+                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
+                transform: rotate(240deg) scale(0.8) translate(-10%, 15%);
+            }
+
+            100% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: rotate(360deg) scale(1) translate(0, 0);
+            }
+        }
+
+        .card-blob {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            filter: blur(45px);
+            opacity: 0.6;
+            z-index: 0;
+            animation: morphCardBlob 12s linear infinite;
+            mix-blend-mode: screen;
+        }
+
+        .fragment-slot:not(.found) {
+            background: rgba(18, 20, 28, 0.3);
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .clickable-slot {
+            cursor: pointer;
+        }
+
+        .slot-content .slot-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-bottom: auto;
+        }
+
+        .slot-content .slot-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            opacity: 0.3;
+            text-transform: uppercase;
+            margin-top: auto;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+
+        .fragment-slot.found .slot-name {
+            opacity: 1;
+            color: var(--text-title);
+        }
+
+        .slot-content .slot-word {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-align: center;
+            opacity: 0;
+        }
+
+        /* --- ANIMATION DE RÉVÉLATION (NOUVELLE CARTE TROUVÉE) --- */
         .fragment-slot.just-found .card-blob {
             animation: revealBlob 1.5s cubic-bezier(0.1, 0.8, 0.2, 1) forwards, morphCardBlob 12s linear infinite 1.5s;
             opacity: 0;
             transform: scale(0);
         }
+
         @keyframes revealBlob {
             0% { opacity: 0; transform: scale(0); filter: blur(10px) brightness(3); }
             100% { opacity: 0.6; transform: scale(1); filter: blur(45px) brightness(1); }
@@ -231,6 +851,7 @@
             opacity: 0;
             animation: revealText 1s ease-out 1.2s forwards;
         }
+
         @keyframes revealText {
             0% { opacity: 0; transform: translateY(10px); }
             100% { opacity: 1; transform: translateY(0); }
@@ -240,34 +861,134 @@
             opacity: 0 !important;
             animation: revealWord 1.5s ease-out 1.8s forwards;
         }
+
         @keyframes revealWord {
             0% { opacity: 0; text-shadow: 0 0 30px currentColor; filter: brightness(2); transform: scale(1.1); }
             100% { opacity: 1; text-shadow: 0 0 0px transparent; filter: brightness(1); transform: scale(1); }
         }
 
-        .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding: 0 20px env(safe-area-inset-bottom, 10px) 20px; }
-        #btn-back-radar { border-color: transparent; }
-        #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
-        
-        /* --- DIVERS --- */
-        #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-out; }
-        #apotheosis-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-night); z-index: 9999999; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 2s ease-in-out; }
-        .apo-word { font-family: 'Montserrat', sans-serif; font-weight: 400; font-style: normal; font-size: 2.5rem; letter-spacing: 8px; opacity: 0; position: absolute; text-transform: uppercase; transition: opacity 1.5s ease-in-out, transform 3s ease-out; transform: scale(0.8); text-align: center; }
-        .apo-word.show { opacity: 1; transform: scale(1.1); text-shadow: 0 0 30px currentColor; }
+        .sanctuary-footer {
+            flex-shrink: 0;
+            margin-top: 10px;
+            padding: 0 20px env(safe-area-inset-bottom, 10px) 20px;
+        }
 
-        #review-ui { z-index: 6000; }
+        #btn-back-radar {
+            border-color: transparent;
+        }
+
+        #btn-reset {
+            border-color: transparent;
+            opacity: 0.5;
+            font-size: 0.6rem;
+            margin-top: 10px;
+        }
+
+        /* --- DIVERS --- */
+        #flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #fff;
+            z-index: 8000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease-out;
+        }
+
+        #apotheosis-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-night);
+            z-index: 9999999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+
+        .apo-word {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 2.5rem;
+            letter-spacing: 8px;
+            opacity: 0;
+            position: absolute;
+            text-transform: uppercase;
+            transition: opacity 1.5s ease-in-out, transform 3s ease-out;
+            transform: scale(0.8);
+            text-align: center;
+        }
+
+        .apo-word.show {
+            opacity: 1;
+            transform: scale(1.1);
+            text-shadow: 0 0 30px currentColor;
+        }
+
+        #review-ui {
+            z-index: 6000;
+        }
 
         /* --- ONBOARDING CLEAN --- */
-        #onboarding-ui { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 8000; display: none; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1.5s ease; background: var(--bg-night); }
-        .ob-content { position: relative; z-index: 2; width: 85%; max-width: 380px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .ob-text { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 400; line-height: 1.6; color: #fff; opacity: 0; transition: opacity 1.5s ease-in-out; text-wrap: balance; margin-bottom: 40px; }
-        .ob-btn { opacity: 0; display: none; width: 100%; transition: opacity 1s ease; }
+        #onboarding-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 8000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1.5s ease;
+            background: var(--bg-night);
+        }
 
+        .ob-content {
+            position: relative;
+            z-index: 2;
+            width: 85%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .ob-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            text-wrap: balance;
+            margin-bottom: 40px;
+        }
+
+        .ob-btn {
+            opacity: 0;
+            display: none;
+            width: 100%;
+            transition: opacity 1s ease;
+        }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
     </script>
 </head>
+
 <body>
 
     <div id="transition-veil"></div>
@@ -283,8 +1004,10 @@
 
     <div id="review-ui" class="fs-fiche">
         <div class="fs-blobs-container">
-            <div id="review-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;"></div>
-            <div id="review-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
+            <div id="review-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;">
+            </div>
+            <div id="review-bg-blob2" class="fs-blob b2"
+                style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
         </div>
         <div class="fs-content">
             <div id="review-3d-container" class="artifact-3d-canvas"></div>
@@ -305,7 +1028,8 @@
     <div id="artifact-ui" class="fs-fiche">
         <div class="fs-blobs-container">
             <div id="ui-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;"></div>
-            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
+            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;">
+            </div>
         </div>
         <div class="fs-content">
             <div id="ui-3d-container" class="artifact-3d-canvas fade-in-seq"></div>
@@ -332,10 +1056,12 @@
     <div id="radar-ui">
         <div class="info-box glass-panel" id="main-panel">
             <div class="panel-blobs">
-                <div id="panel-blob1" class="panel-blob b1" style="width: 250px; height: 250px; top: -50px; left: -50px;"></div>
-                <div id="panel-blob2" class="panel-blob b2" style="width: 250px; height: 250px; bottom: -50px; right: -50px;"></div>
+                <div id="panel-blob1" class="panel-blob b1"
+                    style="width: 250px; height: 250px; top: -50px; left: -50px;"></div>
+                <div id="panel-blob2" class="panel-blob b2"
+                    style="width: 250px; height: 250px; bottom: -50px; right: -50px;"></div>
             </div>
-            
+
             <div class="info-top">
                 <h1 class="main-title serif" id="main-title">Slumber</h1>
                 <p id="distance-display">---</p>
@@ -359,16 +1085,19 @@
             <p>Reconstructed realities</p>
             <div id="constellation" class="constellation"></div>
         </div>
-        
+
         <div class="map-wrapper">
             <div id="memory-map"></div>
         </div>
 
         <div class="sanctuary-list" id="sanctuary-list"></div>
-        
+
         <div class="sanctuary-footer">
-            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">CLOSE YOUR EYES (RETURN)</button>
-            <button id="btn-reset" class="clean-btn" style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">SEVER THE LINK (RESTART)</button>
+            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">CLOSE YOUR EYES
+                (RETURN)</button>
+            <button id="btn-reset" class="clean-btn"
+                style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">SEVER THE LINK
+                (RESTART)</button>
         </div>
     </div>
 
@@ -390,12 +1119,12 @@
                 osc.type = 'sine'; osc.frequency.value = freq;
                 osc.connect(gain); gain.connect(ctx.destination);
                 gain.gain.setValueAtTime(0, t + delay);
-                gain.gain.linearRampToValueAtTime(vol, t + delay + 0.02); 
+                gain.gain.linearRampToValueAtTime(vol, t + delay + 0.02);
                 gain.gain.exponentialRampToValueAtTime(0.001, t + delay + duration);
                 osc.start(t + delay); osc.stop(t + delay + duration);
             }
-            if (type === 'action') { sparkle(1200, 0.00, 0.6, 0.08); sparkle(1500, 0.05, 0.6, 0.08); sparkle(2000, 0.10, 0.8, 0.1); sparkle(2800, 0.15, 1.0, 0.15); } 
-            else if (type === 'click') { sparkle(2400, 0.0, 0.15, 0.08); sparkle(3200, 0.02, 0.1, 0.04); } 
+            if (type === 'action') { sparkle(1200, 0.00, 0.6, 0.08); sparkle(1500, 0.05, 0.6, 0.08); sparkle(2000, 0.10, 0.8, 0.1); sparkle(2800, 0.15, 1.0, 0.15); }
+            else if (type === 'click') { sparkle(2400, 0.0, 0.15, 0.08); sparkle(3200, 0.02, 0.1, 0.04); }
             else if (type === 'transition') { sparkle(3200, 0.00, 0.4, 0.05); sparkle(2600, 0.05, 0.4, 0.08); sparkle(2000, 0.10, 0.5, 0.1); sparkle(1400, 0.15, 0.6, 0.1); }
             else if (type === 'success') {
                 const freqs = [1046.50, 1318.51, 1567.98, 2093.00, 2637.02, 3135.96];
@@ -403,19 +1132,19 @@
             }
             else if (type === 'apotheosis') {
                 const oscDrone = ctx.createOscillator(); const gainDrone = ctx.createGain();
-                oscDrone.type = 'sine'; oscDrone.frequency.value = 55; 
+                oscDrone.type = 'sine'; oscDrone.frequency.value = 55;
                 oscDrone.connect(gainDrone); gainDrone.connect(ctx.destination);
                 gainDrone.gain.setValueAtTime(0, t);
                 gainDrone.gain.linearRampToValueAtTime(0.3, t + 5);
                 gainDrone.gain.exponentialRampToValueAtTime(0.001, t + 18);
                 oscDrone.start(t); oscDrone.stop(t + 18);
-                
+
                 [440, 554.37, 659.25, 880].forEach((f, i) => {
                     const osc = ctx.createOscillator(); const g = ctx.createGain();
                     osc.type = 'triangle'; osc.frequency.value = f;
                     osc.connect(g); g.connect(ctx.destination);
                     g.gain.setValueAtTime(0, t);
-                    g.gain.linearRampToValueAtTime(0.05, t + 3 + (i*1.5));
+                    g.gain.linearRampToValueAtTime(0.05, t + 3 + (i * 1.5));
                     g.gain.exponentialRampToValueAtTime(0.001, t + 18);
                     osc.start(t); osc.stop(t + 18);
                 });
@@ -427,7 +1156,7 @@
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
         function getRGB(rgbaString) {
-            if(!rgbaString) return 'rgb(255,255,255)';
+            if (!rgbaString) return 'rgb(255,255,255)';
             return rgbaString.replace(/rgba\((.*),\s*[\d.]+\)/, 'rgb($1)');
         }
 
@@ -450,7 +1179,9 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
-        let newShardId = urlParams.get('newShard'); // <-- Capture de l'ID du nouvel éclat
+        
+        // --- NOUVEAU : RÉCUPÉRATION DE L'ID DE LA NOUVELLE CARTE TROUVÉE ---
+        let newShardId = urlParams.get('newShard'); 
 
         function pickRandomUnfound() {
             let unfound = [];
@@ -462,7 +1193,7 @@
             return unfound[randomIndex];
         }
 
-        let activeProfile = ARTIFACTS_DATA[0]; 
+        let activeProfile = ARTIFACTS_DATA[0];
 
         /* --- MOTEUR 3D "HOLO GLASS" --- */
         let uiScene, uiCamera, uiRenderer, uiMesh;
@@ -506,15 +1237,15 @@
         };
 
         function getGeometry(shapeName) {
-            const s = 1.2; 
-            switch(shapeName) {
+            const s = 1.2;
+            switch (shapeName) {
                 case 'tetrahedron': return new THREE.TetrahedronGeometry(0.06 * s, 0);
-                case 'box': return new THREE.BoxGeometry(0.08*s, 0.08*s, 0.08*s);
-                case 'cone': return new THREE.ConeGeometry(0.05*s, 0.1*s, 8); 
-                case 'icosahedron': return new THREE.IcosahedronGeometry(0.06*s, 0);
-                case 'cylinder': return new THREE.CylinderGeometry(0.04*s, 0.04*s, 0.1*s, 8); 
-                case 'sphere': return new THREE.IcosahedronGeometry(0.05*s, 2); 
-                case 'octahedron': default: return new THREE.OctahedronGeometry(0.06*s, 0);
+                case 'box': return new THREE.BoxGeometry(0.08 * s, 0.08 * s, 0.08 * s);
+                case 'cone': return new THREE.ConeGeometry(0.05 * s, 0.1 * s, 8);
+                case 'icosahedron': return new THREE.IcosahedronGeometry(0.06 * s, 0);
+                case 'cylinder': return new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 0.1 * s, 8);
+                case 'sphere': return new THREE.IcosahedronGeometry(0.05 * s, 2);
+                case 'octahedron': default: return new THREE.OctahedronGeometry(0.06 * s, 0);
             }
         }
 
@@ -534,12 +1265,12 @@
                 fragmentShader: holoFragmentShader,
                 transparent: true,
                 blending: THREE.AdditiveBlending,
-                depthWrite: false 
+                depthWrite: false
             });
 
             uiMesh = new THREE.Mesh(getGeometry('octahedron'), uiMaterial);
             uiScene.add(uiMesh);
-            
+
             uiRenderer.setAnimationLoop(() => {
                 uiMesh.rotation.y += 0.005;
                 uiMesh.rotation.x += 0.003;
@@ -554,43 +1285,43 @@
 
             uiMesh.geometry.dispose();
             uiMesh.geometry = getGeometry(profile.shape);
-            
+
             holoUniforms.color1.value.copy(profile.color1);
             holoUniforms.color2.value.copy(profile.color2);
         }
 
-        if (gameState.foundNodes.length >= 7 && !isSanctuaryView && gameState.onboardingDone) { 
-            navigateTo(window.location.pathname + '?view=sanctuary'); 
+        if (gameState.foundNodes.length >= 7 && !isSanctuaryView && gameState.onboardingDone) {
+            navigateTo(window.location.pathname + '?view=sanctuary');
         }
 
         async function playApotheosisSequence() {
             const overlay = document.getElementById('apotheosis-overlay');
             overlay.style.display = 'flex';
-            void overlay.offsetWidth; 
+            void overlay.offsetWidth;
             overlay.style.opacity = '1';
-            
+
             playUISound('apotheosis');
-            
-            await new Promise(r => setTimeout(r, 2000)); 
+
+            await new Promise(r => setTimeout(r, 2000));
 
             const words = ARTIFACTS_DATA.map(d => ({ text: d.word, color: d.cssColor }));
-            
+
             for (let i = 0; i < words.length; i++) {
                 const el = document.createElement('div');
                 el.className = 'apo-word';
                 el.style.color = words[i].color;
                 el.innerText = words[i].text;
                 overlay.appendChild(el);
-                
+
                 void el.offsetWidth;
                 el.classList.add('show');
-                
-                await new Promise(r => setTimeout(r, 1800)); 
-                el.classList.remove('show'); 
-                await new Promise(r => setTimeout(r, 1000)); 
+
+                await new Promise(r => setTimeout(r, 1800));
+                el.classList.remove('show');
+                await new Promise(r => setTimeout(r, 1000));
                 overlay.removeChild(el);
             }
-            
+
             await new Promise(r => setTimeout(r, 1000));
             overlay.style.opacity = '0';
             await new Promise(r => setTimeout(r, 2000));
@@ -603,20 +1334,20 @@
             const listContainer = document.getElementById('sanctuary-list');
             const constelContainer = document.getElementById('constellation');
             const mapContainer = document.getElementById('memory-map');
-            listContainer.innerHTML = ''; 
-            
+            listContainer.innerHTML = '';
+
             if (gameState.foundNodes.length > 0) {
                 constelContainer.style.display = 'none';
                 mapContainer.style.display = 'block';
-                
+
                 setTimeout(() => {
                     if (!mapInstance) {
                         mapInstance = L.map('memory-map', { zoomControl: false, attributionControl: false }).setView([gameState.foundNodes[0].lat, gameState.foundNodes[0].lon], 16);
                         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapInstance);
                     }
-                    
+
                     mapInstance.invalidateSize();
-                    
+
                     mapInstance.eachLayer((layer) => {
                         if (!!layer.toGeoJSON) mapInstance.removeLayer(layer);
                     });
@@ -644,20 +1375,20 @@
                             smoothFactor: 1
                         }).addTo(mapInstance);
                     }
-                    
-                    if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), {padding: [20, 20]}); }
+
+                    if (latlngs.length > 1) { mapInstance.fitBounds(L.polyline(latlngs).getBounds(), { padding: [20, 20] }); }
                 }, 100);
             } else {
                 constelContainer.innerHTML = '';
-                for(let i=0; i<7; i++) {
+                for (let i = 0; i < 7; i++) {
                     let star = document.createElement('div'); star.className = 'star'; constelContainer.appendChild(star);
                     if (i < 6) { let link = document.createElement('div'); link.className = 'star-link'; constelContainer.appendChild(link); }
                 }
             }
 
             if (gameState.foundNodes.length >= 7) {
-                document.getElementById('btn-back-radar').style.display = 'none'; 
-                document.getElementById('btn-reset').style.display = 'block'; 
+                document.getElementById('btn-back-radar').style.display = 'none';
+                document.getElementById('btn-reset').style.display = 'block';
                 let rev = document.createElement('div'); rev.className = 'final-revelation';
                 rev.innerText = "«\u00A0WE HAVE FORGOTTEN HOW TO BE REAL\u00A0»";
                 document.getElementById('sanctuary-ui').insertBefore(rev, listContainer);
@@ -666,51 +1397,53 @@
             ARTIFACTS_DATA.forEach((profile, index) => {
                 const isFound = gameState.foundNodes.find(n => n.id === index) !== undefined;
                 const slot = document.createElement('div');
-                
+
                 slot.className = `fragment-slot ${isFound ? 'found clickable-slot' : ''}`;
-                
-                // --- SETUP DE L'ANIMATION "NOUVELLE CARTE" ---
+
+                // --- GESTION DE LA RÉVÉLATION (NOUVELLE CARTE) ---
                 let wordColorStyle = `color: ${isFound ? profile.cssColor : ''}; opacity: ${isFound ? '1':'0'};`;
                 
                 if (newShardId !== null && parseInt(newShardId) === index) {
-                    slot.classList.add('just-found');
+                    slot.classList.add('just-found'); // Déclenche les animations CSS
                     wordColorStyle = `color: ${profile.cssColor};`; 
                 }
 
                 let blobHtml = '';
-                if(isFound) {
+                if (isFound) {
                     let blobTop = Math.floor(Math.random() * 60) - 30;
                     let blobLeft = Math.floor(Math.random() * 80) - 20;
-                    blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, rgba(${profile.color2.r*255},${profile.color2.g*255},${profile.color2.b*255},0.8) 0%, rgba(${profile.color1.r*255},${profile.color1.g*255},${profile.color1.b*255},0.8) 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
-                    
+                    blobHtml = `<div class="card-blob" style="background: radial-gradient(circle, rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.8) 0%, rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.8) 80%); top: ${blobTop}%; left: ${blobLeft}%;"></div>`;
+
                     slot.addEventListener('click', () => {
+                        // SÉCURITÉ UX : Calcul précis du Scroll Programatique si non-centrée
                         if (!slot.classList.contains('active-card')) {
-                            slot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                            const targetLeft = slot.offsetLeft - listContainer.clientWidth / 2 + slot.offsetWidth / 2;
+                            listContainer.scrollTo({ left: targetLeft, behavior: 'smooth' });
                             return;
                         }
-                        
+
                         playUISound('click');
                         document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
-                        
+
                         document.getElementById('review-art-name').innerText = profile.name;
                         document.getElementById('review-art-lore').innerHTML = profile.lore;
                         document.getElementById('review-word').innerText = `"${profile.word}"`;
                         document.getElementById('review-word').style.color = profile.cssColor;
-                        
+
                         document.getElementById('review-progress').innerText = `${index + 1} / 7`;
                         let nodeData = gameState.foundNodes.find(n => n.id === index);
                         let latVal = (nodeData && typeof nodeData.lat === 'number') ? nodeData.lat : 0;
                         let lonVal = (nodeData && typeof nodeData.lon === 'number') ? nodeData.lon : 0;
                         document.getElementById('review-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
 
-                        document.getElementById('review-bg-blob1').style.background = `rgba(${profile.color1.r*255},${profile.color1.g*255},${profile.color1.b*255},0.8)`;
-                        document.getElementById('review-bg-blob2').style.background = `rgba(${profile.color2.r*255},${profile.color2.g*255},${profile.color2.b*255},0.8)`;
-                        
+                        document.getElementById('review-bg-blob1').style.background = `rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.8)`;
+                        document.getElementById('review-bg-blob2').style.background = `rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.8)`;
+
                         attachUI3D('review-3d-container', profile);
                         document.getElementById('review-ui').style.display = 'flex';
                     });
                 }
-                
+
                 slot.innerHTML = `
                     ${blobHtml}
                     <div class="slot-content">
@@ -722,60 +1455,67 @@
                 listContainer.appendChild(slot);
             });
 
-            // --- MOTEUR SCROLL COVERFLOW OPTIMISÉ (Zéro conflit avec le Snap Natif) ---
+            // --- MOTEUR SCROLL COVERFLOW (AJUSTÉ POUR LE NOUVEAU LAYOUT CSS) ---
             const slots = listContainer.querySelectorAll('.fragment-slot');
-            
+
             function updateActiveCard() {
                 const containerCenter = listContainer.scrollLeft + listContainer.clientWidth / 2;
-                
+
                 slots.forEach((slot) => {
+                    // Grâce aux margins CSS, offsetLeft représente parfaitement la position désirée
                     const slotCenter = slot.offsetLeft + slot.offsetWidth / 2;
-                    const distance = slotCenter - containerCenter; 
+                    const distance = slotCenter - containerCenter;
                     
-                    const step = 130; // Largeur de la carte (220) moins les marges négatives (90) = espace réel de scroll
-                    const normalizedDistance = distance / step; 
+                    // La "taille" réelle (visuelle) d'une carte est sa width - ses margins
+                    const step = 140; 
+                    let normalizedDistance = distance / step;
+                    
+                    // Sécurité pour éviter les gros bugs de calcul en cas de scroll ultra rapide
+                    if(normalizedDistance > 3) normalizedDistance = 3;
+                    if(normalizedDistance < -3) normalizedDistance = -3;
+
                     const absOffset = Math.abs(normalizedDistance);
-                    
-                    // 1. ÉCHELLE
-                    let scale = 1 - absOffset * 0.15; 
+
+                    let scale = 1 - absOffset * 0.15;
                     if (scale < 0.7) scale = 0.7;
-                    
-                    // 2. INCLINAISON 3D
-                    let rotateY = normalizedDistance * -45; 
-                    if (rotateY > 55) rotateY = 55;
-                    if (rotateY < -55) rotateY = -55;
-                    
-                    // 3. TRANSLATION (Légère correction optique, mais on laisse le CSS gérer le vrai empilement)
-                    let translateX = normalizedDistance * -15;
-                    
-                    // 4. OPACITÉ ET PROFONDEUR
-                    let zIndex = 100 - Math.round(absOffset * 10);
-                    let opacity = 1 - absOffset * 0.35;
-                    if (opacity < 0.3) opacity = 0.3;
-                    
+
+                    let rotateY = normalizedDistance * -45;
+                    if (rotateY > 60) rotateY = 60;
+                    if (rotateY < -60) rotateY = -60;
+
+                    // Optionnel : un très léger ajustement optique en X
+                    let translateX = normalizedDistance * -20; 
+
+                    let zIndex = Math.round(100 - absOffset * 10);
+                    let opacity = Math.max(1 - (absOffset * 0.5), 0.2);
+
                     slot.style.transform = `perspective(1000px) translateX(${translateX}px) scale(${scale}) rotateY(${rotateY}deg)`;
                     slot.style.zIndex = zIndex;
                     slot.style.opacity = opacity;
-                    
+
                     if (absOffset < 0.5) {
-                        slot.classList.add('active-card');
+                        if (!slot.classList.contains('active-card')) {
+                            slot.classList.add('active-card');
+                            if (navigator.vibrate) navigator.vibrate(2);
+                        }
                     } else {
                         slot.classList.remove('active-card');
                     }
                 });
             }
-            
+
             listContainer.addEventListener('scroll', updateActiveCard);
             setTimeout(updateActiveCard, 100);
 
-            // --- AUTO-SCROLL POUR LA NOUVELLE CARTE ---
+            // --- AUTO-SCROLL POUR LA NOUVELLE CARTE TROUVÉE ---
             if (newShardId !== null) {
                 setTimeout(() => {
                     const targetSlot = slots[parseInt(newShardId)];
                     if (targetSlot) {
-                        targetSlot.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                        const targetLeft = targetSlot.offsetLeft - listContainer.clientWidth / 2 + targetSlot.offsetWidth / 2;
+                        listContainer.scrollTo({ left: targetLeft, behavior: 'smooth' });
                     }
-                }, 1200); // Laisse le temps au voile noir de disparaître
+                }, 1200); // Laisse le temps au voile noir de la transition de disparaître
             }
         }
 
@@ -790,21 +1530,21 @@
                 playApotheosisSequence().then(() => {
                     gameState.apotheosisPlayed = true;
                     localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
-                    buildSanctuaryList(); 
+                    buildSanctuaryList();
                     document.getElementById('sanctuary-ui').style.display = 'flex';
                 });
             } else {
-                buildSanctuaryList(); 
+                buildSanctuaryList();
                 document.getElementById('sanctuary-ui').style.display = 'flex';
             }
         }
 
         document.getElementById('btn-back-radar').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
-        
-        document.getElementById('btn-reset').addEventListener('click', () => { 
-            playUISound('action'); 
-            localStorage.removeItem('glint_save_v4'); 
-            navigateTo(window.location.pathname); 
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            playUISound('action');
+            localStorage.removeItem('glint_save_v4');
+            navigateTo(window.location.pathname);
         });
 
         document.getElementById('btn-continue').addEventListener('click', () => { playUISound('transition'); navigateTo(window.location.pathname); });
@@ -815,14 +1555,14 @@
             let destUrl = window.location.pathname + '?view=sanctuary';
             if (window.lastFoundShardId !== undefined) {
                 destUrl += '&newShard=' + window.lastFoundShardId;
-                window.lastFoundShardId = undefined; // Purge
+                window.lastFoundShardId = undefined; // On purge après utilisation
             }
             navigateTo(destUrl); 
         });
 
         if (!isSanctuaryView && gameState.foundNodes.length < 7) {
             let targetLat = null, targetLon = null, startLat = null, startLon = null;
-            const spawnDistance = 2; const glitchStartDistance = 15; const extractionDistance = 5; 
+            const spawnDistance = 2; const glitchStartDistance = 15; const extractionDistance = 5;
             let currentDistance = 999; let radarTimeout, cameraStream = null, dataStreamInterval;
 
             const recalcBtn = document.getElementById('recalc-btn');
@@ -838,16 +1578,16 @@
             let radarRenderer, radarScene, radarCamera, videoTexture, shaderMaterial, videoElement;
             let isFlashTriggered = false;
             let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
-            let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false; 
+            let hiddenTarget = new THREE.Vector3(); let isTargetSpawned = false; let canExtract = false;
             let xrState = 'search'; let spawnedArtifactMesh = null;
             const raycaster = new THREE.Raycaster();
-            
+
             let coreMesh;
             const arHoloUniforms = { color1: { value: new THREE.Color(0xffffff) }, color2: { value: new THREE.Color(0xffffff) } };
 
             function initXR() {
-                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20); 
-                
+                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
                 document.body.appendChild(renderer.domElement);
 
@@ -856,17 +1596,17 @@
 
                 renderer.xr.addEventListener('sessionstart', () => {
                     flashOverlay.style.transition = 'none'; flashOverlay.style.opacity = '1';
-                    arContainer.style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none'; 
-                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if(videoElement) videoElement.pause();
-                    clearTimeout(radarTimeout); clearInterval(dataStreamInterval); 
-                    if(radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
-                    
-                    document.getElementById('xr-ui').style.display = 'block'; 
-                    setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50); 
+                    arContainer.style.display = 'none'; document.getElementById('radar-ui').style.display = 'none'; document.getElementById('dream-veil').style.display = 'none';
+                    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop()); if (videoElement) videoElement.pause();
+                    clearTimeout(radarTimeout); clearInterval(dataStreamInterval);
+                    if (radarRenderer) { radarRenderer.dispose(); radarRenderer = null; document.getElementById('threejs-radar-container').innerHTML = ''; }
+
+                    document.getElementById('xr-ui').style.display = 'block';
+                    setTimeout(() => { flashOverlay.style.transition = 'opacity 1.5s ease-in-out'; flashOverlay.style.opacity = '0'; }, 50);
                 });
 
-                const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact'; 
-                
+                const artifactGroup = new THREE.Group(); artifactGroup.name = 'artifact';
+
                 const coreMat = new THREE.ShaderMaterial({
                     uniforms: arHoloUniforms,
                     vertexShader: holoVertexShader,
@@ -885,20 +1625,20 @@
                         spawnedArtifactMesh = artifactGroup.clone();
                         reticle.matrix.decompose(spawnedArtifactMesh.position, spawnedArtifactMesh.quaternion, spawnedArtifactMesh.scale);
                         scene.add(spawnedArtifactMesh);
-                        
-                        xrState = 'revealed'; reticle.visible = false; 
-                        document.getElementById('xr-ui').innerText = "Reach out to assimilate the shard."; 
-                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0'; 
-                        if (navigator.vibrate) navigator.vibrate([50, 50, 50]); 
-                    } 
+
+                        xrState = 'revealed'; reticle.visible = false;
+                        document.getElementById('xr-ui').innerText = "Reach out to assimilate the shard.";
+                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
+                        if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                    }
                     else if (xrState === 'revealed') {
                         const tempMatrix = new THREE.Matrix4().identity().extractRotation(controller.matrixWorld);
                         raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
                         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
                         if (raycaster.intersectObject(spawnedArtifactMesh, true).length > 0) {
-                            xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none'; 
-                            
+                            xrState = 'recovered'; document.getElementById('xr-ui').style.display = 'none';
+
                             playUISound('success');
 
                             if (!gameState.foundNodes.find(n => n.id === activeProfile.id)) {
@@ -907,47 +1647,47 @@
                             }
 
                             document.documentElement.style.setProperty('--accent-pure', activeProfile.cssColor);
-                            
+
                             document.getElementById('ui-art-name').innerText = activeProfile.name;
                             document.getElementById('ui-art-lore').innerHTML = activeProfile.lore;
                             document.getElementById('ui-word').innerText = `"${activeProfile.word}"`;
                             document.getElementById('ui-word').style.color = activeProfile.cssColor;
-                            
+
                             document.getElementById('ui-progress').innerText = `${gameState.foundNodes.length} / 7`;
                             let latVal = startLat !== null ? startLat : 0;
                             let lonVal = startLon !== null ? startLon : 0;
                             document.getElementById('ui-gps').innerText = `${latVal.toFixed(3)}, ${lonVal.toFixed(3)}`;
 
-                            document.getElementById('ui-bg-blob1').style.background = `rgba(${activeProfile.color1.r*255},${activeProfile.color1.g*255},${activeProfile.color1.b*255},0.8)`;
-                            document.getElementById('ui-bg-blob2').style.background = `rgba(${activeProfile.color2.r*255},${activeProfile.color2.g*255},${activeProfile.color2.b*255},0.8)`;
-                            
+                            document.getElementById('ui-bg-blob1').style.background = `rgba(${activeProfile.color1.r * 255},${activeProfile.color1.g * 255},${activeProfile.color1.b * 255},0.8)`;
+                            document.getElementById('ui-bg-blob2').style.background = `rgba(${activeProfile.color2.r * 255},${activeProfile.color2.g * 255},${activeProfile.color2.b * 255},0.8)`;
+
                             attachUI3D('ui-3d-container', activeProfile);
 
-                            // --- STOCKAGE DE LA RÉCOMPENSE POUR L'ANIMATION DU CARNET ---
+                            // --- ENREGISTRE L'ID POUR L'ANIMATION DU CARNET ---
                             window.lastFoundShardId = activeProfile.id;
 
                             document.getElementById('artifact-ui').style.display = 'flex';
-                            if (navigator.vibrate) navigator.vibrate([50, 100, 200]); 
+                            if (navigator.vibrate) navigator.vibrate([50, 100, 200]);
                         }
                     }
                 });
                 scene.add(controller);
-                
-                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })); 
+
+                reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
                 reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
                 renderer.setAnimationLoop(renderXR);
             }
 
             function setActiveProfile(profile) {
-                if(!profile) return;
+                if (!profile) return;
                 document.documentElement.style.setProperty('--accent-pure', profile.cssColor);
                 document.getElementById('glow-left').style.background = `linear-gradient(to right, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
                 document.getElementById('glow-right').style.background = `linear-gradient(to left, ${profile.cssColor.replace('1)', '0.4)')}, transparent)`;
-                
+
                 const pb1 = document.getElementById('panel-blob1');
                 const pb2 = document.getElementById('panel-blob2');
-                if(pb1) pb1.style.background = `rgba(${profile.color1.r*255},${profile.color1.g*255},${profile.color1.b*255},0.8)`;
-                if(pb2) pb2.style.background = `rgba(${profile.color2.r*255},${profile.color2.g*255},${profile.color2.b*255},0.8)`;
+                if (pb1) pb1.style.background = `rgba(${profile.color1.r * 255},${profile.color1.g * 255},${profile.color1.b * 255},0.8)`;
+                if (pb2) pb2.style.background = `rgba(${profile.color2.r * 255},${profile.color2.g * 255},${profile.color2.b * 255},0.8)`;
 
                 if (shaderMaterial) updateRadarShader(profile);
 
@@ -959,15 +1699,15 @@
                 }
             }
 
-            initXR(); 
+            initXR();
 
             async function runOnboarding() {
                 const obUI = document.getElementById('onboarding-ui');
                 const obText = document.getElementById('ob-text');
                 const obBtn = document.getElementById('ob-btn');
-                
+
                 obUI.style.display = 'flex';
-                
+
                 let randomId = pickRandomUnfound();
                 if (randomId !== null) activeProfile = ARTIFACTS_DATA[randomId];
                 setActiveProfile(activeProfile);
@@ -978,23 +1718,23 @@
                     obBtn.innerText = "RESUME WANDERING";
                     obBtn.style.display = 'flex';
                     setTimeout(() => obBtn.style.opacity = '1', 100);
-                    
+
                     await new Promise(resolve => {
                         obBtn.onclick = () => {
                             playUISound('action');
                             audioCtx = getAudioCtx();
                             obText.style.opacity = '0'; obBtn.style.opacity = '0';
-                            
+
                             setTimeout(() => {
                                 obUI.style.display = 'none';
                                 const radarUI = document.getElementById('radar-ui');
                                 radarUI.style.opacity = '1';
-                                recalcBtn.style.display = 'block'; 
+                                recalcBtn.style.display = 'block';
                                 document.getElementById('main-title').innerText = "Slumber";
-                                statusDisplay.innerText = "Synchronizing resonance..."; 
+                                statusDisplay.innerText = "Synchronizing resonance...";
                                 dataStreamInterval = setInterval(() => {
                                     let stream = ""; const chars = "01010011...";
-                                    for(let i=0; i<8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                                    for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
                                     document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
                                 }, 150);
                             }, 1000);
@@ -1015,46 +1755,46 @@
                     await sleep(3500);
                     obText.style.opacity = '0';
                     await sleep(1500);
-                    
+
                     obText.innerText = "You are wandering through a crumbling dream.\nTo guide you, I must anchor your presence to what remains of the waking world.";
                     obText.style.opacity = '1';
                     obBtn.innerText = "DROP THE ANCHOR";
                     obBtn.style.display = 'flex';
                     setTimeout(() => obBtn.style.opacity = '1', 100);
-                    
+
                     await new Promise(resolve => {
                         obBtn.onclick = () => {
                             playUISound('click');
-                            audioCtx = getAudioCtx(); 
+                            audioCtx = getAudioCtx();
                             obText.innerText = "Seeking anchor point...";
                             obBtn.style.opacity = '0';
-                            
+
                             navigator.geolocation.getCurrentPosition((pos) => {
                                 startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                                 generateTarget(startLat, startLon, spawnDistance);
                                 navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
                             }, (err) => { console.warn("GPS Init skipped/error", err); }, { enableHighAccuracy: true });
-                            resolve(); 
+                            resolve();
                         };
                     });
-                    
+
                     obText.style.opacity = '0'; obBtn.style.display = 'none';
                     await sleep(1500);
-                    
+
                     obText.innerText = "The memories of the true world have crystallized.\nMake this screen your Lens.";
                     obText.style.opacity = '1';
                     obBtn.innerText = "OPEN THE LENS";
                     obBtn.style.display = 'flex';
                     setTimeout(() => obBtn.style.opacity = '1', 100);
-                    
+
                     await new Promise(resolve => {
                         obBtn.onclick = async () => {
                             playUISound('action');
                             obText.style.opacity = '0'; obBtn.style.opacity = '0';
-                            
-                            try { 
-                                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); 
-                                initRadarShader(cameraStream); 
+
+                            try {
+                                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                                initRadarShader(cameraStream);
                                 radarLoop();
                                 gameState.onboardingDone = true;
                                 localStorage.setItem('glint_save_v4', JSON.stringify(gameState));
@@ -1062,21 +1802,21 @@
                             } catch (err) { console.error("Camera error:", err); resolve(); }
                         };
                     });
-                    
+
                     await sleep(1000);
                     obUI.style.opacity = '0';
                     await sleep(2000);
                     obUI.style.display = 'none';
-                    
+
                     const radarUI = document.getElementById('radar-ui');
                     radarUI.style.opacity = '1';
-                    
-                    recalcBtn.style.display = 'block'; 
+
+                    recalcBtn.style.display = 'block';
                     document.getElementById('main-title').innerText = "Slumber";
-                    
+
                     dataStreamInterval = setInterval(() => {
                         let stream = ""; const chars = "01010011...";
-                        for(let i=0; i<8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
+                        for (let i = 0; i < 8; i++) stream += chars.charAt(Math.floor(Math.random() * chars.length));
                         document.getElementById('data-stream').innerText = `Wave: ~${stream}`;
                     }, 150);
                 }
@@ -1088,28 +1828,28 @@
                         startLat = pos.coords.latitude; startLon = pos.coords.longitude;
                         generateTarget(startLat, startLon, spawnDistance);
                         navigator.geolocation.watchPosition(updatePosition, null, { enableHighAccuracy: true });
-                    }, 
-                    (err) => { console.warn("GPS Error", err); }, 
+                    },
+                    (err) => { console.warn("GPS Error", err); },
                     { enableHighAccuracy: true }
                 );
-                
+
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then((stream) => {
-                    cameraStream = stream;
-                    initRadarShader(cameraStream); 
-                    radarLoop();
-                })
-                .catch((err) => console.error("Camera error:", err));
+                    .then((stream) => {
+                        cameraStream = stream;
+                        initRadarShader(cameraStream);
+                        radarLoop();
+                    })
+                    .catch((err) => console.error("Camera error:", err));
             }
 
             runOnboarding();
 
-            recalcBtn.addEventListener('click', () => { 
+            recalcBtn.addEventListener('click', () => {
                 playUISound('click');
-                if (startLat && startLon) { 
+                if (startLat && startLon) {
                     generateTarget(startLat, startLon, spawnDistance);
-                    statusDisplay.innerText = "Map is reconfiguring..."; 
-                } 
+                    statusDisplay.innerText = "Map is reconfiguring...";
+                }
             });
 
             function updatePosition(pos) {
@@ -1121,14 +1861,14 @@
 
                 distanceDisplay.innerText = `${Math.round(currentDistance)} m`;
                 let intensity = 0; if (currentDistance <= glitchStartDistance) { intensity = 1 - (currentDistance / glitchStartDistance); }
-                if(shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
+                if (shaderMaterial) shaderMaterial.uniforms.intensity.value = intensity;
 
                 const arBtn = document.getElementById('ARButton');
                 if (currentDistance < extractionDistance) {
                     statusDisplay.innerText = "A memory is surfacing..."; statusDisplay.style.color = activeProfile.cssColor;
-                    arContainer.style.display = 'block'; recalcBtn.style.display = 'none'; 
+                    arContainer.style.display = 'block'; recalcBtn.style.display = 'none';
                     document.getElementById('main-panel').style.boxShadow = `0 0 30px ${activeProfile.cssColor.replace('1)', '0.3)')}`;
-                    
+
                     if (arBtn) {
                         arBtn.innerText = "GRASP THE SHARD";
                         arBtn.style.background = activeProfile.cssColor.replace('1)', '0.15)');
@@ -1149,28 +1889,28 @@
 
             function initRadarShader(stream) {
                 const container = document.getElementById('threejs-radar-container');
-                videoElement = document.createElement('video'); 
+                videoElement = document.createElement('video');
                 videoElement.setAttribute('playsinline', ''); videoElement.setAttribute('autoplay', ''); videoElement.setAttribute('muted', '');
                 videoElement.srcObject = stream; videoElement.play();
-                
+
                 radarScene = new THREE.Scene(); radarCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
                 radarRenderer = new THREE.WebGLRenderer(); radarRenderer.setSize(window.innerWidth, window.innerHeight); container.appendChild(radarRenderer.domElement);
                 videoTexture = new THREE.VideoTexture(videoElement);
-                
+
                 updateRadarShader(activeProfile);
-                renderRadar(); 
+                renderRadar();
             }
 
             function updateRadarShader(profile) {
-                if(!radarScene || !videoTexture) return;
-                
-                while(radarScene.children.length > 0){ 
+                if (!radarScene || !videoTexture) return;
+
+                while (radarScene.children.length > 0) {
                     let child = radarScene.children[0]; radarScene.remove(child);
-                    if(child.material) child.material.dispose(); if(child.geometry) child.geometry.dispose();
+                    if (child.material) child.material.dispose(); if (child.geometry) child.geometry.dispose();
                 }
-                
+
                 let uvMod = ""; let isSplit = false; let isBloom = false;
-                switch(profile.shaderMod) {
+                switch (profile.shaderMod) {
                     case "wobble": uvMod = "uv.x += sin(uv.y * 50.0 + time * 10.0) * 0.02 * intensity;"; break;
                     case "pixelate": uvMod = "if(intensity > 0.0) { float pixels = max(10.0, 100.0 - (intensity * 90.0)); uv = mix(uv, floor(uv * pixels) / pixels, smoothstep(0.0, 0.2, intensity)); }"; break;
                     case "split": isSplit = true; break;
@@ -1206,7 +1946,7 @@
                         }
                     `
                 });
-                const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad); 
+                const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial); radarScene.add(quad);
             }
 
             let clock = new THREE.Clock();
@@ -1232,11 +1972,11 @@
                             if (isTargetSpawned) {
                                 let curr = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
                                 let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
-                                
+
                                 let projVec = hiddenTarget.clone().project(camera);
                                 let isBehind = projVec.z > 1;
                                 let glowColor = activeProfile.cssColor.replace('1)', '0.4)');
-                                
+
                                 if (projVec.x < -0.8 || (isBehind && projVec.x > 0)) {
                                     document.getElementById('glow-left').style.opacity = '1'; document.getElementById('glow-right').style.opacity = '0';
                                     document.getElementById('glow-left').style.background = `linear-gradient(to right, ${glowColor}, transparent)`;
@@ -1247,43 +1987,43 @@
                                     document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                                 }
 
-                                if (dist < 0.4) { 
-                                    let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3; 
-                                    reticle.material.color.setHex(activeProfile.colorHex); 
-                                    reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1); 
-                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor; 
-                                    canExtract = true; 
-                                } 
-                                else if (dist < 1.2) { 
-                                    let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15; 
-                                    reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1); 
-                                    document.getElementById('xr-ui').innerText = "The resonance is fading..."; document.getElementById('xr-ui').style.color = "#b19cd9"; 
-                                    canExtract = false; 
-                                } 
-                                else { 
-                                    let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05; 
-                                    reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(slowPulse, slowPulse, 1); 
-                                    document.getElementById('xr-ui').innerText = "The echo is distorted..."; document.getElementById('xr-ui').style.color = "#ff6b6b"; 
-                                    canExtract = false; 
+                                if (dist < 0.4) {
+                                    let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
+                                    reticle.material.color.setHex(activeProfile.colorHex);
+                                    reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
+                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
+                                    canExtract = true;
+                                }
+                                else if (dist < 1.2) {
+                                    let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15;
+                                    reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
+                                    document.getElementById('xr-ui').innerText = "The resonance is fading..."; document.getElementById('xr-ui').style.color = "#b19cd9";
+                                    canExtract = false;
+                                }
+                                else {
+                                    let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05;
+                                    reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(slowPulse, slowPulse, 1);
+                                    document.getElementById('xr-ui').innerText = "The echo is distorted..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
+                                    canExtract = false;
                                 }
                             }
-                        } else { 
-                            reticle.visible = false; 
+                        } else {
+                            reticle.visible = false;
                             document.getElementById('xr-ui').innerText = "Seek the resonance around you...";
                             document.getElementById('xr-ui').style.color = "var(--text-title)";
                             document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
                         }
                     }
                 }
-                scene.traverse((obj) => { 
-                    if (obj.name === 'artifact') { 
-                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005; 
-                        if(obj.children[0]) {
-                            obj.children[0].rotation.y += 0.01; 
+                scene.traverse((obj) => {
+                    if (obj.name === 'artifact') {
+                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
+                        if (obj.children[0]) {
+                            obj.children[0].rotation.y += 0.01;
                             obj.children[0].rotation.x += 0.005;
                         }
-                    } 
-                }); 
+                    }
+                });
                 renderer.render(scene, camera);
             }
 
@@ -1291,8 +2031,8 @@
                 const ctx = getAudioCtx();
                 if (!ctx || intensity <= 0 || !activeProfile) return;
                 const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'sine'; 
-                const freqs = activeProfile.audioFreqs; 
+                osc.type = 'sine';
+                const freqs = activeProfile.audioFreqs;
                 osc.frequency.value = freqs[Math.floor(Math.random() * freqs.length)];
                 osc.connect(gain); gain.connect(ctx.destination); osc.start();
                 gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.15 * intensity, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
@@ -1308,14 +2048,14 @@
             }
 
             function calculateDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180;
-                const dp = (lat2-lat1) * Math.PI/180; const dl = (lon2-lon1) * Math.PI/180;
-                const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+                const R = 6371e3; const p1 = lat1 * Math.PI / 180; const p2 = lat2 * Math.PI / 180;
+                const dp = (lat2 - lat1) * Math.PI / 180; const dl = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             }
 
         }
-        
+
         initUI3D();
     </script>
 </body>
