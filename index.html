@@ -51,7 +51,10 @@
             pointer-events: none;
         }
 
-        h1, h2, h3, .serif {
+        h1,
+        h2,
+        h3,
+        .serif {
             font-family: 'Playfair Display', serif;
             color: var(--text-title);
             font-weight: normal;
@@ -113,8 +116,13 @@
             transition: opacity 0.4s ease;
         }
 
-        #glow-left { left: 0; }
-        #glow-right { right: 0; }
+        #glow-left {
+            left: 0;
+        }
+
+        #glow-right {
+            right: 0;
+        }
 
         #radar-ui {
             position: absolute;
@@ -168,8 +176,13 @@
             opacity: 0.6;
         }
 
-        .panel-blob.b1 { animation: driftBlob1 20s linear infinite; }
-        .panel-blob.b2 { animation: driftBlob2 15s linear infinite reverse; }
+        .panel-blob.b1 {
+            animation: driftBlob1 20s linear infinite;
+        }
+
+        .panel-blob.b2 {
+            animation: driftBlob2 15s linear infinite reverse;
+        }
 
         .info-top {
             display: flex;
@@ -275,7 +288,10 @@
             margin-top: 15px;
         }
 
-        #ar-container { width: 100%; display: none; }
+        #ar-container {
+            width: 100%;
+            display: none;
+        }
 
         #ARButton {
             background: rgba(255, 255, 255, 0.05) !important;
@@ -314,93 +330,385 @@
             transition: all 0.4s ease;
         }
 
-        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT --- */
-        .fs-fiche {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: var(--bg-night) !important; z-index: 3000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            box-sizing: border-box; overflow: hidden;
+        .fade-in-seq {
+            opacity: 0;
+            animation: fadeInAnim 1.5s ease forwards;
         }
 
-        .fs-blobs-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; overflow: hidden; pointer-events: none; }
-        .fs-blob { position: absolute; filter: blur(70px); opacity: 0.7; mix-blend-mode: screen; }
-        .fs-blob.b1 { animation: driftBlob1 25s linear infinite; }
-        .fs-blob.b2 { animation: driftBlob2 20s linear infinite reverse; }
+        .delay-1 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.6s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.9s;
+        }
+
+        @keyframes fadeInAnim {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- STYLES COMMUNS POUR LA FICHE ARTEFACT --- */
+        .fs-fiche {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-night) !important;
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .fs-blobs-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .fs-blob {
+            position: absolute;
+            filter: blur(70px);
+            opacity: 0.7;
+            mix-blend-mode: screen;
+        }
+
+        .fs-blob.b1 {
+            animation: driftBlob1 25s linear infinite;
+        }
+
+        .fs-blob.b2 {
+            animation: driftBlob2 20s linear infinite reverse;
+        }
 
         @keyframes driftBlob1 {
-            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(-10%, -10%) rotate(0deg) scale(1); }
-            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: translate(20%, 15%) rotate(120deg) scale(1.3); }
-            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: translate(-15%, 20%) rotate(240deg) scale(0.9); }
-            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(-10%, -10%) rotate(360deg) scale(1); }
+            0% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(-10%, -10%) rotate(0deg) scale(1);
+            }
+
+            33% {
+                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+                transform: translate(20%, 15%) rotate(120deg) scale(1.3);
+            }
+
+            66% {
+                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
+                transform: translate(-15%, 20%) rotate(240deg) scale(0.9);
+            }
+
+            100% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(-10%, -10%) rotate(360deg) scale(1);
+            }
         }
 
         @keyframes driftBlob2 {
-            0% { border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%; transform: translate(10%, 10%) rotate(0deg) scale(1); }
-            33% { border-radius: 30% 70% 70% 30% / 50% 40% 60% 50%; transform: translate(-20%, -15%) rotate(120deg) scale(1.4); }
-            66% { border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%; transform: translate(15%, -20%) rotate(240deg) scale(0.8); }
-            100% { border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%; transform: translate(10%, 10%) rotate(360deg) scale(1); }
+            0% {
+                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
+                transform: translate(10%, 10%) rotate(0deg) scale(1);
+            }
+
+            33% {
+                border-radius: 30% 70% 70% 30% / 50% 40% 60% 50%;
+                transform: translate(-20%, -15%) rotate(120deg) scale(1.4);
+            }
+
+            66% {
+                border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%;
+                transform: translate(15%, -20%) rotate(240deg) scale(0.8);
+            }
+
+            100% {
+                border-radius: 60% 40% 30% 70% / 60% 50% 40% 50%;
+                transform: translate(10%, 10%) rotate(360deg) scale(1);
+            }
         }
 
-        .fs-content { position: relative; z-index: 2; width: 85%; max-width: 380px; display: flex; flex-direction: column; align-items: center; }
-        .artifact-3d-canvas { width: 250px; height: 250px; margin: 0 auto 10px auto; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5)); }
-        .fs-content h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 15px 0; color: #fff; text-align: center; }
-        .fs-content .artifact-lore { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.95rem; color: rgba(255, 255, 255, 0.9); text-align: center; line-height: 1.6; margin-bottom: 25px; text-wrap: balance; }
-        
-        .clean-divider { border: none; border-top: 1px solid rgba(255, 255, 255, 0.4); width: 100%; margin: 0 0 20px 0; }
-        .clean-stats { width: 100%; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; letter-spacing: 2px; }
-        .clean-stats p { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        .clean-stats .lbl { opacity: 0.7; text-transform: uppercase; font-weight: 400; }
-        .clean-stats .val { font-weight: 300; color: #fff; letter-spacing: 1px; }
-        .clean-stats .val.resonance { font-family: 'Montserrat', sans-serif; font-weight: 400; letter-spacing: 4px; color: var(--accent-pure); text-transform: uppercase; }
+        .fs-content {
+            position: relative;
+            z-index: 2;
+            width: 85%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-        .clean-btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; width: 100%; }
-        .clean-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 30px; color: #fff; height: 50px; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
-        .clean-btn:active { background: rgba(255, 255, 255, 0.1); }
+        .artifact-3d-canvas {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 10px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
+        }
+
+        .fs-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0 0 15px 0;
+            color: #fff;
+            text-align: center;
+        }
+
+        .fs-content .artifact-lore {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-wrap: balance;
+        }
+
+        .clean-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            width: 100%;
+            margin: 0 0 20px 0;
+        }
+
+        .clean-stats {
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
+        .clean-stats p {
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clean-stats .lbl {
+            opacity: 0.7;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+
+        .clean-stats .val {
+            font-weight: 300;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .clean-stats .val.resonance {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--accent-pure);
+            text-transform: uppercase;
+        }
+
+        .clean-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .clean-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            color: #fff;
+            height: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .clean-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
         /* --- THE SANCTUARY (CARTE V5 RÉTABLIE) --- */
         #sanctuary-ui {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0b0d14; z-index: 5000;
-            display: none; flex-direction: column; padding: 50px 0 20px 0; box-sizing: border-box; overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0b0d14;
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+            padding: 50px 0 20px 0;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
-        .sanctuary-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; padding: 0 20px; }
-        .sanctuary-header h2 { font-family: 'Montserrat', sans-serif; font-weight: 300; margin: 0; letter-spacing: 6px; font-size: 1.2rem; color: #fff; text-transform: uppercase; }
-        .sanctuary-header p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 5px; }
+        .sanctuary-header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+            padding: 0 20px;
+        }
+
+        .sanctuary-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            margin: 0;
+            letter-spacing: 6px;
+            font-size: 1.2rem;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .sanctuary-header p {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
 
         /* Map Container Standard */
-        .map-wrapper { padding: 0 20px; margin-bottom: 20px; flex-shrink: 0; }
-        #memory-map { width: 100%; height: 180px; border-radius: 15px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--glass-border); z-index: 1; display: none; overflow: hidden; }
-        .leaflet-control-attribution { display: none !important; }
+        .map-wrapper {
+            padding: 0 20px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        #memory-map {
+            width: 100%;
+            height: 180px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            z-index: 1;
+            display: none;
+            overflow: hidden;
+        }
+
+        .leaflet-control-attribution {
+            display: none !important;
+        }
 
         /* Nœuds et Constellation */
-        .pulsing-node { width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; z-index: 500; }
-        .artifact-core { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 10; }
-        .artifact-halo { position: absolute; width: 12px; height: 12px; border-radius: 50%; opacity: 0.8; animation: pulseHalo 2s infinite ease-out; }
+        .pulsing-node {
+            width: 12px;
+            height: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+        }
+
+        .artifact-core {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .artifact-halo {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: pulseHalo 2s infinite ease-out;
+        }
 
         @keyframes pulseHalo {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(2.5); opacity: 0; }
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(2.5);
+                opacity: 0;
+            }
         }
 
-        .constellation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
-        .star { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin: 0 4px; transition: all 1s; }
-        .star-link { height: 1px; width: 12px; background: var(--glass-border); transition: background 1s; }
+        .constellation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .star {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--glass-border);
+            margin: 0 4px;
+            transition: all 1s;
+        }
+
+        .star-link {
+            height: 1px;
+            width: 12px;
+            background: var(--glass-border);
+            transition: background 1s;
+        }
 
         .final-revelation {
-            font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase;
-            text-align: center; margin-bottom: 30px; padding: 0 20px; font-style: normal; animation: fadeInAnim 3s forwards;
-            text-wrap: balance; color: var(--text-title); text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            font-style: normal;
+            animation: fadeInAnim 3s forwards;
+            text-wrap: balance;
+            color: var(--text-title);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
-        /* --- NOUVELLE ARCHITECTURE CARROUSEL : LE "WRAPPER" --- */
+        /* --- CARROUSEL COVERFLOW STACKÉ --- */
         .sanctuary-list {
             position: relative;
+            /* Référence absolue pour les calculs JS */
             flex: 1 1 auto;
             display: flex;
             flex-direction: row;
+            gap: 0px;
+            /* Les cartes sont gérées par translateX */
             overflow-x: auto;
             overflow-y: hidden;
-            /* La boîte physique (wrapper) fait 140px. Le centre est à 70px du bord. */
+            /* 110px = moitié de la largeur d'une carte (220/2). On soustrait les margins CSS du JS plus loin */
             padding: 20px calc(50vw - 70px);
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
@@ -408,10 +716,10 @@
             scroll-behavior: smooth;
         }
 
-        .sanctuary-list::-webkit-scrollbar { display: none; }
+        .sanctuary-list::-webkit-scrollbar {
+            display: none;
+        }
 
-        /* Le wrapper est purement structurel. Il est statique. 
-           C'est LUI que le navigateur utilise pour l'aimantation (scroll-snap), c'est parfait. */
         .slot-wrapper {
             position: relative;
             width: 140px; 
@@ -423,9 +731,8 @@
             align-items: center;
         }
 
-        /* La carte visuelle. Elle déborde du wrapper (220px) et subit les rotations JS */
         .fragment-slot {
-            position: absolute; /* Détachement du flux physique */
+            position: absolute;
             display: flex;
             flex-direction: column;
             width: 220px;
@@ -435,7 +742,6 @@
             border-radius: 20px;
             overflow: hidden;
             backdrop-filter: blur(15px);
-            /* Plus de margin négatif, plus de snap-align ici. */
             transition: box-shadow 0.3s ease;
             will-change: transform, opacity, z-index;
         }
@@ -445,73 +751,244 @@
         }
 
         .slot-content {
-            position: relative; z-index: 2; padding: 30px 20px; display: flex; flex-direction: column;
-            align-items: center; justify-content: space-between; height: 100%; box-sizing: border-box; text-align: center;
+            position: relative;
+            z-index: 2;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            box-sizing: border-box;
+            text-align: center;
         }
 
         @keyframes morphCardBlob {
-            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1) translate(0, 0); }
-            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(120deg) scale(1.3) translate(10%, -10%); }
-            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(240deg) scale(0.8) translate(-10%, 15%); }
-            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(360deg) scale(1) translate(0, 0); }
+            0% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: rotate(0deg) scale(1) translate(0, 0);
+            }
+
+            33% {
+                border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+                transform: rotate(120deg) scale(1.3) translate(10%, -10%);
+            }
+
+            66% {
+                border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
+                transform: rotate(240deg) scale(0.8) translate(-10%, 15%);
+            }
+
+            100% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: rotate(360deg) scale(1) translate(0, 0);
+            }
         }
 
         .card-blob {
-            position: absolute; width: 150%; height: 150%; filter: blur(45px); opacity: 0.6; z-index: 0;
-            animation: morphCardBlob 12s linear infinite; mix-blend-mode: screen;
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            filter: blur(45px);
+            opacity: 0.6;
+            z-index: 0;
+            animation: morphCardBlob 12s linear infinite;
+            mix-blend-mode: screen;
         }
 
-        .fragment-slot:not(.found) { background: rgba(18, 20, 28, 0.3); border: 1px dashed rgba(255, 255, 255, 0.05); }
-        .clickable-slot { cursor: pointer; }
+        .fragment-slot:not(.found) {
+            background: rgba(18, 20, 28, 0.3);
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+        }
 
-        .slot-content .slot-title { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; margin-bottom: auto; }
-        .slot-content .slot-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 400; opacity: 0.3; text-transform: uppercase; margin-top: auto; margin-bottom: 10px; line-height: 1.1; }
-        .fragment-slot.found .slot-name { opacity: 1; color: var(--text-title); }
-        .slot-content .slot-word { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; text-align: center; opacity: 0; }
+        .clickable-slot {
+            cursor: pointer;
+        }
 
-        /* --- ANIMATION DE RÉVÉLATION --- */
+        .slot-content .slot-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-bottom: auto;
+        }
+
+        .slot-content .slot-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            opacity: 0.3;
+            text-transform: uppercase;
+            margin-top: auto;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+
+        .fragment-slot.found .slot-name {
+            opacity: 1;
+            color: var(--text-title);
+        }
+
+        .slot-content .slot-word {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-align: center;
+            opacity: 0;
+        }
+
+        /* --- ANIMATION DE RÉVÉLATION (NOUVELLE CARTE TROUVÉE) --- */
         .fragment-slot.just-found .card-blob {
             animation: revealBlob 1.5s cubic-bezier(0.1, 0.8, 0.2, 1) forwards, morphCardBlob 12s linear infinite 1.5s;
-            opacity: 0; transform: scale(0);
+            opacity: 0;
+            transform: scale(0);
         }
+
         @keyframes revealBlob {
             0% { opacity: 0; transform: scale(0); filter: blur(10px) brightness(3); }
             100% { opacity: 0.6; transform: scale(1); filter: blur(45px) brightness(1); }
         }
 
-        .fragment-slot.just-found .slot-name { opacity: 0; animation: revealText 1s ease-out 1.2s forwards; }
+        .fragment-slot.just-found .slot-name {
+            opacity: 0;
+            animation: revealText 1s ease-out 1.2s forwards;
+        }
+
         @keyframes revealText {
             0% { opacity: 0; transform: translateY(10px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        .fragment-slot.just-found .slot-word { opacity: 0 !important; animation: revealWord 1.5s ease-out 1.8s forwards; }
+        .fragment-slot.just-found .slot-word {
+            opacity: 0 !important;
+            animation: revealWord 1.5s ease-out 1.8s forwards;
+        }
+
         @keyframes revealWord {
             0% { opacity: 0; text-shadow: 0 0 30px currentColor; filter: brightness(2); transform: scale(1.1); }
             100% { opacity: 1; text-shadow: 0 0 0px transparent; filter: brightness(1); transform: scale(1); }
         }
 
-        .sanctuary-footer { flex-shrink: 0; margin-top: 10px; padding: 0 20px env(safe-area-inset-bottom, 10px) 20px; }
-        #btn-back-radar { border-color: transparent; }
-        #btn-reset { border-color: transparent; opacity: 0.5; font-size: 0.6rem; margin-top: 10px; }
-
-        /* --- DIVERS --- */
-        #flash-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fff; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-out; }
-        #apotheosis-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-night); z-index: 9999999; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 2s ease-in-out; }
-        
-        .apo-word {
-            font-family: 'Montserrat', sans-serif; font-weight: 400; font-style: normal; font-size: 2.5rem; letter-spacing: 8px; opacity: 0; position: absolute; text-transform: uppercase; transition: opacity 1.5s ease-in-out, transform 3s ease-out; transform: scale(0.8); text-align: center;
+        .sanctuary-footer {
+            flex-shrink: 0;
+            margin-top: 10px;
+            padding: 0 20px env(safe-area-inset-bottom, 10px) 20px;
         }
 
-        .apo-word.show { opacity: 1; transform: scale(1.1); text-shadow: 0 0 30px currentColor; }
-        #review-ui { z-index: 6000; }
+        #btn-back-radar {
+            border-color: transparent;
+        }
+
+        #btn-reset {
+            border-color: transparent;
+            opacity: 0.5;
+            font-size: 0.6rem;
+            margin-top: 10px;
+        }
+
+        /* --- DIVERS --- */
+        #flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #fff;
+            z-index: 8000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease-out;
+        }
+
+        #apotheosis-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-night);
+            z-index: 9999999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+
+        .apo-word {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 2.5rem;
+            letter-spacing: 8px;
+            opacity: 0;
+            position: absolute;
+            text-transform: uppercase;
+            transition: opacity 1.5s ease-in-out, transform 3s ease-out;
+            transform: scale(0.8);
+            text-align: center;
+        }
+
+        .apo-word.show {
+            opacity: 1;
+            transform: scale(1.1);
+            text-shadow: 0 0 30px currentColor;
+        }
+
+        #review-ui {
+            z-index: 6000;
+        }
 
         /* --- ONBOARDING CLEAN --- */
-        #onboarding-ui { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 8000; display: none; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1.5s ease; background: var(--bg-night); }
-        .ob-content { position: relative; z-index: 2; width: 85%; max-width: 380px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .ob-text { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 400; line-height: 1.6; color: #fff; opacity: 0; transition: opacity 1.5s ease-in-out; text-wrap: balance; margin-bottom: 40px; }
-        .ob-btn { opacity: 0; display: none; width: 100%; transition: opacity 1s ease; }
+        #onboarding-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 8000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1.5s ease;
+            background: var(--bg-night);
+        }
 
+        .ob-content {
+            position: relative;
+            z-index: 2;
+            width: 85%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .ob-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            text-wrap: balance;
+            margin-bottom: 40px;
+        }
+
+        .ob-btn {
+            opacity: 0;
+            display: none;
+            width: 100%;
+            transition: opacity 1s ease;
+        }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -533,8 +1010,10 @@
 
     <div id="review-ui" class="fs-fiche">
         <div class="fs-blobs-container">
-            <div id="review-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;"></div>
-            <div id="review-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
+            <div id="review-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;">
+            </div>
+            <div id="review-bg-blob2" class="fs-blob b2"
+                style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
         </div>
         <div class="fs-content">
             <div id="review-3d-container" class="artifact-3d-canvas"></div>
@@ -555,7 +1034,8 @@
     <div id="artifact-ui" class="fs-fiche">
         <div class="fs-blobs-container">
             <div id="ui-bg-blob1" class="fs-blob b1" style="width: 140vw; height: 140vw; top: -20%; left: -20%;"></div>
-            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;"></div>
+            <div id="ui-bg-blob2" class="fs-blob b2" style="width: 140vw; height: 140vw; bottom: -20%; right: -20%;">
+            </div>
         </div>
         <div class="fs-content">
             <div id="ui-3d-container" class="artifact-3d-canvas fade-in-seq"></div>
@@ -582,8 +1062,10 @@
     <div id="radar-ui">
         <div class="info-box glass-panel" id="main-panel">
             <div class="panel-blobs">
-                <div id="panel-blob1" class="panel-blob b1" style="width: 250px; height: 250px; top: -50px; left: -50px;"></div>
-                <div id="panel-blob2" class="panel-blob b2" style="width: 250px; height: 250px; bottom: -50px; right: -50px;"></div>
+                <div id="panel-blob1" class="panel-blob b1"
+                    style="width: 250px; height: 250px; top: -50px; left: -50px;"></div>
+                <div id="panel-blob2" class="panel-blob b2"
+                    style="width: 250px; height: 250px; bottom: -50px; right: -50px;"></div>
             </div>
 
             <div class="info-top">
@@ -617,8 +1099,11 @@
         <div class="sanctuary-list" id="sanctuary-list"></div>
 
         <div class="sanctuary-footer">
-            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">CLOSE YOUR EYES (RETURN)</button>
-            <button id="btn-reset" class="clean-btn" style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">SEVER THE LINK (RESTART)</button>
+            <button id="btn-back-radar" class="clean-btn" style="border-color:transparent;">CLOSE YOUR EYES
+                (RETURN)</button>
+            <button id="btn-reset" class="clean-btn"
+                style="display:none; border-color:transparent; opacity:0.5; font-size:0.6rem;">SEVER THE LINK
+                (RESTART)</button>
         </div>
     </div>
 
@@ -701,7 +1186,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         let isSanctuaryView = urlParams.get('view') === 'sanctuary';
         
-        // RECUPERATION DU PARAMETRE NEW SHARD
         let newShardId = urlParams.get('newShard'); 
 
         function pickRandomUnfound() {
@@ -918,7 +1402,6 @@
             ARTIFACTS_DATA.forEach((profile, index) => {
                 const isFound = gameState.foundNodes.find(n => n.id === index) !== undefined;
                 
-                // --- AJOUT DE L'ARCHITECTURE WRAPPER ---
                 const wrapper = document.createElement('div');
                 wrapper.className = 'slot-wrapper';
 
@@ -939,7 +1422,6 @@
 
                     slot.addEventListener('click', () => {
                         if (!slot.classList.contains('active-card')) {
-                            // Calcul du décalage pour scroller de manière fluide vers le wrapper
                             const targetLeft = wrapper.offsetLeft - listContainer.clientWidth / 2 + wrapper.offsetWidth / 2;
                             listContainer.scrollTo({ left: targetLeft, behavior: 'smooth' });
                             return;
@@ -979,7 +1461,6 @@
                 listContainer.appendChild(wrapper);
             });
 
-            // --- NOUVEAU MOTEUR DE SCROLL (BASÉ SUR LE WRAPPER STATIQUE) ---
             const wrappers = listContainer.querySelectorAll('.slot-wrapper');
 
             function updateActiveCard() {
@@ -987,12 +1468,15 @@
 
                 wrappers.forEach((wrapper) => {
                     const slot = wrapper.querySelector('.fragment-slot');
-                    // offsetLeft sur le wrapper est hyper stable car il ne subit aucun transform !
                     const wrapperCenter = wrapper.offsetLeft + wrapper.offsetWidth / 2;
                     const distance = wrapperCenter - containerCenter;
                     
-                    const step = wrapper.offsetWidth; // 140px
-                    const normalizedDistance = distance / step;
+                    const step = wrapper.offsetWidth; 
+                    let normalizedDistance = distance / step;
+                    
+                    if(normalizedDistance > 3) normalizedDistance = 3;
+                    if(normalizedDistance < -3) normalizedDistance = -3;
+
                     const absOffset = Math.abs(normalizedDistance);
 
                     let scale = 1 - absOffset * 0.15;
@@ -1002,7 +1486,7 @@
                     if (rotateY > 60) rotateY = 60;
                     if (rotateY < -60) rotateY = -60;
 
-                    let translateX = normalizedDistance * -20; // Léger effet Coverflow
+                    let translateX = normalizedDistance * -20; 
 
                     let zIndex = Math.round(100 - absOffset * 10);
                     let opacity = Math.max(1 - (absOffset * 0.5), 0.2);
@@ -1025,7 +1509,6 @@
             listContainer.addEventListener('scroll', updateActiveCard);
             setTimeout(updateActiveCard, 100);
 
-            // --- AUTO-SCROLL POUR LA NOUVELLE CARTE TROUVÉE ---
             if (newShardId !== null) {
                 setTimeout(() => {
                     const targetWrapper = wrappers[parseInt(newShardId)];
@@ -1033,7 +1516,7 @@
                         const targetLeft = targetWrapper.offsetLeft - listContainer.clientWidth / 2 + targetWrapper.offsetWidth / 2;
                         listContainer.scrollTo({ left: targetLeft, behavior: 'smooth' });
                     }
-                }, 1200); // Laisse le temps au voile noir de la transition de disparaître
+                }, 1200); 
             }
         }
 
@@ -1072,10 +1555,12 @@
             let destUrl = window.location.pathname + '?view=sanctuary';
             if (window.lastFoundShardId !== undefined) {
                 destUrl += '&newShard=' + window.lastFoundShardId;
-                window.lastFoundShardId = undefined; // On purge après utilisation
+                window.lastFoundShardId = undefined; 
             }
             navigateTo(destUrl); 
         });
+
+        let dataStorm; // Variable globale pour le Data Storm AR
 
         if (!isSanctuaryView && gameState.foundNodes.length < 7) {
             let targetLat = null, targetLon = null, startLat = null, startLon = null;
@@ -1104,6 +1589,31 @@
 
             function initXR() {
                 scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+                // --- AJOUT DU DATA STORM ---
+                const particleCount = 800;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(particleCount * 3);
+                for (let i = 0; i < particleCount; i++) {
+                    const r = 1.5 + Math.random() * 6; // Entre 1.5m et 7.5m de distance
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+                    positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                    positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                    positions[i * 3 + 2] = r * Math.cos(phi);
+                }
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const material = new THREE.PointsMaterial({
+                    size: 0.05,
+                    color: activeProfile.colorHex,
+                    transparent: true,
+                    opacity: 0.6,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+                dataStorm = new THREE.Points(geometry, material);
+                scene.add(dataStorm);
+                // -----------------------------
 
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); renderer.xr.enabled = true;
                 document.body.appendChild(renderer.domElement);
@@ -1180,7 +1690,6 @@
 
                             attachUI3D('ui-3d-container', activeProfile);
 
-                            // SAUVEGARDE DE L'ID POUR L'ANIMATION DU CARNET
                             window.lastFoundShardId = activeProfile.id;
 
                             document.getElementById('artifact-ui').style.display = 'flex';
@@ -1192,7 +1701,87 @@
 
                 reticle = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.09, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
                 reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
-                renderer.setAnimationLoop(renderXR);
+                
+                renderer.setAnimationLoop((timestamp, frame) => {
+                    // --- ANIMATION DATA STORM ---
+                    if (dataStorm) {
+                        dataStorm.rotation.y = timestamp * 0.0001;
+                        dataStorm.rotation.x = timestamp * 0.00005;
+                    }
+                    
+                    if (frame) {
+                        const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
+                        if (!hitTestSourceRequested) {
+                            session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
+                            session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
+                            hitTestSourceRequested = true;
+                        }
+                        if (hitTestSource && xrState === 'search') {
+                            const results = frame.getHitTestResults(hitTestSource);
+                            if (results.length > 0) {
+                                reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
+                                if (!isTargetSpawned) {
+                                    let pos = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
+                                    hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
+                                    isTargetSpawned = true;
+                                }
+                                if (isTargetSpawned) {
+                                    let curr = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
+                                    let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
+
+                                    let projVec = hiddenTarget.clone().project(camera);
+                                    let isBehind = projVec.z > 1;
+                                    let glowColor = activeProfile.cssColor.replace('1)', '0.4)');
+
+                                    if (projVec.x < -0.8 || (isBehind && projVec.x > 0)) {
+                                        document.getElementById('glow-left').style.opacity = '1'; document.getElementById('glow-right').style.opacity = '0';
+                                        document.getElementById('glow-left').style.background = `linear-gradient(to right, ${glowColor}, transparent)`;
+                                    } else if (projVec.x > 0.8 || (isBehind && projVec.x < 0)) {
+                                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '1';
+                                        document.getElementById('glow-right').style.background = `linear-gradient(to left, ${glowColor}, transparent)`;
+                                    } else {
+                                        document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
+                                    }
+
+                                    if (dist < 0.4) {
+                                        let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
+                                        reticle.material.color.setHex(activeProfile.colorHex);
+                                        reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
+                                        document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
+                                        canExtract = true;
+                                    }
+                                    else if (dist < 1.2) {
+                                        let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15;
+                                        reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
+                                        document.getElementById('xr-ui').innerText = "The resonance is fading..."; document.getElementById('xr-ui').style.color = "#b19cd9";
+                                        canExtract = false;
+                                    }
+                                    else {
+                                        let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05;
+                                        reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(slowPulse, slowPulse, 1);
+                                        document.getElementById('xr-ui').innerText = "The echo is distorted..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
+                                        canExtract = false;
+                                    }
+                                }
+                            } else {
+                                reticle.visible = false;
+                                document.getElementById('xr-ui').innerText = "Seek the resonance around you...";
+                                document.getElementById('xr-ui').style.color = "var(--text-title)";
+                                document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
+                            }
+                        }
+                    }
+                    scene.traverse((obj) => {
+                        if (obj.name === 'artifact') {
+                            obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
+                            if (obj.children[0]) {
+                                obj.children[0].rotation.y += 0.01;
+                                obj.children[0].rotation.x += 0.005;
+                            }
+                        }
+                    });
+                    renderer.render(scene, camera);
+                });
             }
 
             function setActiveProfile(profile) {
@@ -1213,6 +1802,11 @@
                     coreMesh.geometry = getGeometry(profile.shape);
                     arHoloUniforms.color1.value.copy(profile.color1);
                     arHoloUniforms.color2.value.copy(profile.color2);
+                }
+                
+                // METTRE À JOUR LA COULEUR DU DATA STORM SI DÉJÀ INITIALISÉ
+                if (typeof dataStorm !== 'undefined' && dataStorm) {
+                    dataStorm.material.color.setHex(profile.colorHex);
                 }
             }
 
@@ -1468,81 +2062,6 @@
 
             let clock = new THREE.Clock();
             function renderRadar() { if (radarRenderer && shaderMaterial) { requestAnimationFrame(renderRadar); shaderMaterial.uniforms.time.value = clock.getElapsedTime(); radarRenderer.render(radarScene, radarCamera); } }
-
-            function renderXR(timestamp, frame) {
-                if (frame) {
-                    const refSpace = renderer.xr.getReferenceSpace(); const session = renderer.xr.getSession();
-                    if (!hitTestSourceRequested) {
-                        session.requestReferenceSpace('viewer').then((ref) => { session.requestHitTestSource({ space: ref }).then((src) => hitTestSource = src); });
-                        session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; location.reload(); });
-                        hitTestSourceRequested = true;
-                    }
-                    if (hitTestSource && xrState === 'search') {
-                        const results = frame.getHitTestResults(hitTestSource);
-                        if (results.length > 0) {
-                            reticle.visible = true; reticle.matrix.fromArray(results[0].getPose(refSpace).transform.matrix);
-                            if (!isTargetSpawned) {
-                                let pos = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
-                                hiddenTarget.x = pos.x + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()); hiddenTarget.y = pos.y; hiddenTarget.z = pos.z + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
-                                isTargetSpawned = true;
-                            }
-                            if (isTargetSpawned) {
-                                let curr = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
-                                let dist = Math.sqrt(Math.pow(curr.x - hiddenTarget.x, 2) + Math.pow(curr.z - hiddenTarget.z, 2));
-
-                                let projVec = hiddenTarget.clone().project(camera);
-                                let isBehind = projVec.z > 1;
-                                let glowColor = activeProfile.cssColor.replace('1)', '0.4)');
-
-                                if (projVec.x < -0.8 || (isBehind && projVec.x > 0)) {
-                                    document.getElementById('glow-left').style.opacity = '1'; document.getElementById('glow-right').style.opacity = '0';
-                                    document.getElementById('glow-left').style.background = `linear-gradient(to right, ${glowColor}, transparent)`;
-                                } else if (projVec.x > 0.8 || (isBehind && projVec.x < 0)) {
-                                    document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '1';
-                                    document.getElementById('glow-right').style.background = `linear-gradient(to left, ${glowColor}, transparent)`;
-                                } else {
-                                    document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
-                                }
-
-                                if (dist < 0.4) {
-                                    let fastPulse = 1.0 + Math.sin(timestamp * 0.01) * 0.3;
-                                    reticle.material.color.setHex(activeProfile.colorHex);
-                                    reticle.material.opacity = 0.9; reticle.scale.set(fastPulse * 1.5, fastPulse * 1.5, 1);
-                                    document.getElementById('xr-ui').innerText = "The source is pure. Touch it."; document.getElementById('xr-ui').style.color = activeProfile.cssColor;
-                                    canExtract = true;
-                                }
-                                else if (dist < 1.2) {
-                                    let midPulse = 1.0 + Math.sin(timestamp * 0.006) * 0.15;
-                                    reticle.material.color.setHex(0xb19cd9); reticle.material.opacity = 0.7; reticle.scale.set(midPulse * 1.2, midPulse * 1.2, 1);
-                                    document.getElementById('xr-ui').innerText = "The resonance is fading..."; document.getElementById('xr-ui').style.color = "#b19cd9";
-                                    canExtract = false;
-                                }
-                                else {
-                                    let slowPulse = 1.0 + Math.sin(timestamp * 0.003) * 0.05;
-                                    reticle.material.color.setHex(0xff6b6b); reticle.material.opacity = 0.4; reticle.scale.set(slowPulse, slowPulse, 1);
-                                    document.getElementById('xr-ui').innerText = "The echo is distorted..."; document.getElementById('xr-ui').style.color = "#ff6b6b";
-                                    canExtract = false;
-                                }
-                            }
-                        } else {
-                            reticle.visible = false;
-                            document.getElementById('xr-ui').innerText = "Seek the resonance around you...";
-                            document.getElementById('xr-ui').style.color = "var(--text-title)";
-                            document.getElementById('glow-left').style.opacity = '0'; document.getElementById('glow-right').style.opacity = '0';
-                        }
-                    }
-                }
-                scene.traverse((obj) => {
-                    if (obj.name === 'artifact') {
-                        obj.position.y += Math.sin(timestamp * 0.002) * 0.0005;
-                        if (obj.children[0]) {
-                            obj.children[0].rotation.y += 0.01;
-                            obj.children[0].rotation.x += 0.005;
-                        }
-                    }
-                });
-                renderer.render(scene, camera);
-            }
 
             function playGlitchPop(intensity) {
                 const ctx = getAudioCtx();
